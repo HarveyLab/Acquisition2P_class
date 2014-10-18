@@ -37,6 +37,7 @@ for nMovie = movNums
     fprintf('Processing movie %03.0f of %03.0f. Last Movie took %3f to Process\n',find(movNums==nMovie),length(movNums),toc),
     %Read movie, bin temporally using reshape and sum, and center data
     mov = readCor(obj,nMovie,'single');
+    mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
     movSize = size(mov);
     mov = squeeze(sum(reshape(mov,movSize(1)*movSize(2),temporalBin,movSize(3)/temporalBin),2));
     mov = bsxfun(@minus,mov,mean(mov,2));
