@@ -30,7 +30,7 @@ end
 %% Loop over movies to get covariance matrix
 tic,
 for nMovie = movNums
-    fprintf('Processing movie %03.0f of %03.0f. Last Movie took %3f to Process\n',find(movNums==nMovie),length(movNums),toc),
+    fprintf('Processing movie %03.0f of %03.0f. Last Movie took %1.0f s to process.\n',find(movNums==nMovie),length(movNums),toc),
     %Read movie, bin temporally using reshape and sum, and center data
     mov = readCor(obj,nMovie,'single');
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
@@ -68,7 +68,7 @@ for nMovie = movNums
 end
 
 %Correct covariance by number of movies
-seedCov = seedCov / length(movNums);
+% seedCov = seedCov / length(movNums);
 
 %% Write results to disk
 display('-----------------Saving Results-----------------')
