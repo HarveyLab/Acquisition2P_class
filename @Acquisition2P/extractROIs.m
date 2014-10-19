@@ -1,4 +1,4 @@
-function [traces,roiList] = extractROIs(obj,roiGroups,movNums,sliceNum,channelNum,doSubtraction)
+function [traces,rawF,roiList] = extractROIs(obj,roiGroups,movNums,sliceNum,channelNum)
 
 % Function for extracting ROIs from movies. Takes in grouping numbers and
 % movies, defaults to all groups and all movies. Operates on tif files to
@@ -18,9 +18,6 @@ end
 if ~exist('roiGroups','var') || isempty(roiGroups)
     roiGroups = 1:9;
 end
-if ~exist('doSubtraction','var') || isempty(doSubtraction)
-    doSubtraction = 1;
-end
 
 %% ROI Extraction
 
@@ -35,14 +32,17 @@ mov = reshape(movMap.data,imSize(1)*imSize(2),[]);
 
 %Construct matrix of ROI values
 traces = [];
+rawF = [];
 for nROI = 1:length(roiList)
     fprintf('Extracting ROI %03.0f of %03.0f\n',nROI,length(roiList)),
-    if doSubtraction && ~isempty(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil)
+    if ~isempty(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil)
         subCoef = obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).subCoef;
         traces(nROI,:) = mean(mov(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indBody,:)) - ...
         mean(mov(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil,:))*subCoef;
+        rawF(nROI,:) = mean(mov(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indBody,:));
     else
         traces(nROI,:) = mean(mov(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indBody,:));
+        rawF(nROI,:) = traces(nROI,:);
     end
 end
 

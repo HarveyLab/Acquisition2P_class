@@ -287,7 +287,7 @@ switch evt.Key
             
             %Extract subtractive coefficient btw cell + neuropil and plot
             %cellInd = cellBody<median(cellBody);
-            cellInd = cellBody<median(cellBody)+mad(cellBody)*1; %& cellNeuropil<prctile(cellNeuropil,90);
+            cellInd = cellBody<median(cellBody)+mad(cellBody)*2; %& cellNeuropil<prctile(cellNeuropil,90);
             %cellInd = ones(length(cellNeuropil),1);
             gui.neuropilCoef = robustfit(cellNeuropil(cellInd)-median(cellNeuropil),cellBody(cellInd)-median(cellBody),...
                 'bisquare',4);
