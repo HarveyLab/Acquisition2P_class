@@ -256,13 +256,7 @@ switch evt.Key
             dF(i,:) = conv(dF(i,:)-1,gausswin(gui.smoothWindow)/sum(gausswin(gui.smoothWindow)),'same');
         end
         figure(786),
-        col = jet(size(dF,1));
-        plot(dF(1,:),'linewidth',1,'color','b'),
-        hold on,
-        for i=2:size(dF,1),
-            plot(dF(i,:),'linewidth',1,'color',col(i,:)),
-        end
-        hold off,
+        plot(dF')
         gui.roiTitle = title(gui.hAxROI, 'This trace loaded');
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
