@@ -121,7 +121,7 @@ function cbMouseclick(obj, ~)
 %and select ROIs
 
 gui = get(obj, 'userdata');
-displayWidth = gui.covFile.radiusPxCov+1;
+displayWidth = ceil(gui.covFile.radiusPxCov+2);
 
 %Get current click location
 clickCoord = get(gui.hAxRef, 'currentpoint');
@@ -193,6 +193,24 @@ function cbKeypress(obj, evt)
 gui = get(obj, 'userdata');
 
 switch evt.Key
+    case 'm'
+        set(gui.hFig, 'WindowButtonDownFcn', []),
+        gui.roiTitle = title(gui.hAxROI, 'Drawing Manual ROI');
+        if isfield(gui,'manualPoly') && isvalid(gui.manualPoly)
+            delete(gui.manualPoly)
+        end
+        gui.manualPoly = impoly(gui.hAxRef);
+        set(gui.hFig, 'WindowButtonDownFcn', @cbMouseclick),
+        naiveMask = createMask(gui.manualPoly);
+        gui.allClusters(gui.pxNeighbors) = 2-naiveMask(gui.pxNeighbors);
+        gui.cluster = 1;
+        delete(gui.manualPoly),
+        gui.roiTitle = title(gui.hAxROI, 'Displaying Manual ROI');
+        %Update ROI display
+        set(gui.hFig, 'userdata', gui);
+        displayROI(gui.hFig),
+        gui = get(obj, 'userdata');
+        
     case 'backspace'
         if gui.cROI <=1
             return
@@ -302,9 +320,9 @@ switch evt.Key
             dF = dF/prctile(cellBody,10);
             dF = dF - median(dF);
             figure(784),
-            plot(cellNeuropil,'k'),
+            plot(cellNeuropil),
             hold on,
-            plot(cellBody,'r'),
+            plot(cellBody),
             hold off,
             figure(785),
             plot(dF,'linewidth',1.5)
@@ -377,7 +395,7 @@ gui = get(hFig, 'userdata');
 clusterNum = gui.clusterNum;
 roiCenter = round(getPosition(gui.hROIpt));
 pxNeighbors = gui.pxNeighbors;
-displayWidth = gui.covFile.radiusPxCov+1;
+displayWidth = ceil(gui.covFile.radiusPxCov+2);
 
 %Perform kmeans clustering on n smallest cuts
 clusterIndex = kmeans(gui.cutVecs(:,1:clusterNum),clusterNum+1,'Replicates',10);
