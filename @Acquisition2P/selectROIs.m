@@ -157,7 +157,7 @@ covMat = gui.covFile.seedCov(1:nNeighbors,1:nNeighbors,seedNum);
 %dFMat = double(covMat./(gui.mRef(pxNeighbors)*gui.mRef(pxNeighbors)'));
 gui.pxNeighbors = pxNeighbors;
 
-%Construct matrices for normCut algorithm
+%Construct matrices for normCut algorithm using correlation coefficients
 W = double(corrcov(covMat));
 D = diag(sum(W));
 [eVec,eVal] = eigs((D-W),D,7,-1e-10);
@@ -189,21 +189,36 @@ function cbKeypress(obj, evt)
 % 'space' - selects current ROI as cell body or neuropil, depending on state, and displays evaluative plots
 % '1'-'9' - Selects current ROI or pairing and assigns it to grouping 1-9
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
+% 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 
 gui = get(obj, 'userdata');
 
 switch evt.Key
     case 'm'
+        %Turn off figure click callback while drawing ROI
         set(gui.hFig, 'WindowButtonDownFcn', []),
         gui.roiTitle = title(gui.hAxROI, 'Drawing Manual ROI');
+        %If a poly somehow wasn't deleted, do it now
         if isfield(gui,'manualPoly') && isvalid(gui.manualPoly)
             delete(gui.manualPoly)
         end
+        %Draw polygon on reference image, use mask to add new 'cluster'
+        %to allClusters matrix, and select new cluster as current
         gui.manualPoly = impoly(gui.hAxRef);
         set(gui.hFig, 'WindowButtonDownFcn', @cbMouseclick),
-        naiveMask = createMask(gui.manualPoly);
-        gui.allClusters(gui.pxNeighbors) = 2-naiveMask(gui.pxNeighbors);
-        gui.cluster = 1;
+        manualMask = createMask(gui.manualPoly);
+        newClusterNum = max(gui.allClusters(:))+1;
+        gui.allClusters(manualMask) = newClusterNum;
+        gui.cluster = newClusterNum;
+        %Update cluster display
+        displayWidth = ceil(gui.covFile.radiusPxCov+2);
+        roiCenter = round(getPosition(gui.hROIpt));
+        imshow(label2rgb(gui.allClusters),'Parent',gui.hAxClus),
+        axes(gui.hAxClus),
+        xlim([roiCenter(1)-displayWidth roiCenter(1)+displayWidth]),
+        ylim([roiCenter(2)-displayWidth roiCenter(2)+displayWidth]),
+        title(gui.hAxClus, sprintf('Manual ROI over %01.0f cuts',newClusterNum-2)),
+        %Delete interactive polygon and update title
         delete(gui.manualPoly),
         gui.roiTitle = title(gui.hAxROI, 'Displaying Manual ROI');
         %Update ROI display
