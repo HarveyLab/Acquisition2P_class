@@ -39,7 +39,8 @@ traces = [];
 rawF = [];
 for nROI = 1:length(roiList)
     fprintf('Extracting ROI %03.0f of %03.0f\n',nROI,length(roiList)),
-    if ~isempty(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil)
+    if isfield(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)),'indNeuropil') ...
+        && ~isempty(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil)
         subCoef = obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).subCoef;
         traces(nROI,:) = mean(mov(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indBody,:)) - ...
         mean(mov(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil,:))*subCoef;
