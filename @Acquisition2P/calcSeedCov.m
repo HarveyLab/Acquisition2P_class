@@ -2,10 +2,11 @@ function calcSeedCov(obj,movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channe
 %Function to calculate sparse pixel-pixel covariances at an array of seed
 %points distributed throughout an image. 
 
-% radiusPxCov - radius in pixels around seed point to include in covariance calculation
-% seedBin - Factor by which image is divided/binned spatially to form grid of seed points
-% temporalBin - Factor by which movie is binned temporally to facilitate covariance computation
-% writeDir - Directory in which pixel covariance information will be saved
+% movNums - vector-list of movie numbers to use for calculation. defaults to 1:length(fileName)
+% radiusPxCov - radius in pixels around seed point to include in covariance calculation, defaults to 10.5
+% seedBin - Factor by which image pixel locations are divided/binned spatially to form grid of seed points, defaults to 4
+% temporalBin - Factor by which movie is binned temporally to facilitate covariance computation, defaults to 8
+% writeDir - Directory in which pixel covariance information will be saved, defaults to obj.defaultDir
 
 %% Input handling / Error Checking
 if ~exist('sliceNum','var') || isempty(sliceNum)
@@ -71,6 +72,7 @@ for nMovie = movNums
                 (mov(pxNeighbors(1:tNb,seed),:)*mov(pxNeighbors(1:tNb,seed),:)')/movSize(3);
         end        
     else
+        %if not first movie, calculate px-px cov for all pixels for each seed
         for seed = 1:nSeeds
             tNb = nNeighbors(seed);
             pxN = pxNeighbors(1:tNb,seed);
@@ -79,7 +81,7 @@ for nMovie = movNums
     end
 end
 
-%Correct covariance by number of movies
+%Correct covariance by number of movies summed
 seedCov = seedCov / length(movNums);
 
 %% Write results to disk

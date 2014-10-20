@@ -1,4 +1,9 @@
 function indexMovie(obj,writeDir)
+%Function for creating a single large binary file containing an entire
+%movie for a given slice channel, allowing rapid, indexed access to pixel
+%values. Needed to view ROI traces online within selectROIs GUI
+%
+%writeDir is the location to write the binary file to, defaults to defaultDir
 
 if ~exist('writeDir','var')
     writeDir = obj.defaultDir;

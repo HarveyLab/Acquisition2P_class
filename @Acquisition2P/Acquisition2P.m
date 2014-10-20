@@ -1,5 +1,7 @@
 classdef Acquisition2P < handle
-    
+    %Class definition file for Acquisition2P class
+    %Includes constructer methods, and functions for reading raw (readRaw) or
+    %corrected (readCor) tiff's associated with acquisition
     
     properties
         %At present all of these properties can be freely modified by the user
@@ -19,10 +21,20 @@ classdef Acquisition2P < handle
     end
     
     methods
-        %TODO: Change set property so that certain properties have limited
-        %values permitted
+        %Note, most methods defined in seperate files
         function obj = Acquisition2P(varargin)
             %Constructs new Acq instance
+            %Can be passed with zero arguments to create a blank object and
+            %bypass safety checks
+            %Otherwise two optional arguments can be provided, the first a
+            %string specifying the acquisition name, the second a handle to
+            %an initialization function. The init function must create an
+            %acquisition name if it is not provided as first argument.
+            %After running initialization function, constructer checks all
+            %fields necessary for motion correction, fills in blanks with
+            %defaults when possible and otherwise raises warnings for
+            %missing fields
+            
             if nargin == 0
                 warning('Blank Acquisition Object Created'),
                 return

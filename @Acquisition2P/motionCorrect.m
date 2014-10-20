@@ -2,6 +2,12 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
     %Generic wrapper function for managing motion correction of an
     %acquisition object
     
+    %writeDir is an optional argument specifying location to write motion
+    %corrected data to, defaults to obj.defaultDir\Corrected
+    %motionCorrectionFunction is a handle to a motion correction function,
+    %and is optional only if acquisition already has a function handle assigned 
+    %to motionCorectionFunction field. If argument is provided, function handle overwrites field in acq obj.
+    
 %% Error checking and input handling    
     if ~exist('motionCorrectionFunction', 'var')
         motionCorrectionFunction = [];
@@ -10,8 +16,10 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
     if isempty(motionCorrectionFunction) && isempty(obj.motionCorrectionFunction)
         error('Function for correction not provided as argument or specified in acquisition object');
     elseif isempty(motionCorrectionFunction)
+        %If no argument but field present for object, use that function
         motionCorrectionFunction = obj.motionCorrectionFunction;
-    elseif isempty(obj.motionCorrectionFunction)
+    else
+        %If using argument provided, assign to obj field
         obj.motionCorrectionFunction = motionCorrectionFunction;
     end
     
@@ -59,7 +67,7 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
         fprintf('Identifying Motion Correction for Movie #%03.0f of #%03.0f\n', movNum, nMovies),
         obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movNum, 'identify');
         
-        % Apply motion correction:
+        % Apply motion correction and write separate file for each slice\channel:
         fprintf('Applying Motion Correction for Movie #%03.0f of #%03.0f\n', movNum, nMovies),
         movStruct = obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movNum, 'apply');
         for nSlice = 1:nSlices
@@ -73,6 +81,7 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
         
     end
     
+    %Assign acquisition to a variable with its own name, and write to same directory
     eval([obj.acqName ' = obj;']),
     save(fullfile(writeDir, obj.acqName), obj.acqName)
     display('Motion Correction Completed!')

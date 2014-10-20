@@ -1,9 +1,16 @@
-function [traces,rawF,roiList] = extractROIs(obj,roiGroups,movNums,sliceNum,channelNum)
+function [traces,rawF,roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
+% Function for extracting ROIs from movies using grouping assigned by
+% selectROIs. This function uses a memorymapped binary file of the entire
+% movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
+% from tiff files instead
 
-% Function for extracting ROIs from movies. Takes in grouping numbers and
-% movies, defaults to all groups and all movies. Operates on tif files to
-% save time on loading. Automatically subtracts neuropil when present, but
-% this option can be disabled
+
+%roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
+
+%traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
+%rawF - matrix of same size as traces, but without using neuropil correction
+%roiList - vector of ROI numbers corresponding to extracted ROIs
+
 
 %% Input Handling
 if ~exist('sliceNum','var') || isempty(sliceNum)
@@ -11,9 +18,6 @@ if ~exist('sliceNum','var') || isempty(sliceNum)
 end
 if ~exist('channelNum','var') || isempty(channelNum)
     channelNum = 1;
-end
-if ~exist('movNums','var') || isempty(movNums)
-    movNums = 1:length(obj.correctedMovies.slice(sliceNum).channel(channelNum).fileName);
 end
 if ~exist('roiGroups','var') || isempty(roiGroups)
     roiGroups = 1:9;
@@ -30,7 +34,7 @@ imSize = size(obj.roiInfo.slice(sliceNum).roiLabels);
 movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,'Format','uint16');
 mov = reshape(movMap.data,imSize(1)*imSize(2),[]);
 
-%Construct matrix of ROI values
+%Loop over each ROI,
 traces = [];
 rawF = [];
 for nROI = 1:length(roiList)

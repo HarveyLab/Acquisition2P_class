@@ -1,6 +1,5 @@
 function calcPxCov(obj,movNums,widthPxCov,temporalBin,sliceNum,channelNum,writeDir)
-%Function to calculate sparse pixel-pixel covariances at an array of seed
-%points distributed throughout an image. 
+%EXPERIMENTAL FUNCTION: not for general use
 
 % radiusPxCov - radius in pixels around seed point to include in covariance calculation
 % seedBin - Factor by which image is divided/binned spatially to form grid of seed points
