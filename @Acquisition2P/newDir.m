@@ -8,7 +8,9 @@ function newDir(obj,destDir,doCor,doInd,doCov)
 %default directory for the copied acquisition
 
 %doCor\Ind\Cov are logicals specifying whether to copy corrected tiffs,
-%indexed movie files, and covariance files, respectively.
+%indexed movie files, and covariance files, respectively. newDir always
+%checks to see whether files are present before copying, so all 'do' variables can be set
+%to one without throwing an error
     
 %% Input handling
 

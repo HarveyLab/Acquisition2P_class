@@ -60,7 +60,11 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
         % Apply line shift:
         fprintf('Line Shift Correcting Movie #%03.0f of #%03.0f\n', movNum, nMovies),
         mov = correctLineShift(mov);
-        [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, scanImageMetadata);
+        try
+            [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, scanImageMetadata);
+        catch
+            error('parseScanimageTiff failed to parse metadata, likely non SI4 movie, modify function!'),
+        end
         clear mov
         
         % Find motion:
