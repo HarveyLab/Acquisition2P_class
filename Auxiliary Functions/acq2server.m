@@ -1,14 +1,20 @@
-function success = acq2server(obj,fileDest)
+function success = acq2server(obj,fileDest,rawTransfer)
 %Example auxilliary function to transfer all files in an acq's default
 %directory to the server, perform motion correction, then transfer the
 %acquisition and motion corrected data to the server
 
 %obj is the acquisition object
 %fileDest is optional and should be a string specifying the write directory
+%rawTransfer is an optional logical, indicating whether to send raw as well
+%as processed/corrected data to server
 
 %% Input handling and default directory / auto-naming
 if ~exist('fileDest','var')
     fileDest = [];
+end
+
+if ~exist('rawTransfer','var')
+    rawTransfer = 1;
 end
 
 movPath = obj.defaultDir;
@@ -23,9 +29,15 @@ if isempty(fileDest)
 end
 
 %% Transfer files and motion correction
-[copied, message] = copyfile(movPath,fileDest);
-if ~copied
-    error(message);
+if rawTransfer
+    display('Copying Files to Server'),
+    [copied, message] = copyfile(movPath,fileDest);
+    if ~copied
+        error(message);
+    end
+else
+    display('Not Copying raw data to server'),
+    copied = 1;
 end
 
 obj.motionCorrect;
@@ -34,6 +46,6 @@ obj.newDir(fileDest);
 if copied
     success = rmdir(movPath,'s');
     if ~success
-        display('Files failed to be deleted locally'),
+        warning('Files failed to be deleted locally'),
     end
 end
