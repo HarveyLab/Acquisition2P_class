@@ -38,14 +38,10 @@ switch opMode
         x=[];
         y=[];        
         for nSlice = 1:nSlices
-            slicedMov = {};
             for nSeg = 1:size(segPos,1)
-                slicedMov{nSeg} = sqrt(movStruct.slice(nSlice).channel(motionRefChannel).mov(ySegInd(nSeg,:),xSegInd(nSeg,:),:));
-            end
-            parfor nSeg = 1:size(segPos,1)
+                tMov = sqrt(movStruct.slice(nSlice).channel(motionRefChannel).mov(ySegInd(nSeg,:),xSegInd(nSeg,:),:));
                 [x(nSeg,:),y(nSeg,:)] = track_subpixel_wholeframe_motion_fft_forloop(...
-                    slicedMov{nSeg},...
-                    mean(slicedMov{nSeg},3));
+                    tMov, mean(tMov,3));
             end
             tempSlice = translateAcq(movStruct.slice(nSlice).channel(motionRefChannel).mov, median(x), median(y));
             if movNum == motionRefMovNum
