@@ -20,7 +20,7 @@ try
     obj.acqName = movNames{1}(1:acqNamePlace-1);
 catch
     obj.acqName = sprintf('%s_%.0f',date,now);
-    warning('Automatic Name Generation Failed')
+    warning('Automatic Name Generation Failed, using date_time')
 end
 
 %Attempt to add each selected movie to acquisition in order
