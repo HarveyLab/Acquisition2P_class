@@ -35,6 +35,10 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
         end
     end
     
+    if isempty(obj.defaultDir)
+        obj.defaultDir = writeDir;
+    end
+    
     if isempty(obj.motionRefMovNum)
         error('Motion Correction Channel not identified');
     end
@@ -87,5 +91,5 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
     
     %Assign acquisition to a variable with its own name, and write to same directory
     eval([obj.acqName ' = obj;']),
-    save(fullfile(writeDir, obj.acqName), obj.acqName)
+    save(fullfile(obj.defaultDir, obj.acqName), obj.acqName)
     display('Motion Correction Completed!')
