@@ -26,8 +26,10 @@ function selectROIs(obj,img,sliceNum,channelNum,smoothWindow)
 
 %% Error checking and input handling
 if ~exist('img','var') || isempty(img)
-    img = sqrt(obj.meanRef);
+    img = obj.meanRef;
+    img(img<0) = 0;
     img(isnan(img)) = 0;
+    img = sqrt(img);
     img = adapthisteq(img/max(img(:)));
 end
 if ~exist('sliceNum','var') || isempty(sliceNum)

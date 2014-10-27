@@ -104,7 +104,7 @@ movNum = 2;
 castType = 'single';
 sliceNum = 1;
 channelNum = myObj.motionRefChannel;
-mov = readCor(myObj,movNum,castType,sliceNum,channelNum)
+mov = readCor(myObj,movNum,castType,sliceNum,channelNum);
 rawMov = readRaw(myObj,movNum,castType);
 
 %% Precalculations for ROI selection and trace extraction
@@ -140,14 +140,14 @@ myObj.calcSeedCov(movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channelNum,wr
 % Now we will create the binary file 'indexed movie' for the same
 % slice and channel. 
 
-myObj.indexMovie(nSlice,nChannel,writeDir);
+myObj.indexMovie(sliceNum,channelNum,writeDir);
 
 % These functions do not automatically save the Acquisition object to disk.
 % I suggest you overwrite the old object with the new one as you progress with each stage, so
 % that you don't have to manually enter in filenames into fields of the
 % 'old' object if you load the object again in the future. 
 
-save(fullfile(obj.defaultDir,obj.acqName),'myObj'),
+save(fullfile(myObj.defaultDir,myObj.acqName),'myObj'),
 %% ROI selection
 
 % Now we can use these files to select ROIs. We can call the selectROIs
@@ -160,8 +160,10 @@ save(fullfile(obj.defaultDir,obj.acqName),'myObj'),
 % behavior if no reference image is passed to the function call, so the
 % code below is redundant but provided for demonstration
 
-img = sqrt(myObj.meanRef);
+img = myObj.meanRef;
+img(img<0) = 0;
 img(isnan(img)) = 0;
+img = sqrt(img);
 img = adapthisteq(img/max(img(:)));
 
 % Now start the ROI selection GUI. Most details for how to use it are in the .m
@@ -179,8 +181,7 @@ img = adapthisteq(img/max(img(:)));
 myObj.selectROIs(img,sliceNum,channelNum);
 
 % Save again to include ROI info...
-save(fullfile(obj.defaultDir,obj.acqName),'myObj'),
-
+save(fullfile(myObj.defaultDir,myObj.acqName),'myObj'),
 %% Extracting ROIs
 
 % Now we want to get fluorescence traces from the motion corrected movies
