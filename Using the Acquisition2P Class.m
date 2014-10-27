@@ -8,37 +8,38 @@
 % metadata, in the same format.
 
 % In addition to these functions, you need to add the 'Acquisition2P_class'
-% folder to your path (note, NOT the '@Acquisition2P' folder), as well as
-% the Motion Correction Files directory and all subdirectories in there.
+% folder to your path (NOT the '@Acquisition2P' folder), as well as
+% the Motion Correction Files directory and all its subdirectories.
 % The 'Auxiliary Functions' directory is optional
 %% Overview
 % In a typical imaging experiment, we image activity at one field-of-view for some 
 % duration. This FOV may be subdivided into multiple axial slices, each of which 
 % consist of an arbitrary number of channels, and the data corresponding to the entire 
-% ?acquisition? is a list of TIFF files named according to a the user?s convention, which 
+% 'acquisition' is a list of TIFF files named according to a the user's convention, which 
 % may or may not have been acquired with pauses between certain movies. If we later 
 % move the sample or microscope to a new position, in this terminology we start a 
-% new ?acquisition?.
+% new 'acquisition'.
 % 
 % For data capture within one acquisition, we almost always want to motion correct 
 % all frames for each slice with respect to each other, select appropriate ROIs, and 
 % extract corresponding raw fluorescence traces. The Acquisition2P class is designed 
 % to completely manage this pipeline from raw acquisitions to traces, and nothing 
-% more (i.e. no dF/F, thresholding, analysis?).
+% more (i.e. no dF/F, thresholding, analysis...).
 % 
 % The general idea is that the processing pipeline is hard-coded into the class 
 % properties/methods, but particulars (e.g. naming formats, the specific algorithm for 
 % motion correction used) are flexible and user-modifiable outside the class structure.  
 % Hopefully this allows easy sharing of code and data and provides a standard for 
-% long-term storing of metadata, without being overly fascistic about particular details 
+% long-term storage of metadata, without being overly fascistic about particular details 
 % of how a user names, organizes, or processes their data.
 % 
 % The code below is a simple step-by-step script illustrating how you can use the class 
-% on a group of raw files stored on a local hard drive (moving Acquisition2P objects, 
-% from a rig to a server or a server to an analysis computer, is straightforward but 
-% involves functions not mentioned in this script. Look at the method ?newDir?, and an 
-% example of the auxiliary function ?acq2server? using this method, if you want to see 
-% an eample of my typical workflow).
+% on a group of raw files stored on a local hard drive. Moving Acquisition2P objects, 
+% from a rig to a server or a server to an analysis computer is straightforward, but 
+% involves functions not mentioned in this overview script. Look at the method newDir, and an 
+% example of the auxiliary function 'acq2server' using this method, if you want to see 
+% an eample of my typical workflow, or use newDir and matlab's copyfile
+% function to build your own.
 
 %% Initialize an Acquisition2P object
 
@@ -46,7 +47,7 @@
 % .m file. The most typical way is to pass a handle to an initialization
 % function. Here, I use the SC2Pinit initialization function, which is provided 
 % as an example for what initialization is supposed to do. Once you
-% understand how it works, just design your own initialization function
+% understand how it works, you can design your own initialization function
 % to match whatever naming/organizing convention you already use.
 
 % The function is commented in detail, but basically it allows graphical 
@@ -55,9 +56,10 @@
 % and fills in properties of the object necessary for motion correction
 % (e.g. the function/algorithm to use, the channel to use as reference). If
 % this succeeds, it assigns the object to a variable in the base workspace
-% with the name created by automatic procedure. The function also outputs
+% with the name created by the automatic procedure. The function also outputs
 % the object if you prefer that syntax, but having the initialization automatically assign the
-% variable ensures that the object's internal name matches its matlab name
+% variable ensures that the object's internal name matches its matlab
+% variable name
 
 Acquisition2P([],@SC2Pinit);
 
@@ -86,7 +88,7 @@ Acquisition2P([],@SC2Pinit);
 % flexibly modified but here we will use defaults.
 
 % Note, I can't predict the name of your acquisition object, so instead I'm
-% going to write 'myObj', and just replace this with...the name of your obj...
+% going to write 'myObj', and just replace this with...the name of your acquisition obj...
 
 myObj.motionCorrect;
 
@@ -101,15 +103,15 @@ myObj.motionCorrect;
 movNum = 2;
 castType = 'single';
 sliceNum = 1;
-chanNum = 1;
-mov = readCor(myObj,movNum,castType,sliceNum,chanNum)
+channelNum = myObj.motionRefChannel;
+mov = readCor(myObj,movNum,castType,sliceNum,channelNum)
 rawMov = readRaw(myObj,movNum,castType);
 
 %% Precalculations for ROI selection and trace extraction
 
 % If you're happy with the motion corrected movies, the next step is to
 % make precalculations that will be used for interactive ROI selection in
-% the next step. We will calculate pixel-pixel correlations, and save a
+% the next step. We will calculate pixel-pixel correlations, and also save a
 % large file containing the total movie information in a 16-bit binary file
 % format. Note that both of these functions require re-reading the
 % corrected movies from disk into memory. You can save a lot of time by
@@ -117,20 +119,20 @@ rawMov = readRaw(myObj,movNum,castType);
 % the movie is written to disk and cleared from memory, but for clarity I
 % avoid that here. Note also that these functions will save very large
 % files to disk, and you may want to make a habit of deleting them after
-% getting your traces, since they can always be recreated.
+% getting your traces, since they can always be recreated from corrected movies.
 
 % First we will calculate pixel-pixel covariances. We want to do this for
 % the GCaMP signal for some slice, so be sure the following variables match
 % your settings (all arguments here are optional, but provided for clarity).
 % Make sure you have plenty of free RAM before calling this function!
 
-sliceNum = 1;
-channelNum = 1;
-movNums = []; %this will default to all movies
-seedBin = 4; %this value may need to be adjusted based on your zoom
-radiusPxCov = 10.5; %this value may need to be adjusted based on zoom
-temporalBin = 8; %this value may need to be adjusted on imaging rate
-writeDir = []; %this defaults to the directory the object is saved in
+sliceNum = 1; %Choose a slice to analyze
+channelNum = 1; %Choose the GCaMP channel
+movNums = []; %this will default to all movie files
+seedBin = 4; %default, may need adjustment based on zoom level
+radiusPxCov = 10.5; %default, may need zoom level adjustment
+temporalBin = 8; %default, may need adjustment based on frame rate
+writeDir = []; %empty defaults to the directory the object is saved in (the 'defaultDir')
 
 % Now call the function:
 myObj.calcSeedCov(movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channelNum,writeDir);
@@ -153,10 +155,10 @@ save(fullfile(obj.defaultDir,obj.acqName),'myObj'),
 % inputs here
 
 % Use the built-in function meanRef to get a mean reference image, then
-% process it's square root with adaptive histogram equalization. Since this
+% process its square root with adaptive histogram equalization. Since this
 % empirically produces nice looking images, this is actually the default
 % behavior if no reference image is passed to the function call, so the
-% code below is actually redundant
+% code below is redundant but provided for demonstration
 
 img = sqrt(myObj.meanRef);
 img(isnan(img)) = 0;
@@ -166,9 +168,9 @@ img = adapthisteq(img/max(img(:)));
 % file, or I can explain it in person. Important quirks: select ROIs roughly
 % up and down the columns of the image, before moving laterally along the
 % rows, to maximize the rapid loading benefit of memory mapping. Also, if
-% your movie is really big, check you free RAM while you use the tool.
+% your movie is really big, check your free RAM while you use the tool.
 % Memory mapping can potentially fill up your RAM cache, which wont cause
-% anything to crash but you might lose rapid-loading. If your RAM is full, and you
+% anything to crash but loading traces may slow down. If your RAM is full, and you
 % are getting slow loads, just close the GUI window and reopen it,
 % which will initialize a new cache (progress is automatically saved so
 % closing the window doesn't disrupt the process). I don't actually know if
@@ -184,13 +186,13 @@ save(fullfile(obj.defaultDir,obj.acqName),'myObj'),
 % Now we want to get fluorescence traces from the motion corrected movies
 % corresponding to each ROI. There are two options; if you have just
 % finished ROI selection (so movie information is still stored in the RAM
-% cache) or if your movie comparable to your RAM size (doesn't all have to
+% cache) or if your movie is comparable to your RAM size (doesn't all have to
 % fit though!), the extractROIs function uses the memory-mapped binary file
 % to process data much quicker than reading in TIFFs. On the other hand, if
 % your movie is huge and no movie data is in the cache, extractROIsTIFF
-% will do the job safely/consistently, and is vectorized as natrix multiplication
+% will do the job safely/consistently, and is vectorized as matrix multiplication
 % for speed, though you do have to load in all TIFF files in order. Here, I
-% will assume you just finished selecting rois and use the 'fast' function,
+% will assume you just finished selecting ROIs and use the 'fast' function,
 % but feel free to experiment.
 
 % extractROIs reads in the grouping information output by selectROIs, and by
@@ -202,7 +204,7 @@ roiGroups = [1,3];
 [traces,rawF,roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum);
 
 % traces is the fluorescence signal including neuropil correction, for
-% whatever subset of ROIs it was specified for. rawF is the fluorescence
+% whatever subset of ROIs neuropil is specified for. rawF is the fluorescence
 % signal ignoring neuropil correction, i.e. just averaging in the ROI. This
 % is important to return ALWAYS because we need to use the uncorrected
 % fluorescence value to calculate the F in dF/F normalization, since e.g.
@@ -222,7 +224,7 @@ Acquisition2P([],@SC2Pinit);
 myObj.motionCorrect;
 
 sliceNum = 1;
-chanNum = 1;
+channelNum = 1;
 myObj.calcSeedCov([],[],[],[],sliceNum,channelNum);
 myObj.indexMovie(nSlice,nChannel);
 
