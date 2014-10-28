@@ -3,14 +3,15 @@ function [traces,rawF,roiList,roiMat,rawMat] = extractROIsTIFF(obj,roiGroups,mov
 % Function for extracting ROIs from movies using grouping assigned by
 % selectROIs. This function motion corrected tiff files. See extractROI for a
 % sometimes faster method using a memory mapped 'indexed' binary file instead.
-
-%roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
-%movNums is a vector of movie numbers to use, defaults to all movies
-
-%traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
-%rawF - matrix of same size as traces, but without using neuropil correction
-%roiList - vector of ROI numbers corresponding to extracted ROIs
-%roiMat - Matrix of ROI coefficients
+%
+% [traces,rawF,roiList,roiMat,rawMat] = extractROIsTIFF(obj,roiGroups,movNums,sliceNum,channelNum)
+%
+% roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
+% movNums is a vector of movie numbers to use, defaults to all movies
+% traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
+% rawF - matrix of same size as traces, but without using neuropil correction
+% roiList - vector of ROI numbers corresponding to extracted ROIs
+% roiMat - Matrix of ROI coefficients
 
 %% Input Handling
 if ~exist('sliceNum','var') || isempty(sliceNum)

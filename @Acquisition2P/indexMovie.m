@@ -3,6 +3,8 @@ function indexMovie(obj,nSlice,nChannel,writeDir)
 %movie for a given slice/channel, allowing rapid, indexed access to pixel
 %values. Needed to view ROI traces online within selectROIs GUI
 %
+%indexMovie(obj,nSlice,nChannel,writeDir)
+%
 %writeDir is the location to write the binary file to, defaults to defaultDir
 
 %% Input handling

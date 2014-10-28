@@ -3,13 +3,13 @@ function [traces,rawF,roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
 % selectROIs. This function uses a memorymapped binary file of the entire
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
 % from tiff files instead
-
-
-%roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
-
-%traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
-%rawF - matrix of same size as traces, but without using neuropil correction
-%roiList - vector of ROI numbers corresponding to extracted ROIs
+%
+% [traces,rawF,roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
+%
+% roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
+% traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
+% rawF - matrix of same size as traces, but without using neuropil correction
+% roiList - vector of ROI numbers corresponding to extracted ROIs
 
 
 %% Input Handling

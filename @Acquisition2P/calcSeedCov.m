@@ -1,7 +1,9 @@
 function calcSeedCov(obj,movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channelNum,writeDir)
 %Function to calculate sparse pixel-pixel covariances at an array of seed
 %points distributed throughout an image. 
-
+%
+% calcSeedCov(obj,movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channelNum,writeDir)
+%
 % movNums - vector-list of movie numbers to use for calculation. defaults to 1:length(fileName)
 % radiusPxCov - radius in pixels around seed point to include in covariance calculation, defaults to 10.5
 % seedBin - Factor by which image pixel locations are divided/binned spatially to form grid of seed points, defaults to 4

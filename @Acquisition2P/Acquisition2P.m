@@ -2,6 +2,10 @@ classdef Acquisition2P < handle
     %Class definition file for Acquisition2P class
     %Includes constructer methods, and functions for reading raw (readRaw) or
     %corrected (readCor) tiff's associated with acquisition
+    %
+    %obj = Acquisition2P;
+    %obj = Acquisition2P('acqName');
+    %Acquisition2P('acqName',@myInitFun);
     
     properties
         %At present all of these properties can be freely modified by the user

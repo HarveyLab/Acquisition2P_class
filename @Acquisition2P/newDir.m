@@ -1,16 +1,15 @@
 function newDir(obj,destDir,doCor,doInd,doCov)
 %Copies an acquisition and the associated motion corrected files from
 %the original location to a new one, and creates a new acquisition
-%object associated with the new location. Useful for transferring data
-%from server to local computer for faster reading/writing
-
+%object associated with the new location.
+%
+%newDir(obj,destDir,doCor,doInd,doCov)
 %destDir is the directory to which files will be copied, and the new
-%default directory for the copied acquisition
-
+%   default directory for the copied acquisition
 %doCor\Ind\Cov are logicals specifying whether to copy corrected tiffs,
-%indexed movie files, and covariance files, respectively. newDir always
-%checks to see whether files are present before copying, so all 'do' variables can be set
-%to one without throwing an error
+%   indexed movie files, and covariance files, respectively. newDir always
+%   checks to see whether files are present before copying, so all 'do' variables can be set
+%   to one without throwing an error
     
 %% Input handling
 

@@ -1,12 +1,14 @@
 function motionCorrect(obj,writeDir,motionCorrectionFunction)
     %Generic wrapper function for managing motion correction of an
     %acquisition object
-    
+    %
+    %motionCorrect(obj,writeDir,motionCorrectionFunction)
+    %
     %writeDir is an optional argument specifying location to write motion
-    %corrected data to, defaults to obj.defaultDir\Corrected
+    %   corrected data to, defaults to obj.defaultDir\Corrected
     %motionCorrectionFunction is a handle to a motion correction function,
-    %and is optional only if acquisition already has a function handle assigned 
-    %to motionCorectionFunction field. If argument is provided, function handle overwrites field in acq obj.
+    %   and is optional only if acquisition already has a function handle assigned 
+    %   to motionCorectionFunction field. If argument is provided, function handle overwrites field in acq obj.
     
 %% Error checking and input handling    
     if ~exist('motionCorrectionFunction', 'var')
