@@ -42,7 +42,11 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
     end
     
     if isempty(obj.motionRefMovNum)
-        error('Motion Correction Channel not identified');
+        if length(obj.Movies)==1
+            obj.motionRefMovNum = 1;
+        else
+            error('Motion Correction Reference not identified');
+        end
     end
     
 %% Load movies and motion correct
