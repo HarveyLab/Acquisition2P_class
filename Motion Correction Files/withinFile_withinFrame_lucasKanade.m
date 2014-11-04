@@ -6,6 +6,13 @@ function movStruct = withinFile_withinFrame_lucasKanade(...
 
 nSlice = numel(movStruct.slice);
 nChannel = numel(movStruct.slice(1).channel);
+isGpu = gpuDeviceCount>0;
+if isGpu
+    gpu = gpuDevice;
+    pctRunOnAll reset(gpuDevice);
+    wait(gpu)
+    memAvailable = gpu.AvailableMemory;
+end
 
 switch opMode
     case 'identify'
@@ -14,15 +21,10 @@ switch opMode
             [h, w, z] = size(double(movStruct.slice(iSl).channel(refCh).mov));
             
             % First, find within-movie displacements:
+            ref = mean(single(movStruct.slice(iSl).channel(refCh).mov), 3);
             [movTemp, dpx, dpy, basisFunctions] = ...
-                correctMotionLucasKanadeLoop(double(movStruct.slice(iSl).channel(refCh).mov));  
-            
-            % Create fake data so that it's faster:
-%             movTemp = double(movStruct.slice(iSl).channel(refCh).mov);
-%             dpx = randn(17, z);
-%             dpy = randn(17, z);
-%             basisFunctions = randn(h, 17);
-            
+                doLucasKanadeSPMD(single(movStruct.slice(iSl).channel(refCh).mov), ref);
+                        
             % Second, find global displacement with respect to reference
             % image:
             if movNum == refCh
@@ -81,6 +83,9 @@ switch opMode
                 Dx = obj.shifts(movNum).slice(iSl).x();
                 Dy = obj.shifts(movNum).slice(iSl).y();
                 
+                % This for-loop is faster than using interpn without a
+                % loop, both on the CPU and the GPU. Re-evaluate this if we
+                % have a GPU that can fit an entire movie into RAM.
                 for f = 1:z
                     movStruct.slice(iSl).channel(iCh).mov(:,:,f) = ...
                         interp2(...
@@ -108,7 +113,6 @@ fn = @() bsxfun(@plus, 1:w, permute(lineShiftX, [1, 3, 2]));
 function fn = createDispFieldFunctionY(w, h, lineShiftY)
 fn = @() bsxfun(@plus, zeros(1, w), permute(bsxfun(@plus, (1:h)', lineShiftY), [1, 3, 2]));
 
-
 function [mov, dpx, dpy, B] = correctMotionLucasKanadeLoop(mov, refImg)
 
 if ~exist('refImg', 'var')
@@ -121,7 +125,7 @@ z = size(mov, 3);
 nBasis = 16;
 dpx = zeros(nBasis+1, z);
 dpy = zeros(nBasis+1, z);
-parfor f = 1:z
+for f = 1:z
     f
     % Do warping using Lucas-Kanade:
     [mov(:,:,f), dpx(:, f), dpy(:, f)] = doLucasKanade(refImg, mov(:,:,f));
