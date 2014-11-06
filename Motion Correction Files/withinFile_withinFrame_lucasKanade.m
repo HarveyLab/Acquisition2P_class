@@ -17,6 +17,7 @@ end
 switch opMode
     case 'identify'
         refCh = obj.motionRefChannel;
+        refMov = obj.motionRefMovNum;
         for iSl = 1:nSlice
             [h, w, z] = size(double(movStruct.slice(iSl).channel(refCh).mov));
             
@@ -27,7 +28,7 @@ switch opMode
                         
             % Second, find global displacement with respect to reference
             % image:
-            if movNum == refCh
+            if movNum == refMov
                 xGlobal = 0;
                 yGlobal = 0;
                 obj.motionRefImage.slice(iSl).img = nanmedian(movTemp, 3);
