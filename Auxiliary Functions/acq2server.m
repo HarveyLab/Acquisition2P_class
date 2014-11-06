@@ -31,7 +31,7 @@ end
 %% Transfer files and motion correction
 if rawTransfer
     display('Copying Files to Server'),
-    [copied, message] = copyfile(movPath,fileDest);
+    [copied, message] = copyfile(movPath,fileDest,'f');
     if ~copied
         error(message);
     end
