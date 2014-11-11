@@ -15,7 +15,7 @@ nSlices         = siStruct.stackNumSlices + (fZ*siStruct.fastZDiscardFlybackFram
 for sl = 1:nSlices-(fZ*siStruct.fastZDiscardFlybackFrames) % Slices, removing flyback.
     for ch = 1:nChannels % Channels
         frameInd = ch + (sl-1)*nChannels;
-        movStruct.slice(sl).channel(ch).mov = mov(:, :, frameInd:(nSlices+nChannels-1):end);
+        movStruct.slice(sl).channel(ch).mov = mov(:, :, frameInd:(nSlices*nChannels):end);
     end
 end
 
