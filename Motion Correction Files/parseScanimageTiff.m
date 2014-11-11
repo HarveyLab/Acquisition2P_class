@@ -18,3 +18,5 @@ for sl = 1:nSlices-(fZ*siStruct.fastZDiscardFlybackFrames) % Slices, removing fl
         movStruct.slice(sl).channel(ch).mov = mov(:, :, frameInd:(nSlices+nChannels-1):end);
     end
 end
+
+nSlices = nSlices-(fZ*siStruct.fastZDiscardFlybackFrames);
