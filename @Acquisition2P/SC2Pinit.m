@@ -15,8 +15,8 @@ movNames = sort(movNames);
 
 %Attempt to automatically name acquisition from movie filename, raise
 %warning and create generic name otherwise
-acqNamePlace = find(movNames{1} == '_',1);
 try
+    acqNamePlace = find(movNames{1} == '_',1);
     obj.acqName = movNames{1}(1:acqNamePlace-1);
 catch
     obj.acqName = sprintf('%s_%.0f',date,now);
