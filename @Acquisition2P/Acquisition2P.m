@@ -82,9 +82,6 @@ classdef Acquisition2P < handle
                 castType = 'uint16';
             end
             [movie, metaMovie] = tiffRead(obj.Movies{movNum},castType);
-            if isfield(metaMovie,'SI4')
-                metaMovie = metaMovie.SI4;
-            end
         end
         
         function movie = readCor(obj,movNum,castType,sliceNum,chanNum)

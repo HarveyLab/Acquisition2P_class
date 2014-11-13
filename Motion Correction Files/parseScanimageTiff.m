@@ -12,6 +12,8 @@ elseif isfield(siStruct, 'software') && siTruct.software.version < 4 %ie it's a 
     fZ = 0;
     nSlices = 1;
     nChannels = siStruct.acq.numberOfChannelsSave;
+else
+    error('Movie is from an unidentified scanimage version, or metadata is improperly formatted'),
 end
 
 
