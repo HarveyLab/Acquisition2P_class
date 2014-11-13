@@ -51,10 +51,10 @@ for nMovie = movNums
     if nMovie == 1
         nPix = movSize(1)*movSize(2);
         nSeeds = round(movSize(1)/seedBin)*round(movSize(2)/seedBin);
-        y = repmat(1:movSize(1),1,movSize(1));
-        x = reshape(repmat(1:movSize(2),movSize(2),1),1,nPix);
-        ySeed = repmat(1:round(movSize(1)/seedBin),1,round(movSize(1)/seedBin));
-        xSeed = reshape(repmat(1:round(movSize(2)/seedBin),round(movSize(2)/seedBin),1),1,nSeeds);
+        y = repmat(1:movSize(1),1,movSize(2));
+        x = reshape(repmat(1:movSize(2),movSize(1),1),1,nPix);
+        ySeed = repmat(1:round(movSize(1)/seedBin),1,round(movSize(2)/seedBin));
+        xSeed = reshape(repmat(1:round(movSize(2)/seedBin),round(movSize(1)/seedBin),1),1,nSeeds);
         seedCov = nan(maxNeighbors,maxNeighbors,nSeeds,'single');
         pxNeighbors = nan(maxNeighbors,nSeeds,'single');
         nNeighbors = nan(1,nSeeds,'single');
