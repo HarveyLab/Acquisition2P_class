@@ -95,9 +95,9 @@ switch opMode
                             Dy(:,:,f), ...
                             'linear');
                 end
-            end
             obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
                 mean(movStruct.slice(iSl).channel(iCh).mov,3);
+            end
         end
 end
 
