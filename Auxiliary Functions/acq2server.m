@@ -2,7 +2,9 @@ function success = acq2server(obj,fileDest,rawTransfer)
 %Example auxilliary function to transfer all files in an acq's default
 %directory to the server, perform motion correction, then transfer the
 %acquisition and motion corrected data to the server
-
+%
+% acq2server(obj,fileDest,rawTransfer)
+%
 %obj is the acquisition object
 %fileDest is optional and should be a string specifying the write directory
 %rawTransfer is an optional logical, indicating whether to send raw as well

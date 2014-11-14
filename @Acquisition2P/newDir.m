@@ -36,7 +36,7 @@ for nSlice = 1:nSlices
         fprintf('\n Copying Channel %02.0f of %02.0f\n',nChannel,nChannels)
         if doCor && ~isempty(obj.correctedMovies)
             for nFile = 1:length(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName)
-                fprintf('\n Copying Movie %03.0f of %03.0f',nFile,length(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName))
+                fprintf('Copying Movie %03.0f of %03.0f\n',nFile,length(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName))
                 [movPath,movName,movExt] = fileparts(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{nFile});
                 movName = [movName movExt];
                 newMovName = fullfile(destDir,movName);
