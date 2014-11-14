@@ -3,18 +3,20 @@ function ref = meanRef(obj,movNums,sliceNum,channelNum)
     % correction using the derived data structure, without requiring
     % loading movie files
     %
+    % ref = meanRef(obj,movNums,sliceNum,channelNum)
+    %
     % movNums input can be an arbitrary index vector, or by default
     % includes all movies with derived data
     if isempty(obj.derivedData)
         error('This Acquisition is not associated with derived data')
     end
-    if ~exist('movNums','var')
+    if ~exist('movNums','var') || isempty(movNums)
         movNums = 1:length(obj.derivedData);
     end
-    if ~exist('sliceNum','var')
+    if ~exist('sliceNum','var') || isempty(sliceNum)
         sliceNum = 1;
     end
-    if ~exist('chanNum','var')
+    if ~exist('channelNum','var') || isempty(channelNum)
         channelNum = 1;
     end
     
