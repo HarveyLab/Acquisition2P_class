@@ -89,7 +89,7 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
                 movFile = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif', obj.acqName, nSlice, nChannel, movNum);
                 obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFile);
                 fprintf('Writing Movie #%03.0f of #%03.0f\n',movNum,nMovies),
-                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov,movFile,writeDir,16);
+                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov,movFile,writeDir,'int16');
             end
         end
         
