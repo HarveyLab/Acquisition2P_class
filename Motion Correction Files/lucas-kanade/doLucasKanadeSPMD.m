@@ -123,7 +123,7 @@ spmd
             end
             [stack_g(:,:,f), dpx_g(:,f), dpy_g(:,f), nIters(f)] = doLucasKanade_singleFrame(...
                 ref_g, stack_g(:,:,f), dpx_g(:, f), dpy_g(:, f), minIters, ...
-                B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g);
+                B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g, nBasis);
         end
 
         % Get data from GPU:
@@ -137,7 +137,7 @@ spmd
             end
             [stack(:,:,f), dpx(:,f), dpy(:,f), nIters(f)] = doLucasKanade_singleFrame(...
                 ref, stack(:,:,f), dpx(:, f), dpy(:, f), minIters, ...
-                B, allBs, xi, yi, theI, Tnorm);
+                B, allBs, xi, yi, theI, Tnorm, nBasis);
         end
     end
 end
@@ -161,10 +161,9 @@ end
 
 function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
     T, I, dpx, dpy, minIters, ...
-    B, allBs, xi, yi, theI, Tnorm)
+    B, allBs, xi, yi, theI, Tnorm, nBasis)
 
     warning('off','fastBSpline:nomex');
-    nBasis = 16;
     maxIters = 50;
     deltacorr = 0.0005;
     [~, w] = size(T);
