@@ -323,6 +323,11 @@ switch evt.Key
             cellBody = conv(cellBody,gausswin(gui.smoothWindow)/sum(gausswin(gui.smoothWindow)),'valid');
             cellNeuropil = conv(cellNeuropil,gausswin(gui.smoothWindow)/sum(gausswin(gui.smoothWindow)),'valid');
             
+            %detrend traces
+            cellF = prctile(cellBody,10);
+            cellBody = detrend(cellBody);
+            cellNeuropil = detrend(cellNeuropil);
+            
             %Extract subtractive coefficient btw cell + neuropil and plot
             %cellInd = cellBody<median(cellBody);
             cellInd = cellBody<median(cellBody)+mad(cellBody)*2; %& cellNeuropil<prctile(cellNeuropil,90);
@@ -337,7 +342,7 @@ switch evt.Key
             
             %Calculate corrected dF and plot
             dF = cellBody-cellNeuropil*gui.neuropilCoef(2);
-            dF = dF/prctile(cellBody,10);
+            dF = dF/cellF;
             dF = dF - median(dF);
             figure(784),
             plot(cellNeuropil),
