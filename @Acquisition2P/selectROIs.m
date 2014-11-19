@@ -170,7 +170,7 @@ D = diag(sum(W));
 gui.cutVecs = eVec(:,eigOrder(2:7));
 
 %Update cut display axes
-mask = zeros(512);
+mask = zeros(gui.movSize(1), gui.movSize(2));
 for nEig = 1:6
     mask(pxNeighbors) = gui.cutVecs(:,nEig);
     hEig = eval(sprintf('gui.hEig%d',nEig));
@@ -428,7 +428,7 @@ displayWidth = ceil(gui.covFile.radiusPxCov+2);
 clusterIndex = kmeans(gui.cutVecs(:,1:clusterNum),clusterNum+1,'Replicates',10);
 
 %Display current clustering results
-mask = zeros(512);
+mask = zeros(gui.movSize(1), gui.movSize(2));
 mask(pxNeighbors) = clusterIndex;
 gui.allClusters = mask;
 imshow(label2rgb(mask),'Parent',gui.hAxClus),
@@ -470,7 +470,7 @@ if enforceContinuity == 1
     CC = bwconncomp(gui.roiMask);
     numPix = cellfun(@numel,CC.PixelIdxList);
     [~,bigROI] = max(numPix);
-    gui.roiMask(~ismember(1:512^2,CC.PixelIdxList{bigROI})) = 0;
+    gui.roiMask(~ismember(1:(gui.movSize(1)*gui.movSize(2)),CC.PixelIdxList{bigROI})) = 0;
 end
 
 %(not so) gracefully handle ROIs near image border 
