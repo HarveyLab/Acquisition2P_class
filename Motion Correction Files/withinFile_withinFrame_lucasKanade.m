@@ -77,13 +77,12 @@ switch opMode
         
     case 'apply'
         for iSl = 1:nSlice
+            z = size(movStruct.slice(iSl).channel(1).mov, 3);
+            % Get full displacement fields:
+            Dx = obj.shifts(movNum).slice(iSl).x();
+            Dy = obj.shifts(movNum).slice(iSl).y();
+            
             for iCh = 1:nChannel
-                z = size(movStruct.slice(iSl).channel(iCh).mov, 3);
-                
-                % Get full displacement fields:
-                Dx = obj.shifts(movNum).slice(iSl).x();
-                Dy = obj.shifts(movNum).slice(iSl).y();
-                
                 % This for-loop is faster than using interpn without a
                 % loop, both on the CPU and the GPU. Re-evaluate this if we
                 % have a GPU that can fit an entire movie into RAM.
@@ -96,7 +95,7 @@ switch opMode
                             'linear');
                 end
             obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
-                mean(movStruct.slice(iSl).channel(iCh).mov,3);
+                nanmean(movStruct.slice(iSl).channel(iCh).mov,3);
             end
         end
 end
