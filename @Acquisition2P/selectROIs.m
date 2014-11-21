@@ -428,7 +428,11 @@ displayWidth = ceil(gui.covFile.radiusPxCov+2);
 clusterIndex = kmeans(gui.cutVecs(:,1:clusterNum),clusterNum+1,'Replicates',10);
 
 %Display current clustering results
+<<<<<<< HEAD
+mask = zeros(gui.movSize(1),gui.movSize(2));
+=======
 mask = zeros(gui.movSize(1), gui.movSize(2));
+>>>>>>> origin/master
 mask(pxNeighbors) = clusterIndex;
 gui.allClusters = mask;
 imshow(label2rgb(mask),'Parent',gui.hAxClus),
