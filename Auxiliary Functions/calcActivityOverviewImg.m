@@ -3,7 +3,12 @@ function actImg = calcActivityOverviewImg(pixCov, diags, h, w)
 % displaying the variance of the correlation of a pixel with its neighbors,
 % which gives a visual impression of where active cells are.
 
-actImg = var(corrcovDiag(pixCov, diags), [], 2);
+C = corrcovDiag(pixCov, diags);
+actStd = std(abs(C), [], 2);
+actMean = mean(abs(C), 2);
+
+actImg = actMean/nanstd(actMean(:)) + actStd/nanstd(actStd(:));
+
 actImg(isnan(actImg)) = 0;
 actImg = reshape(actImg, h, w);
-actImg = adapthisteq(actImg/max(actImg(:)));
+actImg = adapthisteq(actImg/max(actImg(:)), 'numtiles', [8 8]);
