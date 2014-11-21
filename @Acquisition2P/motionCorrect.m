@@ -93,6 +93,8 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
             end
         end
         
+        % Store movie dimensions (this is the same for all channels and slices):
+        obj.derivedData(movNum).size = size(movFile);
     end
     
     %Assign acquisition to a variable with its own name, and write to same directory
