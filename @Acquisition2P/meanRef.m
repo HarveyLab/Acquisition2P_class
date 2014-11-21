@@ -21,10 +21,13 @@ function ref = meanRef(obj,movNums,sliceNum,channelNum)
     end
     
     %Initialize zero matrix, sum in loop over movies and normalize by number of movies summed
-    ref = zeros(size(obj.derivedData(1).meanRef.slice(sliceNum).channel(channelNum).img));
+    [h, w] = size(obj.derivedData(1).meanRef.slice(sliceNum).channel(channelNum).img);
     nMovies = length(movNums);
-    for nMovie = movNums
-        ref = ref + obj.derivedData(nMovie).meanRef.slice(sliceNum).channel(channelNum).img;
+    
+    ref = zeros(h, w, nMovies);
+    for ii = 1:numel(movNums)
+        ref(:, :, ii) = obj.derivedData(movNums(ii)).meanRef.slice(sliceNum).channel(channelNum).img;
     end
-    ref = ref / nMovies;
+    
+    ref = nanmean(ref, 3);
 end

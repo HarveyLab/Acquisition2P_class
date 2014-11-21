@@ -61,7 +61,7 @@ for i = 1:nWorkers
 end
 
 % Parameters:
-nBasis = 4;
+nBasis = 2;
 
 % Precalculate constants:
 [h, w, z] = size(stackFull);
