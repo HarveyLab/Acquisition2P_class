@@ -77,7 +77,8 @@ for iStrip = 1:nStrips
         tFile = tic;
         
         for iFrame = 1:nFrames(iFile)
-            iFrameGlobal = (iFile-1)*nFrames + iFrame;
+            %iFrameGlobal = (iFile-1)*nFrames + iFrame;
+            iFrameGlobal = sum(nFrames(1:iFile-1)) + iFrame;
             t(iFile).setDirectory(iFrame);
             thisStrip(:, :, iFrameGlobal) = readEncodedStrip(t(iFile), iStrip);
         end
