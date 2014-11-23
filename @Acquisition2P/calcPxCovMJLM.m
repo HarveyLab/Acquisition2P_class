@@ -69,8 +69,8 @@ for nMovie = movNums
         pixCov = zeros(nPix, nDiags, 'single');
     end
     
-    for px = 1: nPix-diags(end)
-        pixCov(px,:) = pixCov(:, px)+ (mov(px, :) * mov(px+diags, :)')/z;
+    for px = 1:nPix-diags(end)
+        pixCov(px,:) = pixCov(px, :) + (mov(px, :)*mov(px+diags, :)')/z;
     end
     
     fprintf('Last movie took %3f seconds to process.\n', toc(loopTime));
