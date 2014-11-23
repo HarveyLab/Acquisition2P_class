@@ -7,15 +7,15 @@ if ajp.debug
 end
 
 % Motion correction:
-% try
-%     ajp.log('Started motion correction.');
-%     ajp.currentAcq.motionCorrect;
-% catch err
-%     msg = sprintf('Motion correction aborted with error: %s', err.message);
-%     ajp.log(msg);
-%     printStack(ajp, err.stack);
-%     return % If motion correction fails, then no further processing can happen.
-% end
+try
+    ajp.log('Started motion correction.');
+    ajp.currentAcq.motionCorrect;
+catch err
+    msg = sprintf('Motion correction aborted with error: %s', err.message);
+    ajp.log(msg);
+    printStack(ajp, err.stack);
+    return % If motion correction fails, then no further processing can happen.
+end
 
 % Save binary movie file:
 try

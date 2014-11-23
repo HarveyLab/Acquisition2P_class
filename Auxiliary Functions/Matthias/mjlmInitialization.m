@@ -1,11 +1,12 @@
 function acq = mjlmInitialization(acqId, savePath)
-% acqId (formerly fileId) is some fragment of the file name of the current
-% acquisition that is unique to the current acquisition.
+% acq = mjlmInitialization(acqId, savePath) - acqId (formerly fileId) is
+% some fragment of the file name of the current acquisition that is unique
+% to the current acquisition.
 
 acq = Acquisition2P(acqId, @(acq) init(acq, acqId));
 
 if exist('savePath', 'var')
-    save(fullfile(savePath, acq.acqName), acq);
+    save(fullfile(savePath, acq.acqName), 'acq');
 end
 
 function init(acq, acqId)
