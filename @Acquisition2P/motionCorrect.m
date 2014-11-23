@@ -86,15 +86,15 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
         movStruct = obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movNum, 'apply');
         for nSlice = 1:nSlices
             for nChannel = 1:nChannels
-                movFile = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif', obj.acqName, nSlice, nChannel, movNum);
-                obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFile);
+                movFileName = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif', obj.acqName, nSlice, nChannel, movNum);
+                obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFileName);
                 fprintf('Writing Movie #%03.0f of #%03.0f\n',movNum,nMovies),
-                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov,movFile,writeDir,'int16');
+                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
             end
         end
         
         % Store movie dimensions (this is the same for all channels and slices):
-        obj.derivedData(movNum).size = size(movFile);
+        obj.derivedData(movNum).size = size(movStruct.slice(nSlice).channel(nChannel).mov);
     end
     
     %Assign acquisition to a variable with its own name, and write to same directory
