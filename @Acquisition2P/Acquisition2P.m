@@ -10,6 +10,7 @@ classdef Acquisition2P < handle
     properties
         %At present all of these properties can be freely modified by the user
         acqName             %Name of the acquisition, used for saving metadata and variable in worksapce
+        dateCreated         %Date the acquisition was created
         defaultDir          %Default directory for saving motion corrected data and metadata
         Movies = {};        %Cell array containing full filepaths to raw movie data
         binFactor           %Spatial bin of pixels, defaults to 1
@@ -74,6 +75,9 @@ classdef Acquisition2P < handle
             if ~isa(obj.motionCorrectionFunction,'function_handle')
                 warning('Motion Correction will fail without valid function handle')
             end
+            
+            %Fill in date created field
+            obj.dateCreated = date;
         end       
         
         function [movie, metaMovie] = readRaw(obj,movNum,castType)
