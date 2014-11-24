@@ -1,4 +1,4 @@
-function [traces,rawF,roiList] = extractROIsBin(obj,roiGroups,sliceNum,channelNum)
+function [traces, rawF, roiList, roiGroup] = extractROIsBin(obj,roiGroups,sliceNum,channelNum)
 % Function for extracting ROIs from movies using grouping assigned by
 % selectROIs. This function uses a memorymapped binary file of the entire
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
@@ -10,6 +10,7 @@ function [traces,rawF,roiList] = extractROIsBin(obj,roiGroups,sliceNum,channelNu
 % traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
 % rawF - matrix of same size as traces, but without using neuropil correction
 % roiList - vector of ROI numbers corresponding to extracted ROIs
+% roiGroup - vector of ROI groupings for each returned trace.
 
 
 %% Input Handling
@@ -28,6 +29,7 @@ end
 %Find relevant ROIs
 roiGroup = obj.roiInfo.slice(sliceNum).grouping;
 roiList = find(ismember(roiGroup,roiGroups));
+roiGroup = roiGroup(roiList);
 
 %Memory Map Movie
 movSizes = cat(1, obj.derivedData.size);
