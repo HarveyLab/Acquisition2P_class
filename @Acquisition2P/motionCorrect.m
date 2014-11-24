@@ -89,7 +89,14 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction)
                 movFileName = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif', obj.acqName, nSlice, nChannel, movNum);
                 obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFileName);
                 fprintf('Writing Movie #%03.0f of #%03.0f\n',movNum,nMovies),
-                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
+                try
+                    tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
+                catch
+                    % Sometimes, disk access fails due to intermittent
+                    % network problem. In that case, wait and re-try once:
+                    pause(60);
+                    tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
+                end
             end
         end
         
