@@ -76,6 +76,13 @@ gui.roiInfo.roiList(gui.roiInfo.roiList==0) = [];
 gui.roiColors = lines(30);
 gui.hasBeenViewed = false(gui.movSize);
 
+% Initialize cell/cluster fields:
+gui.clusterNum = 3;
+gui.traceF = [];
+gui.indBody = [];
+gui.indNeuropil = [];
+gui.roiInd = [];
+
 % Specify slice and channel gui correponds to, and pass handles to the
 % appropriate acquisition object and pixel-pixel covariance matrix
 gui.sliceNum = sliceNum;
@@ -85,12 +92,9 @@ gui.hAcq = obj;
 gui.currentPos = [nan nan]; % Makes current click/focus position available across functions.
 
 % gui.covFile = matfile(gui.roiInfo.covFile);
-
-warning('Hard-coded pixCovFile -- make general.')
-pathPixCovBin = 'C:\Users\Matthias\Local\Storage\labdata\imaging\temp\MMe011_weakStim.bin';
 nPix = numel(img);
 nh = 23;
-gui.covFile.map = memmapfile(pathPixCovBin, 'format', {'single', [nPix, 2*nh^2-2*nh+1], 'pixCov'});
+gui.covFile.map = memmapfile(gui.roiInfo.covFile, 'format', {'single', [nPix, 2*nh^2-2*nh+1], 'pixCov'});
 gui.covFile.radiusPxCov = 11;
 gui.covFile.nh = nh;
 
@@ -141,6 +145,11 @@ function cbMouseclick(obj, ~, row, col)
 %Allows selecting a seed location around which to perform clustering
 %and select ROIs
 
+persistent initialClusterNum
+if isempty(initialClusterNum)
+    initialClusterNum = 6;
+end
+
 gui = get(obj, 'userdata');
 displayWidth = ceil(gui.covFile.radiusPxCov+2);
 
@@ -166,7 +175,7 @@ end
 gui.hROIpt = impoint(gui.hAxRef, [col row]);
 
 % Reset cell / cluster status
-gui.clusterNum = 1;
+% gui.clusterNum = 1;
 gui.traceF = [];
 gui.indBody = [];
 gui.indNeuropil = [];
@@ -201,8 +210,9 @@ for nEig = 1:6
     title(sprintf('Cut #%1.0f',nEig)),
 end
 
-% Start at maximum number of cuts:
-gui.clusterNum = 6;
+% Initial number of cuts is updated depending on previous choices:
+initialClusterNum = initialClusterNum + sign(gui.clusterNum-initialClusterNum);
+gui.clusterNum = initialClusterNum;
 
 %Display new ROI
 set(gui.hFig, 'userdata', gui);
@@ -317,16 +327,12 @@ switch evt.Key
         
         %Add new ROI fluorescence trace to end of traceF matrix
         mov = gui.movMap.Data.mov;
-        [roiRow, roiCol] = find(gui.roiMask);
-        indBin = sub2ind([gui.movSize(2), gui.movSize(1)], roiCol, roiRow);
-        gui.traceF(end+1,:) = mean(mov(:, indBin), 2)';
+        gui.traceF(end+1,:) = mean(mov(:, gui.hAcq.mat2binInd(find(gui.roiMask))), 2)'; %#ok<FNDSB>
 
         %Get matrix of fluorescence traces for all clusters:
         gui.traceF = [];
         for i = 1:gui.clusterNum+1
-            [thisRow, thisCol]  = find(gui.allClusters==i);
-            indBin = sub2ind([gui.movSize(2), gui.movSize(1)], thisCol, thisRow);
-            gui.traceF(end+1,:) = mean(mov(:, indBin), 2)';
+            gui.traceF(end+1,:) = mean(mov(:, gui.hAcq.mat2binInd(find(gui.allClusters==i))), 2)'; %#ok<FNDSB>
         end
         clear mov;
         
@@ -383,10 +389,10 @@ switch evt.Key
             gui.indNeuropil = find(gui.roiMask);
             
             %Load cell body and neuropil fluorescence
-            mov = gui.movMap.Data;
-            mov = reshape(mov,gui.movSize(1)*gui.movSize(2),[]);
-            cellBody = mean(mov(gui.indBody,:));
-            cellNeuropil = mean(mov(gui.indNeuropil,:));
+            mov = gui.movMap.Data.mov;
+%             mov = reshape(mov, gui.movSize(1)*gui.movSize(2),[]);
+            cellBody = mean(mov(:, gui.hAcq.mat2binInd(gui.indBody)), 2)';
+            cellNeuropil = mean(mov(:, gui.hAcq.mat2binInd(gui.indNeuropil)), 2)';
             clear mov
             % Display un-deBleached coefficient to check it is similar to
             % de-bleached coeff:
@@ -407,8 +413,8 @@ switch evt.Key
             figure(784)
             clf
             hold on
-            plot(cellBody)
-            plot(cellNeuropil)
+            plot(cellNeuropil+100)
+            plot(cellBody+100)
             
             cellF = prctile(cellBody,10);
             cellBody = deBleach(cellBody, 'linear');
@@ -424,10 +430,12 @@ switch evt.Key
             %cellInd = ones(length(cellNeuropil),1);
             gui.neuropilCoef = robustfit(cellNeuropil(cellInd)-median(cellNeuropil),cellBody(cellInd)-median(cellBody),...
                 'bisquare',4);
-            figure(783),plot(cellNeuropil-median(cellNeuropil),cellBody-median(cellBody),'.','markersize',3)
+            figure(783)
+            plot(cellNeuropil-median(cellNeuropil), cellBody-median(cellBody),'.','markersize',3)
             xRange = round(min(cellNeuropil-median(cellNeuropil))):round(max(cellNeuropil-median(cellNeuropil)));
-            hold on, plot(xRange,xRange*gui.neuropilCoef(2) + gui.neuropilCoef(1),'r'),
-            hold off,
+            hold on
+            plot(xRange,xRange*gui.neuropilCoef(2) + gui.neuropilCoef(1),'r')
+            hold off
             title(sprintf('Fitted subtractive coefficient is: %0.3f (%0.3f w/o debleach)',gui.neuropilCoef(2), neuropilCoefWithBleaching(2))),
             
             %Calculate corrected dF and plot
@@ -439,10 +447,13 @@ switch evt.Key
             hold on,
             plot(cellBody),
             hold off,
+            legend('NP raw', 'Body raw', 'NP debleached', 'Body debleached');
+            
             figure(785),
             plot(dF,'linewidth',1.5)
             gui.roiTitle = title(gui.hAxROI, 'This pairing loaded');
-            figure(gui.hFig),
+            figure(gui.hFig);
+            
         end
     case 'tab'
         %Increase currently selected cluster by 1
@@ -501,7 +512,7 @@ switch evt.Key
 end
 
 set(gui.hFig, 'userdata', gui);
-end
+ end
 
 function cbScrollwheel(obj, evt)
 %Allows interactive adjustment of the number of clusters / cuts to perform
@@ -526,9 +537,6 @@ end
 %Recalculate clusters with new cluster count
 set(gui.hFig, 'userdata', gui);
 calcROI(gui.hFig);
-
-% Display partial traces using the movie chunk that's in memory:
-updateTracesFast(gui.hFig);
 end
 
 function updateReferenceDisplay(hFig)
@@ -647,37 +655,6 @@ end
 function img = scaleImg(img)
 img = img-min(img(:));
 img = img./max(img(:));
-end
-
-function updateTracesFast(hFig)
-gui = get(hFig, 'userdata');
-mov = reshape(gui.movInMem, gui.movSize(1)*gui.movSize(2), []);
-        
-%Get matrix of fluorescence traces for all clusters:
-gui.traceF = [];
-for i = 1:gui.clusterNum+1
-    gui.traceF(end+1,:) = mean(mov(gui.allClusters==i, :));
-end
-
-%Normalize, smooth, and plot all traces
-dF = bsxfun(@rdivide,gui.traceF,median(gui.traceF,2));
-for i=1:size(dF,1)
-    dF(i,:) = conv(dF(i,:)-1,gausswin(gui.smoothWindow)/sum(gausswin(gui.smoothWindow)),'same');
-end
-dF = bsxfun(@plus, dF, 1*(size(dF, 1):-1:1)'); % Offset traces in y.
-figure(786),
-clf
-whitebg(786, [0.2 0.2 0.2]);
-
-% Coloring: use same hues as in the image showing the cuts, but
-% scale saturation according to the magnitude of the fluorescence
-% signal:
-clut = jet(gui.clusterNum+1);
-clut = cat(1, clut, jet(gui.clusterNum+1));
-set(gcf, 'defaultAxesColorOrder', clut);
-hold on
-plot(dF', 'linewidth', 1)
-figure(gui.hFig)
 end
 
 function [covMat, pxNeighbors] = getCovData(hFig, row, col)
