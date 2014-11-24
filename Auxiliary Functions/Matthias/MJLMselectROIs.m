@@ -99,8 +99,10 @@ gui.covFile.radiusPxCov = 11;
 gui.covFile.nh = nh;
 
 % Create memory mapped binary file of movie:
+movSizes = [obj.derivedData.size];
+movLengths = movSizes(3:3:end);
 gui.movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
-    'Format', {'int16', [80000, 512*512], 'mov'});
+    'Format', {'int16', [sum(movLengths), movSizes(1)*movSizes(2)], 'mov'});
 
 %% Create GUI figure
 gui.hFig = figure;
