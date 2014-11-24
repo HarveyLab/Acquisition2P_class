@@ -112,24 +112,3 @@ function fn = createDispFieldFunctionX(w, lineShiftX)
 fn = @() bsxfun(@plus, 1:w, permute(lineShiftX, [1, 3, 2]));
 function fn = createDispFieldFunctionY(w, h, lineShiftY)
 fn = @() bsxfun(@plus, zeros(1, w), permute(bsxfun(@plus, (1:h)', lineShiftY), [1, 3, 2]));
-
-function [mov, dpx, dpy, B] = correctMotionLucasKanadeLoop(mov, refImg)
-
-if ~exist('refImg', 'var')
-    refImg = mean(mov, 3);
-end
-
-z = size(mov, 3);
-
-% Sub-pixel correction including within-frame motion:
-nBasis = 16;
-dpx = zeros(nBasis+1, z);
-dpy = zeros(nBasis+1, z);
-for f = 1:z
-    f
-    % Do warping using Lucas-Kanade:
-    [mov(:,:,f), dpx(:, f), dpy(:, f)] = doLucasKanade(refImg, mov(:,:,f));
-end
-
-% Get basis functions for manual correction:
-[~, ~, ~, B] = doLucasKanade(refImg, mov(:,:,1));
