@@ -82,8 +82,11 @@ gui.smoothWindow = smoothWindow;
 gui.covFile = matfile(gui.roiInfo.covFile);
 gui.hAcq = obj;
 
-%Create memory mapped binary file of movie
-gui.movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,'Format','uint16');
+% Create memory mapped binary file of movie:
+movSizes = [obj.derivedData.size];
+movLengths = movSizes(3:3:end);
+gui.movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
+    'Format', {'int16', [sum(movLengths), movSizes(1)*movSizes(2)], 'mov'});
 %% Create GUI figure
 gui.hFig = figure;
 %Layout is based on screen size
@@ -283,10 +286,9 @@ switch evt.Key
         drawnow,
         
         %Add new ROI fluorescence trace to end of traceF matrix
-        mov = gui.movMap.Data;
-        mov = reshape(mov,gui.movSize(1)*gui.movSize(2),[]);
+        mov = gui.movMap.Data.mov;
         gui.roiInd = find(gui.roiMask);
-        gui.traceF(end+1,:) = mean(mov(gui.roiInd,:));
+        gui.traceF(end+1,:) = mean(mov(:,gui.hAcq.mat2binInd(gui.roiInd)),2);
         
         %Normalize, smooth, and plot all traces
         dF = bsxfun(@rdivide,gui.traceF,median(gui.traceF,2));
@@ -314,10 +316,9 @@ switch evt.Key
             gui.indNeuropil = find(gui.roiMask);
             
             %Load cell body and neuropil fluorescence
-            mov = gui.movMap.Data;
-            mov = reshape(mov,gui.movSize(1)*gui.movSize(2),[]);
-            cellBody = mean(mov(gui.indBody,:));
-            cellNeuropil = mean(mov(gui.indNeuropil,:));
+            mov = gui.movMap.Data.mov;
+            cellBody = mean(mov(:,gui.hAcq.mat2binInd(gui.indBody)),2);
+            cellNeuropil = mean(mov(:,gui.hAcq.mat2binInd(gui.indNeuropil)),2);
             
             %Smooth fluorescence traces
             cellBody = conv(cellBody,gausswin(gui.smoothWindow)/sum(gausswin(gui.smoothWindow)),'valid');
