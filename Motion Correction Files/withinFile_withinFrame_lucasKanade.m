@@ -42,12 +42,13 @@ switch opMode
             % Third, combine local and global shifts and store them as
             % displacement fields. A displacement field specifies how each
             % pixel is shifted in each dimension.
-            lineShiftX = zeros(h, z);
-            lineShiftY = zeros(h, z);
-            for f = 1:z
-                lineShiftX(:, f) = basisFunctions*dpx(:, f) - xGlobal;
-                lineShiftY(:, f) = basisFunctions*dpy(:, f) - yGlobal;
-            end
+            % THIS IS NOW DONE IN THE FUNCTIONS BELOW TO SAVE STORAGE SPACE.
+%             lineShiftX = zeros(h, z);
+%             lineShiftY = zeros(h, z);
+%             for f = 1:z
+%                 lineShiftX(:, f) = basisFunctions*dpx(:, f) - xGlobal;
+%                 lineShiftY(:, f) = basisFunctions*dpy(:, f) - yGlobal;
+%             end
             
             % The motion correction algorithm calculates a rigid shift for
             % each line (because lines are scanned fast, so there is
@@ -71,8 +72,8 @@ switch opMode
             % same time, they add values corresponding to the
             % grid-positions of each pixel (same as if we created grid
             % matrixes with MESHGRID, but more efficient).
-            obj.shifts(movNum).slice(iSl).x = createDispFieldFunctionX(w, lineShiftX);
-            obj.shifts(movNum).slice(iSl).y = createDispFieldFunctionY(w, h, lineShiftY);
+            obj.shifts(movNum).slice(iSl).x = createDispFieldFunctionX(h, w, z, basisFunctions, dpx, xGlobal);
+            obj.shifts(movNum).slice(iSl).y = createDispFieldFunctionY(h, w, z, basisFunctions, dpy, yGlobal);
         end
         
     case 'apply'
@@ -99,6 +100,7 @@ switch opMode
             end
         end
 end
+end
 
 % The following two functions create and return the function handles that
 % calculate displacement fields on-demand. The handles are created in
@@ -108,7 +110,24 @@ end
 % putting them into separate functions, we can isolate them from all the
 % larger movie-related variables that are in the workspace of the main
 % function:
-function fn = createDispFieldFunctionX(w, lineShiftX)
-fn = @() bsxfun(@plus, 1:w, permute(lineShiftX, [1, 3, 2]));
-function fn = createDispFieldFunctionY(w, h, lineShiftY)
-fn = @() bsxfun(@plus, zeros(1, w), permute(bsxfun(@plus, (1:h)', lineShiftY), [1, 3, 2]));
+function fn = createDispFieldFunctionX(h, w, z, basisFunctions, dpx, xGlobal)
+fn = @dispFieldX;
+    function dx = dispFieldX
+        lineShiftX = zeros(h, z);
+        for f = 1:z
+            lineShiftX(:, f) = basisFunctions*dpx(:, f) - xGlobal;
+        end
+        dx = bsxfun(@plus, 1:w, permute(lineShiftX, [1, 3, 2]));
+    end
+end
+
+function fn = createDispFieldFunctionY(h, w, z, basisFunctions, dpy, yGlobal)
+fn = @dispFieldY;
+    function dy = dispFieldY
+        lineShiftY = zeros(h, z);
+        for f = 1:z
+            lineShiftY(:, f) = basisFunctions*dpy(:, f) - yGlobal;
+        end
+        dy = bsxfun(@plus, zeros(1, w), permute(bsxfun(@plus, (1:h)', lineShiftY), [1, 3, 2]));
+    end
+end
