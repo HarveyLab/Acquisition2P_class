@@ -25,7 +25,7 @@ if isGpu
         % Split stack into chunks of ~equal size:
         nChunks = ceil(memRequired/memAvailable);
         [h, w, z] = size(stackFull);
-        chunkSize = round(z/nChunks);
+        chunkSize = ceil(z/nChunks);
         chunkSizes = zeros(1, nChunks)+chunkSize;
         chunkSizes(end) = z-(nChunks-1)*chunkSize;
         stackChunked = mat2cell(stackFull, h, w, chunkSizes);
@@ -38,8 +38,8 @@ end
 
 % Process chunks:
 nChunks = numel(stackChunked);
-dpxAl = cell(1, 1, nChunks);
-dpyAl = cell(1, 1, nChunks);
+dpxAl = cell(1, nChunks);
+dpyAl = cell(1, nChunks);
 for s = 1:nChunks
     fprintf('Processing chunk %1.0f of %1.0f...\n', s, nChunks);
     [stackChunked{s}, dpxAl{s}, dpyAl{s}, B] = ...
