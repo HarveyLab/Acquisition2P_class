@@ -61,7 +61,8 @@ for nMovie = movNums
 
         % ...Make list of diagonals in adjacency matrix that are 1, following
         % the convention of spdiags();
-        diags = row(bsxfun(@plus, (-nh+1:nh-1)', 0:h:h*(nh-1)));
+        diags = bsxfun(@plus, (-nh+1:nh-1)', 0:h:h*(nh-1));
+        diags = diags(:)';
         diags(diags<0) = [];
         nDiags = numel(diags);
 
