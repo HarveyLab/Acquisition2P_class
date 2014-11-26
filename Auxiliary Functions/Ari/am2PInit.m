@@ -1,4 +1,4 @@
-function am2Pinit(obj)
+function am2PInit(obj)
 %Example of an Acq2P Initialization Function. Allows user selection of
 %movies to form acquisition, sorts alphabetically, assigns an acquisition
 %name and default directory, and assigns the object to a workspace variable
@@ -16,8 +16,14 @@ movNames = sort(movNames);
 %Attempt to automatically name acquisition from movie filename, raise
 %warning and create generic name otherwise
 try
-    acqNamePlace = find(movNames{1} == '_',1);
-    obj.acqName = movNames{1}(1:acqNamePlace-1);
+    fileStrings = explode(movPath,filesep);
+    nFileStrings = length(fileStrings);
+    dateStr = fileStrings{nFileStrings-1};
+    mouseName = fileStrings{nFileStrings-2};
+    if isempty(regexp(dateStr,'\d{6}','ONCE')) || isempty(regexp(mouseName,'AM\d{3}','ONCE'))
+        error('Can''t process name');
+    end
+    obj.acqName = sprintf('%s_%s',mouseName,dateStr);
 catch
     obj.acqName = sprintf('%s_%.0f',date,now);
     warning('Automatic Name Generation Failed, using date_time')
@@ -29,8 +35,8 @@ for nMov = 1:length(movNames)
 end
 
 %Automatically fill in fields for motion correction
-obj.motionRefMovNum = floor(length(movNames)/2);
-obj.motionRefChannel = 1;
+obj.motionRefMovNum = ceil(length(movNames)/2);
+obj.motionRefChannel = 2; %red channel should be used for motion correction
 obj.binFactor = 1;
 obj.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
 
@@ -38,4 +44,55 @@ obj.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
 assignin('base',obj.acqName,obj);
 
 %Notify user of success
-fprintf('Successfully added %03.0f movies to acquisition: %s\n',length(movNames),obj.acqName),
+fprintf('Successfully added %03.0f movies to acquisition: %s\n',length(movNames),obj.acqName);
+
+end
+
+function [split,numpieces]=explode(string,delimiters)
+%EXPLODE    Splits string into pieces.
+%   EXPLODE(STRING,DELIMITERS) returns a cell array with the pieces
+%   of STRING found between any of the characters in DELIMITERS.
+%
+%   [SPLIT,NUMPIECES] = EXPLODE(STRING,DELIMITERS) also returns the
+%   number of pieces found in STRING.
+%
+%   Input arguments:
+%      STRING - the string to split (string)
+%      DELIMITERS - the delimiter characters (string)
+%   Output arguments:
+%      SPLIT - the split string (cell array), each cell is a piece
+%      NUMPIECES - the number of pieces found (integer)
+%
+%   Example:
+%      STRING = 'ab_c,d,e fgh'
+%      DELIMITERS = '_,'
+%      [SPLIT,NUMPIECES] = EXPLODE(STRING,DELIMITERS)
+%      SPLIT = 'ab'    'c'    'd'    'e fgh'
+%      NUMPIECES = 4
+%
+%   See also IMPLODE, STRTOK
+%
+%   Created: Sara Silva (sara@itqb.unl.pt) - 2002.04.30
+
+if isempty(string) % empty string, return empty and 0 pieces
+   split{1}='';
+   numpieces=0;
+   
+elseif isempty(delimiters) % no delimiters, return whole string in 1 piece
+   split{1}=string;
+   numpieces=1;
+   
+else % non-empty string and delimiters, the correct case
+   
+   remainder=string;
+   i=0;
+   
+	while ~isempty(remainder)
+   	[piece,remainder]=strtok(remainder,delimiters);
+   	i=i+1;
+   	split{i}=piece;
+	end
+   numpieces=i;
+   
+end
+end
