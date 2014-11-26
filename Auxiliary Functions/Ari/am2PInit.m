@@ -29,6 +29,17 @@ catch
     warning('Automatic Name Generation Failed, using date_time')
 end
 
+%look for previous acquisition object
+prevAcqFileName = sprintf('%s%s%s.mat',movPath,filesep,obj.acqName);
+if exist(prevAcqFileName,'file')
+    tempObj = load(prevAcqFileName,obj.acqName);
+    obj = copyObj(obj,tempObj.(obj.acqName));
+    
+    %Assign acquisition object to acquisition name variable in workspace
+    assignin('base',obj.acqName,obj);
+    return;
+end
+
 %Attempt to add each selected movie to acquisition in order
 for nMov = 1:length(movNames)
     obj.addMovie(fullfile(movPath,movNames{nMov}));
@@ -75,24 +86,36 @@ function [split,numpieces]=explode(string,delimiters)
 %   Created: Sara Silva (sara@itqb.unl.pt) - 2002.04.30
 
 if isempty(string) % empty string, return empty and 0 pieces
-   split{1}='';
-   numpieces=0;
-   
+    split{1}='';
+    numpieces=0;
+    
 elseif isempty(delimiters) % no delimiters, return whole string in 1 piece
-   split{1}=string;
-   numpieces=1;
-   
+    split{1}=string;
+    numpieces=1;
+    
 else % non-empty string and delimiters, the correct case
-   
-   remainder=string;
-   i=0;
-   
-	while ~isempty(remainder)
-   	[piece,remainder]=strtok(remainder,delimiters);
-   	i=i+1;
-   	split{i}=piece;
-	end
-   numpieces=i;
-   
+    
+    remainder=string;
+    i=0;
+    
+    while ~isempty(remainder)
+        [piece,remainder]=strtok(remainder,delimiters);
+        i=i+1;
+        split{i}=piece;
+    end
+    numpieces=i;
+    
+end
+end
+
+function obj = copyObj(obj,newObj)
+
+%get list of properties
+propertyList = properties(obj);
+
+
+%loop through and replace
+for propInd = 1:length(propertyList)
+    obj.(propertyList{propInd}) = newObj.(propertyList{propInd});
 end
 end
