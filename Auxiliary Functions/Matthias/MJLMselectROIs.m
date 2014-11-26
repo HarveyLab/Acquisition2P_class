@@ -92,7 +92,6 @@ gui.hAcq = obj;
 gui.currentPos = [nan nan]; % Makes current click/focus position available across functions.
 
 % Create memory map of pixCov file:
-nPix = numel(img);
 gui.covFile.map = memmapfile(gui.roiInfo.covFile.fileName, ...
     'format', {'single', [gui.roiInfo.covFile.nPix, gui.roiInfo.covFile.fileName.nDiag], 'pixCov'});
 gui.covFile.radiusPxCov = (gui.covFile.nh-1)/2; % "Radius" is a historical term, more like "square edge half-length" now.
