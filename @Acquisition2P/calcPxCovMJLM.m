@@ -87,12 +87,19 @@ pixCov = pixCov / length(movNums);
 
 %% Write results to disk
 display('-----------------Saving Results-----------------')
-covFileName = fullfile(writeDir,[obj.acqName '_pixCovFile.mat']);
-obj.roiInfo.slice(sliceNum).covFile = covFileName;
-covFile = matfile(covFileName,'Writable',true);
-covFile.nh = nh;
-covFile.sliceNum = sliceNum;
-covFile.channelNum = channelNum;
-covFile.temporalBin = temporalBin;
-covFile.pixCov = pixCov;
-covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);
+covFileName = fullfile(writeDir,[obj.acqName '_pixCovFile.bin']);
+
+% Write binary file to disk:
+fileID = fopen(covFileName,'w');
+fwrite(fileID, pixCov, 'single');
+fclose(fileID);
+
+% Save metadata in acq2p:
+obj.roiInfo.slice(sliceNum).covFile.fileName = covFileName;
+obj.roiInfo.slice(sliceNum).covFile.nh = nh;
+obj.roiInfo.slice(sliceNum).covFile.nPix = nPix;
+obj.roiInfo.slice(sliceNum).covFile.nDiags = nDiags;
+obj.roiInfo.slice(sliceNum).covFile.diags = diags;
+obj.roiInfo.slice(sliceNum).covFile.channelNum = channelNum;
+obj.roiInfo.slice(sliceNum).covFile.temporalBin = temporalBin;
+obj.roiInfo.slice(sliceNum).covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);

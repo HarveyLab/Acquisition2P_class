@@ -91,12 +91,10 @@ gui.smoothWindow = smoothWindow;
 gui.hAcq = obj;
 gui.currentPos = [nan nan]; % Makes current click/focus position available across functions.
 
-% gui.covFile = matfile(gui.roiInfo.covFile);
-nPix = numel(img);
-nh = 23;
-gui.covFile.map = memmapfile(gui.roiInfo.covFile, 'format', {'single', [nPix, 2*nh^2-2*nh+1], 'pixCov'});
-gui.covFile.radiusPxCov = 11;
-gui.covFile.nh = nh;
+% Create memory map of pixCov file:
+gui.covFile.map = memmapfile(gui.roiInfo.covFile.fileName, ...
+    'format', {'single', [gui.roiInfo.covFile.nPix, gui.roiInfo.covFile.fileName.nDiag], 'pixCov'});
+gui.covFile.radiusPxCov = (gui.covFile.nh-1)/2; % "Radius" is a historical term, more like "square edge half-length" now.
 
 % Create memory mapped binary file of movie:
 movSizes = [obj.derivedData.size];
