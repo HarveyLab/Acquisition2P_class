@@ -15,6 +15,7 @@ while ~ajp.flagStop
         continue
     elseif ~success && ~shouldContinue
         ajp.stop;
+        continue;
     end
     
     ajp.processCurrentAcq;
