@@ -48,7 +48,14 @@ classdef Acquisition2P < handle
             elseif nargin == 2
                 obj.acqName = varargin{1};
                 initFunction = varargin{2};
-                initFunction(obj);
+                if iscell(initFunction)
+                    if isempty(initFunction{2})
+                        initFunction{2} = obj;
+                    end
+                    feval(initFunction{:});
+                else
+                    initFunction(obj);
+                end
             else
                 error('Unsupported number of input arguments'),
             end

@@ -1,4 +1,4 @@
-function calcSeedCov(obj,movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channelNum,writeDir)
+function calcPxCovMJLM(obj,movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channelNum,writeDir)
 %Function to calculate sparse pixel-pixel covariances at an array of seed
 %points distributed throughout an image. 
 %

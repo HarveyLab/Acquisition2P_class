@@ -1,14 +1,23 @@
-function am2PInit(obj)
+function am2PInit(obj,movPath)
 %Example of an Acq2P Initialization Function. Allows user selection of
 %movies to form acquisition, sorts alphabetically, assigns an acquisition
 %name and default directory, and assigns the object to a workspace variable
 %named after the acquisition name
 
-%Initialize user selection of multiple tif files
-[movNames, movPath] = uigetfile('*.tif','MultiSelect','on');
+
+if nargin < 2 || isempty(movPath) %if no folder provided
+    
+    %Initialize user selection of multiple tif files
+    %     [movNames, movPath] = uigetfile('*.tif','MultiSelect','on');
+    movPath = uigetdir('\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan');
+end
 
 %Set default directory to folder location,
 obj.defaultDir = movPath;
+
+%get movNames
+movNames = dir([movPath,filesep,'*.tif']);
+movNames = {movNames(:).name};
 
 %sort movie order alphabetically for consistent results
 movNames = sort(movNames);
@@ -18,8 +27,8 @@ movNames = sort(movNames);
 try
     fileStrings = explode(movPath,filesep);
     nFileStrings = length(fileStrings);
-    dateStr = fileStrings{nFileStrings-1};
-    mouseName = fileStrings{nFileStrings-2};
+    dateStr = fileStrings{nFileStrings};
+    mouseName = fileStrings{nFileStrings-1};
     if isempty(regexp(dateStr,'\d{6}','ONCE')) || isempty(regexp(mouseName,'AM\d{3}','ONCE'))
         error('Can''t process name');
     end
@@ -41,9 +50,10 @@ if exist(prevAcqFileName,'file')
 end
 
 %Attempt to add each selected movie to acquisition in order
-for nMov = 1:length(movNames)
-    obj.addMovie(fullfile(movPath,movNames{nMov}));
-end
+% for nMov = 1:length(movNames)
+%     obj.addMovie(fullfile(movPath,movNames{nMov}));
+% end
+obj.Movies = cellfun(@(x) sprintf('%s%s%s',movPath,filesep,x),movNames,'UniformOutput',false);
 
 %Automatically fill in fields for motion correction
 obj.motionRefMovNum = ceil(length(movNames)/2);
@@ -51,8 +61,16 @@ obj.motionRefChannel = 2; %red channel should be used for motion correction
 obj.binFactor = 1;
 obj.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
 
+%fill in date
+obj.dateCreated = date;
+
 %Assign acquisition object to acquisition name variable in workspace
 assignin('base',obj.acqName,obj);
+
+%Copy acquisition object to should process folder
+shouldProcFolder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
+eval(sprintf('%s=obj',obj.acqName));
+save(sprintf('%s%s%s.mat',shouldProcFolder,filesep,obj.acqName),obj.acqName);
 
 %Notify user of success
 fprintf('Successfully added %03.0f movies to acquisition: %s\n',length(movNames),obj.acqName);
