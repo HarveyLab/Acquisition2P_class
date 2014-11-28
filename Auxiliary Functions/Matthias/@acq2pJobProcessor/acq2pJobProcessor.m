@@ -4,6 +4,7 @@ classdef acq2pJobProcessor < handle
         jobDir
         logFileName
         currentAcq
+        nameFunc
         
     end
     
@@ -13,7 +14,12 @@ classdef acq2pJobProcessor < handle
     
     methods
         % Constructor:
-        function ajp = acq2pJobProcessor(jobDir, debug, shouldContinue)
+        function ajp = acq2pJobProcessor(jobDir, debug, shouldContinue,nameFunc)
+            if ~exist('nameFunc','var')
+                ajp.nameFunc = [];
+            else
+                ajp.nameFunc = nameFunc;
+            end
             if ~exist('shouldContinue','var') || isempty(shouldContinue)
                 shouldContinue = true;
             end
