@@ -9,6 +9,8 @@ if exist('savePath', 'var')
     save(fullfile(savePath, acq.acqName), 'acq');
 end
 
+fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, numel(acq.Movies));
+
 function init(acq, acqId)
 % Add remote files:
 acq.Movies = improc.findFiles(acqId, 0, 0);
