@@ -1,4 +1,5 @@
-function [traces, rawF, roiList, roiGroup] = extractROIsBin(obj,roiGroups,sliceNum,channelNum)
+function [traces, rawF, roiList, roiGroup, traceNeuropil] = ...
+    extractROIsBin(obj,roiGroups,sliceNum,channelNum)
 % Function for extracting ROIs from movies using grouping assigned by
 % selectROIs. This function uses a memorymapped binary file of the entire
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
@@ -30,6 +31,7 @@ end
 roiGroup = obj.roiInfo.slice(sliceNum).grouping;
 roiList = find(ismember(roiGroup,roiGroups));
 roiGroup = roiGroup(roiList);
+nRois = numel(roiList);
 
 %Memory Map Movie
 movSizes = cat(1, obj.derivedData.size);
@@ -42,23 +44,25 @@ movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileNam
 mov = movMap.Data.mov;
 
 %Loop over each ROI,
-traces = [];
-rawF = [];
-for nROI = 1:length(roiList)
+traces = nan(nRois, nFramesTotal);
+rawF = nan(nRois, nFramesTotal);
+traceNeuropil = nan(nRois, nFramesTotal);
+
+for nROI = 1:nRois
     fprintf('Extracting ROI %03.0f of %03.0f\n',nROI,length(roiList));
     
-    indCell = obj.mat2binInd(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indBody);
+    thisRoi = obj.roiInfo.slice(sliceNum).roi(roiList(nROI));
+    
+    indCell = obj.mat2binInd(thisRoi.indBody);
     traceCell = mean(mov(:, indCell), 2)';
     rawF(nROI,:) = traceCell;
     
     
-    if isfield(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)),'indNeuropil') ...
-            && ~isempty(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil)
-        subCoef = obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).subCoef;
-        
-        indNeuropil = obj.mat2binInd(obj.roiInfo.slice(sliceNum).roi(roiList(nROI)).indNeuropil);
-        traceNeuropil = mean(mov(:, indNeuropil), 2)';
-        traces(nROI,:) = traceCell - traceNeuropil*subCoef;
+    if isfield(thisRoi,'indNeuropil') && ~isempty(thisRoi.indNeuropil)
+        subCoef = thisRoi.subCoef;
+        indNeuropil = obj.mat2binInd(thisRoi.indNeuropil);
+        traceNeuropil(nROI,:) = mean(mov(:, indNeuropil), 2)';
+        traces(nROI,:) = traceCell - traceNeuropil(nROI,:)*subCoef;
     else
         traces(nROI,:) = rawF(nROI,:);
     end

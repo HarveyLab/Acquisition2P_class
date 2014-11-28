@@ -55,7 +55,7 @@ nFiles = numel(fileList);
 
 % Create Tiff object:
 t = Tiff.empty;
-for f = fileList
+for f = fileList(:)' % Deal with both column and row cell arrays.
     t(end+1) = Tiff(f{:});
 end
 
