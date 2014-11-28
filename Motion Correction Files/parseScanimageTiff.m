@@ -8,6 +8,13 @@ if isfield(siStruct, 'SI4')
     fZ              = siStruct.fastZEnable;
     nChannels       = numel(siStruct.channelsSave);
     nSlices         = siStruct.stackNumSlices + (fZ*siStruct.fastZDiscardFlybackFrames); % Slices are acquired at different locations (e.g. depths).
+elseif isfield(siStruct,'SI5')
+     siStruct = siStruct.SI5;
+    % Nomenclature: frames and slices refer to the concepts used in
+    % ScanImage.
+    fZ              = siStruct.fastZEnable;
+    nChannels       = numel(siStruct.channelsSave);
+    nSlices         = siStruct.stackNumSlices + (fZ*siStruct.fastZDiscardFlybackFrames); % Slices are acquired at different locations (e.g. depths).
 elseif isfield(siStruct, 'software') && siStruct.software.version < 4 %ie it's a scanimage 3 file
     fZ = 0;
     nSlices = 1;
