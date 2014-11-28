@@ -16,11 +16,11 @@ name = fieldnames(acq);
 ajp.currentAcq = acq.(name{1});
 
 % Move acq file right away:
-dirDone = fullfile(ajp.jobDir, 'done');
-if ~exist(dirDone, 'dir');
-    mkdir(dirDone);
+dirProgress = fullfile(ajp.jobDir, 'in progress');
+if ~exist(dirProgress, 'dir');
+    mkdir(dirProgress);
 end
-movefile(nextAcqFile, fullfile(dirDone, acqFileList(1).name));
+movefile(nextAcqFile, fullfile(dirProgress, acqFileList(1).name));
 
 % Log information:
 msg = sprintf('Loaded acq2p for processing and moved file to "done" folder: %s.\n', nextAcqFile);

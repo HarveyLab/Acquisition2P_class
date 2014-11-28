@@ -9,7 +9,7 @@ end
 % Motion correction:
 try
     ajp.log('Started motion correction.');
-    ajp.currentAcq.motionCorrect;
+    ajp.currentAcq.motionCorrect([],[],ajp.nameFunc);
 catch err
     msg = sprintf('Motion correction aborted with error: %s', err.message);
     ajp.log(msg);
@@ -48,6 +48,15 @@ catch err
     ajp.log(msg);
     printStack(ajp, err.stack);
 end
+
+%move acqFile to done folder
+dirProgress = fullfile(ajp.jobDir, 'in progress');
+dirDone = fullfile(ajp.jobDir, 'done');
+if ~exist(dirDone, 'dir');
+    mkdir(dirDone);
+end
+movefile(sprintf('%s%s%s.mat',dirProgress,filesep,ajp.currentAcq.acqName),...
+    sprintf('%s%s%s.mat',dirDone,filesep,ajp.currentAcq.acqName) );
     
 
 ajp.log('Done processing.');
