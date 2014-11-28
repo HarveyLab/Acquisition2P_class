@@ -37,6 +37,19 @@ catch err
     printStack(ajp, err.stack);
 end
 
+% save updated acq2p object
+try 
+    ajp.log('Saving updated Acq2P object');
+    eval(sprintf('%s=ajp.currentAcq',ajp.currentAcq.acqName));
+    save(sprintf('%s%s%s.mat',ajp.currentAcq.defaultDir,filesep,...
+        ajp.currentAcq.acqName),ajp.currentAcq.acqName);
+catch err
+    msg = sprintf('Saving aborted with error: %s',err.message);
+    ajp.log(msg);
+    printStack(ajp, err.stack);
+end
+    
+
 ajp.log('Done processing.');
 
 function printStack(ajp, stack)
