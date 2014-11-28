@@ -93,8 +93,8 @@ gui.currentPos = [nan nan]; % Makes current click/focus position available acros
 
 % Create memory map of pixCov file:
 gui.covFile.map = memmapfile(gui.roiInfo.covFile.fileName, ...
-    'format', {'single', [gui.roiInfo.covFile.nPix, gui.roiInfo.covFile.fileName.nDiag], 'pixCov'});
-gui.covFile.radiusPxCov = (gui.covFile.nh-1)/2; % "Radius" is a historical term, more like "square edge half-length" now.
+    'format', {'single', [gui.roiInfo.covFile.nPix, gui.roiInfo.covFile.nDiags], 'pixCov'});
+gui.covFile.radiusPxCov = (gui.roiInfo.covFile.nh-1)/2; % "Radius" is a historical term, more like "square edge half-length" now.
 
 % Create memory mapped binary file of movie:
 movSizes = [obj.derivedData.size];
@@ -692,7 +692,7 @@ switch format
     case 'pixCovMjlm'
         row = round(row);
         col = round(col);
-        nh = gui.covFile.nh;
+        nh = gui.roiInfo.covFile.nh;
         [covMat, pxNeighbors] = mmCovMat(gui.covFile.map.Data.pixCov, h, w, nh, row, col);
 end
 
