@@ -1,7 +1,7 @@
-function run(ajp,shouldContinue)
+function run(ajp, shouldContinue)
 % Runs a loop that loads acquisition objects and processes them.
 
-if ~exist('shouldContinue','var') || isempty(shouldContinue)
+if ~exist('shouldContinue', 'var') || isempty(shouldContinue)
     shouldContinue = true;
 end
 
@@ -14,8 +14,8 @@ while ~ajp.flagStop
         pause(60);
         continue
     elseif ~success && ~shouldContinue
-        ajp.stop;
-        continue;
+        ajp.stop
+        break
     end
     
     ajp.processCurrentAcq;
