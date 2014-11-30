@@ -39,7 +39,7 @@ catch
 end
 
 %look for previous acquisition object
-prevAcqFileName = sprintf('%s%s%s.mat',movPath,filesep,obj.acqName);
+prevAcqFileName = sprintf('%s%s%s_acq.mat',movPath,filesep,obj.acqName);
 if exist(prevAcqFileName,'file')
     tempObj = load(prevAcqFileName,obj.acqName);
     obj = copyObj(obj,tempObj.(obj.acqName));
@@ -73,7 +73,7 @@ assignin('base',obj.acqName,obj);
 %Copy acquisition object to should process folder
 shouldProcFolder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
 eval(sprintf('%s=obj',obj.acqName));
-save(sprintf('%s%s%s.mat',shouldProcFolder,filesep,obj.acqName),obj.acqName);
+save(sprintf('%s%s%s_acq.mat',shouldProcFolder,filesep,obj.acqName),obj.acqName);
 
 %Notify user of success
 fprintf('Successfully added %03.0f movies to acquisition: %s\n',length(movNames),obj.acqName);

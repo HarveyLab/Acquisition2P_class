@@ -20,8 +20,10 @@ if isempty(mouseDir)
     dateDir = subDir(~cellfun(@isempty,regexp(subDir,'\d{6}$')));
     if isempty(dateDir) %if no date directories, invalid directory, throw error
         error('Invalid directory');
+    else
+        mouseDir = {folder};
     end
-    mouseDir = {folder};
+    
 end
 
 %get number of mouse directories
