@@ -1,9 +1,10 @@
 classdef acq2pJobProcessor < handle
     properties
         debug = false;
-        jobDir
+        dir
         logFileName
         currentAcq
+        currentAcqFileName
         nameFunc
         
     end
@@ -27,7 +28,11 @@ classdef acq2pJobProcessor < handle
                 ajp.debug = debug;
             end
             
-            ajp.jobDir = jobDir;
+            % Define directory names:
+            ajp.dir.jobs = jobDir;
+            ajp.dir.inProgress = fullfile(jobDir, 'inProgress');
+            ajp.dir.done = fullfile(jobDir, 'done');
+            
             ajp.logFileName = fullfile(jobDir, 'acqJobLog.txt');
             
             ajp.run(shouldContinue);            

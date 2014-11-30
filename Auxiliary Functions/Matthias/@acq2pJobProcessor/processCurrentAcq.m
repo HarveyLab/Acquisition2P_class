@@ -37,28 +37,27 @@ catch err
     printStack(ajp, err.stack);
 end
 
-% save updated acq2p object
+% Save updated acq2p object:
 try 
-    ajp.log('Saving updated Acq2P object');
-    eval(sprintf('%s=ajp.currentAcq',ajp.currentAcq.acqName));
-    save(sprintf('%s%s%s.mat',ajp.currentAcq.defaultDir,filesep,...
-        ajp.currentAcq.acqName),ajp.currentAcq.acqName);
+    ajp.log('Saving updated Acq2P object.');
+    % Anonymous function allows us to determine the name of the saved
+    % variable independently of the current workspace, while being more
+    % transparent than eval():
+    saveAcq = @(acq, p, f) save(fullfile(p, f), 'acq');
+    saveAcq(ajp.currentAcq, ajp.currentAcq.defaultDir, [ajp.currentAcq.acqName, '_acq']); 
 catch err
-    msg = sprintf('Saving aborted with error: %s',err.message);
+    msg = sprintf('Saving aborted with error: %s', err.message);
     ajp.log(msg);
     printStack(ajp, err.stack);
 end
 
-%move acqFile to done folder
-dirProgress = fullfile(ajp.jobDir, 'in progress');
-dirDone = fullfile(ajp.jobDir, 'done');
-if ~exist(dirDone, 'dir');
-    mkdir(dirDone);
+% Move acqFile to done folder:
+if ~exist(ajp.dir.done, 'dir');
+    mkdir(ajp.dir.done);
 end
-movefile(sprintf('%s%s%s.mat',dirProgress,filesep,ajp.currentAcq.acqName),...
-    sprintf('%s%s%s.mat',dirDone,filesep,ajp.currentAcq.acqName) );
-    
-
+movefile(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName),...
+         fullfile(ajp.dir.done, ajp.currentAcqFileName));
+     
 ajp.log('Done processing.');
 
 function printStack(ajp, stack)
