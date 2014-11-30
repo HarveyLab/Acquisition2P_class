@@ -549,14 +549,52 @@ img(img>prctile(img(:), 98)) = prctile(img(:), 95);
 img(:,:,2) = img(:,:,2) ./ (gui.hasBeenViewed*0.2+1);
 
 if ~isempty(gui.roiInfo.roiList)
-    clut = gui.roiColors(mod(1:max(gui.roiInfo.roiList), 30)+1, :);
+    %get number of groups
+    uniqueGroups = unique(gui.roiInfo.grouping);
+    nGroups = length(uniqueGroups);
+    
+    colorOptions = gui.roiColors(mod(1:nGroups, 30)+1, :);
+    clut = zeros(max(gui.roiInfo.roiList),3);
+    for groupInd = 1:nGroups
+        clut(gui.roiInfo.grouping == groupInd, :) = repmat(colorOptions(groupInd, :),...
+            sum(gui.roiInfo.grouping == groupInd), 1);
+    end
     roiCdata = double(myLabel2rgb(gui.roiInfo.roiLabels, clut))/255;
     cdata = scaleImg(img.*roiCdata);
+    
+%     %turn hold on
+%     hold on;
+%     
+%     %get number of groups
+%     uniqueGroups = unique(gui.roiInfo.grouping);
+%     nGroups = length(uniqueGroups);
+%     
+%     %loop through each group
+%     for groupInd = 1:nGroups
+%         
+%         %find rois which match group
+%         matchROIs = find(gui.roiInfo.grouping == groupInd);
+%         
+%         %create binary matrix of pixels which match group
+%         groupMatch = ismember(gui.roiInfo.roiLabels, matchROIs);
+%         
+%         %convert to linear array
+%         groupMatch = find(groupMatch(:));
+%         
+%         %convert to row and column indices
+%         [rowInd, colInd] = ind2sub(size(gui.roiInfo.roiLabels),groupMatch);
+%         
+%         %create patch object
+%         patch(rowInd,colInd,[1 0 0]);       
+%         
+%     end
+    
 else
     cdata = scaleImg(img);
 end
 %Replot to main reference image
 set(gui.hImgMain, 'cdata', cdata);
+
 set(gui.hFig, 'userdata', gui);
 end
 
