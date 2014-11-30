@@ -49,6 +49,6 @@ if ~success
 end
 
 if success
-    fprintf(fid, '%s\n', msgFull);
+    fprintf(fid, '%s', msgFull);
     fclose(fid);
 end
