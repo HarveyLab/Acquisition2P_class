@@ -58,7 +58,8 @@ gui = struct;
 img = (img-prctile(img(:),1));
 img = img/prctile(img(:),99);
 gui.movSize = size(img);
-gui.img = repmat(img,[1 1 3]);
+% gui.img = repmat(img,[1 1 3]);
+gui.img = img;
 % Grab roiInfo from object, and initialize new roi labels/list if needed
 gui.roiInfo = obj.roiInfo.slice(sliceNum);
 if ~isfield(gui.roiInfo,'roiList') || isempty(gui.roiInfo.roiList)
@@ -134,7 +135,11 @@ end
 set(gui.hFig, 'WindowButtonDownFcn', @cbMouseclick, ...
               'WindowScrollWheelFcn', @cbScrollwheel, ...
               'KeyPressFcn', @cbKeypress);
-gui.hImgMain = imshow(gui.img, 'parent', gui.hAxRef);
+% gui.hImgMain = imshow(gui.img, 'parent', gui.hAxRef);
+gui.hImgMain = imagesc(gui.img,'parent', gui.hAxRef);
+axis(gui.hAxRef, 'square'); %make axis square
+set(gui.hAxRef,'XTick', [], 'YTick', [], 'XTickLabel', [], 'YTickLabel', []); %turn off ticks
+colormap(gui.hAxRef,'gray'); %set colormap to gray
 title(gui.hAxRef, 'Reference'),
 set(gui.hFig, 'userdata', gui),
 updateReferenceDisplay(gui.hFig),
@@ -546,56 +551,94 @@ gui = get(hFig, 'userdata');
 % Add colored ROI labels:
 img = gui.img;
 img(img>prctile(img(:), 98)) = prctile(img(:), 95);
-img(:,:,2) = img(:,:,2) ./ (gui.hasBeenViewed*0.2+1);
+% img = img ./ (gui.hasBeenViewed*0.2+1);
+
+%set transparency
+transp = .3;
+
+%turn hold on
+axes(gui.hAxRef);
+hold on;
+
+%delete previous has been viewed
+if isfield(gui,'beenViewedH') && all(ishandle(gui.beenViewedH))
+    delete(gui.beenViewedH);
+end
+
+%create has been viewed sections
+gui.beenViewedH = imshow(label2rgb(gui.hasBeenViewed,[1 80/255 147/255]));
+beenViewedAlpha = double(gui.hasBeenViewed); %initialize alpha map
+beenViewedAlpha = transp*beenViewedAlpha;
+set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
 
 if ~isempty(gui.roiInfo.roiList)
+    
     %get number of groups
     uniqueGroups = unique(gui.roiInfo.grouping);
     nGroups = length(uniqueGroups);
     
+    %get number of rois
+    nROI = max(gui.roiInfo.roiList);
+    
     colorOptions = gui.roiColors(mod(1:nGroups, 30)+1, :);
-    clut = zeros(max(gui.roiInfo.roiList),3);
-    for groupInd = 1:nGroups
-        clut(gui.roiInfo.grouping == groupInd, :) = repmat(colorOptions(groupInd, :),...
-            sum(gui.roiInfo.grouping == groupInd), 1);
+    
+    %delete current objects
+    if isfield(gui,'roiPlotH') && all(ishandle(gui.roiPlotH))
+        delete(gui.roiPlotH(:));
     end
-    roiCdata = double(myLabel2rgb(gui.roiInfo.roiLabels, clut))/255;
-    cdata = scaleImg(img.*roiCdata);
     
-%     %turn hold on
-%     hold on;
-%     
-%     %get number of groups
-%     uniqueGroups = unique(gui.roiInfo.grouping);
-%     nGroups = length(uniqueGroups);
-%     
-%     %loop through each group
-%     for groupInd = 1:nGroups
-%         
-%         %find rois which match group
-%         matchROIs = find(gui.roiInfo.grouping == groupInd);
-%         
-%         %create binary matrix of pixels which match group
-%         groupMatch = ismember(gui.roiInfo.roiLabels, matchROIs);
-%         
-%         %convert to linear array
-%         groupMatch = find(groupMatch(:));
-%         
-%         %convert to row and column indices
-%         [rowInd, colInd] = ind2sub(size(gui.roiInfo.roiLabels),groupMatch);
-%         
-%         %create patch object
-%         patch(rowInd,colInd,[1 0 0]);       
-%         
-%     end
+    if verLessThan('matlab', '8.4') %if older than 2014b
+        gui.roiPlotH = zeros(1,nROI);
+    else
+        gui.roiPlotH = gobjects(1,nROI);
+    end
     
-else
-    cdata = scaleImg(img);
+    %loop through each roi
+    for roiInd = 1:nROI
+
+        %get current roi
+        currROI = gui.roiInfo.roiLabels == roiInd;
+        
+        %find edges of current roi
+        [rowInd,colInd] = findEdges(currROI);
+        
+        %create patch object
+        gui.roiPlotH(roiInd) = patch(rowInd, colInd,...
+            colorOptions(gui.roiInfo.grouping(roiInd), :));  
+        gui.roiPlotH(roiInd).FaceAlpha = transp;
+        
+    end
+    
 end
-%Replot to main reference image
-set(gui.hImgMain, 'cdata', cdata);
+
+%update image
+set(gui.hImgMain,'cdata',img);
 
 set(gui.hFig, 'userdata', gui);
+end
+
+function [row,col] = findEdges(image)
+%findEdges.m Finds contours of binary array
+%
+%INPUTS 
+%image - binary image 
+%
+%OUTPUTS
+%row - column vector of row coordinates
+%col - column vector of col coordinates
+%
+%ASM 10/13
+
+%find element to start search
+[rowInd, colInd] = find(image > 0,1,'first');
+
+%perform search
+B = bwtraceboundary(image,[rowInd,colInd],'NE');
+
+%get row and col
+row = B(:,2);
+col = B(:,1);
+
 end
 
 function calcROI(hFig)
