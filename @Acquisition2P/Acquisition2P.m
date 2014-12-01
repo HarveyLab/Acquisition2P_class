@@ -38,7 +38,11 @@ classdef Acquisition2P < handle
             %After running initialization function, constructer checks all
             %fields necessary for motion correction, fills in blanks with
             %defaults when possible and otherwise raises warnings for
-            %missing fields
+            %missing fields. If passing an initialization function with
+            %multiple arguments, pass a cell array with the function handle
+            %as the first element, the second argument as the object or as
+            %empty to fill in the object, and additional arguments as
+            %subsequenct elements. Ex. {@initFunc,[],arg1,arg2}
             
             if nargin == 0
                 warning('Blank Acquisition Object Created'),
