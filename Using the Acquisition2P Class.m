@@ -56,12 +56,18 @@
 % and fills in properties of the object necessary for motion correction
 % (e.g. the function/algorithm to use, the channel to use as reference). If
 % this succeeds, it assigns the object to a variable in the base workspace
-% with the name created by the automatic procedure. The function also outputs
-% the object if you prefer that syntax, but having the initialization automatically assign the
-% variable ensures that the object's internal name matches its matlab
-% variable name
+% with the name created by the automatic procedure. The function also
+% outputs the object if you prefer that syntax, but having the
+% initialization automatically assign the variable ensures that the
+% object's internal name matches its matlab variable name. If passing an
+% initialization function with multiple arguments, pass a cell array with
+% the function handle as the first element, the second argument as the
+% object or as empty to fill in the object, and additional arguments as
+% subsequenct elements. Ex. {@initFunc,[],arg1,arg2}
 
 Acquisition2P([],@SC2Pinit);
+
+% Acquisition2P([],{@SC2Pinit,[],arg1,arg2});
 
 % The Acquisition2P constructer has a series of error checks to ensure that
 % necessary properties are not left blank by accident. Practically, this
