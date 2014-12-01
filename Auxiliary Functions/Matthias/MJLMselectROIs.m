@@ -75,7 +75,6 @@ gui.roiInfo.roiList = unique(gui.roiInfo.roiLabels(:));
 gui.cROI = max(gui.roiInfo.roiList)+1;
 gui.roiInfo.roiList(gui.roiInfo.roiList==0) = [];
 gui.roiColors = lines(30);
-gui.hasBeenViewed = false(gui.movSize);
 
 % Initialize cell/cluster fields:
 gui.clusterNum = 3;
@@ -91,6 +90,13 @@ gui.channelNum = channelNum;
 gui.smoothWindow = smoothWindow;
 gui.hAcq = obj;
 gui.currentPos = [nan nan]; % Makes current click/focus position available across functions.
+
+%get hasBeenViewed
+if isfield(gui.hAcq.roiInfo.slice(gui.sliceNum),'hasBeenViewed')
+    gui.hasBeenViewed = gui.hAcq.roiInfo.slice(gui.sliceNum).hasBeenViewed;
+else
+    gui.hasBeenViewed = false(gui.movSize);
+end
 
 % Create memory map of pixCov file:
 gui.covFile.map = memmapfile(gui.roiInfo.covFile.fileName, ...
@@ -193,7 +199,8 @@ gui.pxNeighbors = pxNeighbors;
 % Store which pixels have been visited to help the user track their
 % progress:
 gui.hasBeenViewed(gui.pxNeighbors) = true;
-assignin('base', 'hasBeenViewed', gui.hasBeenViewed); % Dirty way provide option to save hasBeenViewed for later use.
+% assignin('base', 'hasBeenViewed', gui.hasBeenViewed); % Dirty way provide option to save hasBeenViewed for later use.
+gui.hAcq.roiInfo.slice(gui.sliceNum).hasBeenViewed = gui.hasBeenViewed;
 
 %Construct matrices for normCut algorithm using correlation coefficients
 W = double(corrcov(covMat, 1)); % Flag = Don't check for correctness of covMat.
@@ -606,7 +613,6 @@ if ~isempty(gui.roiInfo.roiList)
         gui.roiPlotH(roiInd) = patch(rowInd, colInd,...
             colorOptions(gui.roiInfo.grouping(roiInd), :));  
         gui.roiPlotH(roiInd).FaceAlpha = transp;
-        
     end
     
 end
@@ -638,6 +644,16 @@ B = bwtraceboundary(image,[rowInd,colInd],'NE');
 %get row and col
 row = B(:,2);
 col = B(:,1);
+
+% %find center of object
+% meanRow = mean(row);
+% meanCol = mean(col);
+% 
+% %move everything out by half a pixel
+% row(row <= meanRow) = row(row <= meanRow) - 0.5;
+% row(row > meanRow) = row(row > meanRow) + 0.5;
+% col(col <= meanCol) = col(col <= meanCol) - 0.5;
+% col(col > meanCol) = col(col > meanCol) + 0.5;
 
 end
 
