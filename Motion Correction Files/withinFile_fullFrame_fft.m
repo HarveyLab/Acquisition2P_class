@@ -2,9 +2,11 @@ function varargout = withinFile_fullFrame_fft(obj,movStruct, metaMov, movNum, op
 %Example of a motion correction function compatable with Acquisition2P class,
 %calculates full frame translations within each file independently, then adds
 %these to shifts calculated between each file
-
-nSlices = metaMov.stackNumSlices;
-nChannels = numel(metaMov.channelsSave);
+%
+% nSlices = metaMov.stackNumSlices;
+% nChannels = numel(metaMov.channelsSave);
+nSlices = numel(movStruct.slice);
+nChannels = numel(movStruct.slice(1).channel);
 
 switch opMode
     case 'identify'
@@ -21,9 +23,9 @@ switch opMode
             else
                 [xFile,yFile] = track_subpixel_wholeframe_motion_fft_forloop(nanmean(tempSlice,3),obj.motionRefImage.slice(nSlice).img);
             end
-
-           obj.shifts(movNum).slice(nSlice).x = x+xFile;
-           obj.shifts(movNum).slice(nSlice).y = y+yFile;
+            
+            obj.shifts(movNum).slice(nSlice).x = x+xFile;
+            obj.shifts(movNum).slice(nSlice).y = y+yFile;
         end
         varargout{1} = obj;
     case 'apply'
@@ -31,11 +33,12 @@ switch opMode
             for nChannel = 1:nChannels
                 mov = translateAcq(movStruct.slice(nSlice).channel(nChannel).mov,...
                     obj.shifts(movNum).slice(nSlice).x, obj.shifts(movNum).slice(nSlice).y);
-                end
+                
                 obj.derivedData(movNum).meanRef.slice(nSlice).channel(nChannel).img = mean(mov,3);
                 movStruct.slice(nSlice).channel(nChannel).mov = mov;
             end
         end
-        varargout{1} = obj;
-        varargout{2} = movStruct;
+end
+varargout{1} = obj;
+varargout{2} = movStruct;
 end
