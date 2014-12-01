@@ -44,16 +44,26 @@ for mouseInd = 1:nMouseDir
         %get acqName 
         fileParts = explode(dateDir{dateInd},filesep);
         acqName = sprintf('%s_%s',fileParts{end-1},fileParts{end});
-        acqPath = sprintf('%s%s%s.mat',dateDir{dateInd},filesep,acqName);
+        acqPath = sprintf('%s%s%s_acq.mat',dateDir{dateInd},filesep,acqName);
+        acqStatusPath = sprintf('%s%s%s_status.txt',dateDir{dateInd},filesep,acqName);
         
         %check if acquisition object exists
         if exist(acqPath,'file')
+            
+            %check if complete txt exists
+            if exist(acqStatusPath,'file')
+                continue;
+            end
             
             %load in object
             obj = load(acqPath);
             
             %check if roiInfo is filled in
             if ~isempty(obj.(acqName).roiInfo) %if not empty, continue and skip file
+                %create status file
+                fid = fopen(acqStatusPath,'w');
+                fprintf(fid,'Complete');
+                fclose(fid);
                 continue;
             end
             

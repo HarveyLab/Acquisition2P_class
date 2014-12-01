@@ -52,6 +52,12 @@ end
 %remove processed files
 movNames = movNames(~cellfun(@isempty,regexp(movNames,'[A-Z]{2}\d{3}_\d{3}_\d{3}.tif')));
 
+%check if any movies
+if isempty(movNames)
+    warning('No movies');
+    return;
+end
+
 %Attempt to add each selected movie to acquisition in order
 % for nMov = 1:length(movNames)
 %     obj.addMovie(fullfile(movPath,movNames{nMov}));
