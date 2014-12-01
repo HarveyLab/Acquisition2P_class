@@ -2,7 +2,7 @@ function motionCorrect(obj,writeDir,motionCorrectionFunction,namingFunction)
 %Generic wrapper function for managing motion correction of an
 %acquisition object
 %
-%motionCorrect(obj,writeDir,motionCorrectionFunction)
+%motionCorrect(obj,writeDir,motionCorrectionFunction,namingFunction)
 %
 %writeDir is an optional argument specifying location to write motion
 %   corrected data to, defaults to obj.defaultDir\Corrected
