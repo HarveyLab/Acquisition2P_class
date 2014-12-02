@@ -18,11 +18,14 @@ function MJLMselectROIs(obj,img,sliceNum,channelNum,smoothWindow)
 % Click on reference image to select a seed region for pixel clustering
 % Use scroll wheel to adjust # of clusters in current region
 % Use 'tab' to cycle currently selected ROI through all clusters 
+% Use 'shift-tab' to cycle currently selected ROI backwards through all
+%   clusters
 % Use 'f' to view (and compare) traces from multiple ROIs (in figure 783)
 % Use 'space' to select and evaluate cell body-neuropil pairings (in figures 784-786)
 % Use '1'-'9' to save an ROI or pairing w/ the corresponding numbered group
 % Use 'backspace' to delete the last saved ROI
 % Use 'm' to initiate manual drawing of polygon ROI (adds polygon to current clustering results)
+% Use left slider to set black level and right slider to set white level
 
 %% Error checking and input handling
 if ~exist('img','var') || isempty(img)
@@ -127,7 +130,7 @@ if screenSize(3) > screenSize(4)
     gui.hAxROI = subplot(4, 6, 8);
     
     %create sliders
-    refPos =  plotboxpos(gui.hAxRef); %get refImage position
+    refPos =  get(gui.hAxRef, 'Position'); %get refImage position
     gui.hBlackSlider = uicontrol('Style', 'slider', 'Units', 'Normalized',...
         'Position', [refPos(1)+0.075 refPos(2) - 0.05 .3*refPos(3) 0.02],...
         'Min', 0, 'Max', 1, 'Value', 0, 'SliderStep', [0.01 0.1],...
@@ -152,7 +155,7 @@ end
 %Set callbacks and update display of ROIs on reference
 set(gui.hFig, 'WindowButtonDownFcn', @cbMouseclick, ...
               'WindowScrollWheelFcn', @cbScrollwheel, ...
-              'KeyPressFcn', @cbKeypress);
+              'WindowKeyPressFcn', @cbKeypress);
 % gui.hImgMain = imshow(gui.img, 'parent', gui.hAxRef);
 gui.hImgMain = imagesc(gui.img,'parent', gui.hAxRef);
 axis(gui.hAxRef, 'square'); %make axis square
@@ -487,19 +490,34 @@ switch evt.Key
             
         end
     case 'tab'
-        %Increase currently selected cluster by 1
-        clusters = max(gui.allClusters(:));
-        gui.cluster = mod(gui.cluster+1,clusters+1);
         
-        %If index exceeds # of clusters, loop back to first cluster
-        if gui.cluster == 0
-            gui.cluster = 1;
+        if isempty(evt.Modifier) || ~any(strcmpi(evt.Modifier,'shift'))
+            %Increase currently selected cluster by 1
+            clusters = max(gui.allClusters(:));
+            gui.cluster = mod(gui.cluster+1,clusters+1);
+
+            %If index exceeds # of clusters, loop back to first cluster
+            if gui.cluster == 0
+                gui.cluster = 1;
+            end
+        else  %if shift pressed as well, go backwards
+            
+            %Decrease currently selected cluster by 1
+            clusters = max(gui.allClusters(:));
+            gui.cluster = mod(gui.cluster-1,clusters+1);
+
+            %If index exceeds # of clusters, loop back to first cluster
+            if gui.cluster == 0
+                gui.cluster = clusters;
+            end
+            
         end
         
         %Update ROI display
         set(gui.hFig, 'userdata', gui);
         displayROI(gui.hFig),
         gui = get(obj, 'userdata');
+        setfocus(gui.hAxROI);
         
     case 'downarrow'
         % Downarrow is like a click below the last selected point, to look
@@ -589,8 +607,7 @@ beenViewedTransp = 0.15;
 roiTransp = 0.4;
 
 %turn hold on
-axes(gui.hAxRef);
-hold on;
+hold(gui.hAxRef,'on');
 
 % %delete previous has been viewed
 % if isfield(gui,'beenViewedH') && all(ishandle(gui.beenViewedH))
@@ -599,7 +616,8 @@ hold on;
 
 %create has been viewed sections
 if ~isfield(gui,'beenViewedH') || ~all(ishandle(gui.beenViewedH))
-    gui.beenViewedH = imshow(label2rgb(gui.hasBeenViewed,[1 80/255 147/255]));
+    gui.beenViewedH = imshow(label2rgb(gui.hasBeenViewed,[1 80/255 147/255]),...
+        'Parent', gui.hAxRef);
     beenViewedAlpha = double(gui.hasBeenViewed); %initialize alpha map
     beenViewedAlpha = beenViewedTransp*beenViewedAlpha;
     set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
@@ -647,7 +665,8 @@ if ~isempty(gui.roiInfo.roiList)
         
         %create patch object
         gui.roiPlotH(roiInd) = patch(rowInd, colInd,...
-            colorOptions(gui.roiInfo.grouping(roiInd), :));  
+            colorOptions(gui.roiInfo.grouping(roiInd), :),...
+            'Parent', gui.hAxRef);  
         gui.roiPlotH(roiInd).FaceAlpha = roiTransp;
     end
 
@@ -807,11 +826,12 @@ roiOverlay(:,:,1) = gui.roiMask;
 roiOverlay(:,:,2) = 1;
 roiOverlay(:,:,3) = ~gui.roiMask;
 imshow(img .* roiOverlay,'Parent',gui.hAxROI),
-axes(gui.hAxROI),
-xlim([roiCenter(1)-displayWidth roiCenter(1)+displayWidth]),
-ylim([roiCenter(2)-displayWidth roiCenter(2)+displayWidth]),
+% axes(gui.hAxROI),
+set(gui.hAxROI,'XLim',[roiCenter(1)-displayWidth roiCenter(1)+displayWidth]);
+set(gui.hAxROI,'YLim',[roiCenter(2)-displayWidth roiCenter(2)+displayWidth]);
 gui.roiTitle = title(gui.hAxROI, currentTitle);
 set(gui.hFig, 'userdata', gui);
+% set(0,'CurrentFigure',gui.hFig);
 end
 
 function RGB = myLabel2rgb(label, cmap)
