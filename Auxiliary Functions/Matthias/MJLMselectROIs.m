@@ -124,7 +124,19 @@ if screenSize(3) > screenSize(4)
     gui.hEig5 = subplot(4,6,14);
     gui.hEig6 = subplot(4,6,20);
     gui.hAxClus = subplot(4, 6, 2);
-    gui.hAxROI = subplot(4, 6, 8);    
+    gui.hAxROI = subplot(4, 6, 8);
+    
+    %create sliders
+    refPos =  plotboxpos(gui.hAxRef); %get refImage position
+    gui.hBlackSlider = uicontrol('Style', 'slider', 'Units', 'Normalized',...
+        'Position', [refPos(1)+0.075 refPos(2) - 0.05 .3*refPos(3) 0.02],...
+        'Min', 0, 'Max', 1, 'Value', 0, 'SliderStep', [0.01 0.1],...
+        'Callback',{@sliderCallback,gui.hFig});
+    gui.hWhiteSlider = uicontrol('Style', 'slider', 'Units', 'Normalized',...
+        'Position', [refPos(1)+0.35 refPos(2) - 0.05 .3*refPos(3) 0.02],...
+        'Min', 0, 'Max', 1, 'Value', 1, 'SliderStep', [0.01 0.1],...
+        'Callback',{@sliderCallback,gui.hFig});
+    
 else
     gui.hAxRef = subplot(6, 4, 9:24);
     gui.hEig1 = subplot(6, 4,1);
@@ -147,9 +159,11 @@ axis(gui.hAxRef, 'square'); %make axis square
 set(gui.hAxRef,'XTick', [], 'YTick', [], 'XTickLabel', [], 'YTickLabel', []); %turn off ticks
 colormap(gui.hAxRef,'gray'); %set colormap to gray
 title(gui.hAxRef, 'Reference'),
+
 set(gui.hFig, 'userdata', gui),
 updateReferenceDisplay(gui.hFig),
-    
+maxfig(gui.hFig,1);
+
 end
 
 function cbMouseclick(obj, ~, row, col)
@@ -562,7 +576,11 @@ function updateReferenceDisplay(hFig)
 gui = get(hFig, 'userdata');
 % Add colored ROI labels:
 img = gui.img;
-img(img>prctile(img(:), 98)) = prctile(img(:), 95);
+% img(img>prctile(img(:), 98)) = prctile(img(:), 95);
+img = mat2gray(img,[min(img(:)) max(img(:))]);
+if isfield(gui,'hBlackSlider')
+    img = mat2gray(img,[get(gui.hBlackSlider,'Value') get(gui.hWhiteSlider,'Value')]);
+end
 % img = img ./ (gui.hasBeenViewed*0.2+1);
 
 
@@ -855,4 +873,9 @@ end
 
 function A = mcol(A)
 A = A(:);
+end
+
+function sliderCallback(~,~,hFig)
+
+updateReferenceDisplay(hFig);
 end
