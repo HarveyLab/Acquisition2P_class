@@ -200,7 +200,7 @@ gui.pxNeighbors = pxNeighbors;
 % progress:
 gui.hasBeenViewed(gui.pxNeighbors) = true;
 % assignin('base', 'hasBeenViewed', gui.hasBeenViewed); % Dirty way provide option to save hasBeenViewed for later use.
-gui.hAcq.roiInfo.slice(gui.sliceNum).hasBeenViewed = gui.hasBeenViewed;
+gui.roiInfo.hasBeenViewed = gui.hasBeenViewed;
 
 %Construct matrices for normCut algorithm using correlation coefficients
 W = double(corrcov(covMat, 1)); % Flag = Don't check for correctness of covMat.
@@ -297,8 +297,10 @@ switch evt.Key
         
         %Update Display
         gui.roiTitle = title(gui.hAxROI, 'Last ROI deleted');
+        gui.rePlot = true;
         set(gui.hFig, 'userdata', gui);
         updateReferenceDisplay(gui.hFig);
+        gui = get(gui.hFig, 'userdata');
         
     case {'1', '2', '3', '4', '5', '6', '7', '8', '9'}
         roiGroup = str2double(evt.Key);
@@ -326,13 +328,16 @@ switch evt.Key
         gui.roiInfo.roiLabels(gui.roiInfo.roi(gui.cROI).indBody) = gui.cROI;
         gui.roiInfo.roiList = sort([gui.roiInfo.roiList; gui.cROI]);
         gui.cROI = gui.cROI + 1;
-        set(gui.hFig, 'userdata', gui);
-        updateReferenceDisplay(gui.hFig);
         gui.roiTitle = title(gui.hAxROI, sprintf('%s: #%03.0f',newTitle,gui.cROI-1));
         
         % Save gui data to acquisition object handle
-        gui.hAcq.roiInfo.slice(gui.sliceNum) = gui.roiInfo;
-                
+        gui.hAcq.roiInfo.slice(gui.sliceNum) = ...
+            orderfields(gui.roiInfo, gui.hAcq.roiInfo.slice(gui.sliceNum));
+        
+        %save and update display
+        set(gui.hFig, 'userdata', gui);
+        updateReferenceDisplay(gui.hFig);
+        gui = get(gui.hFig, 'userdata');
     case 'f'
         gui.roiTitle = title(gui.hAxROI, 'Loading Trace for Current ROI');
         drawnow,
@@ -560,8 +565,10 @@ img = gui.img;
 img(img>prctile(img(:), 98)) = prctile(img(:), 95);
 % img = img ./ (gui.hasBeenViewed*0.2+1);
 
+
 %set transparency
-transp = .3;
+beenViewedTransp = 0.15;
+roiTransp = .2;
 
 %turn hold on
 axes(gui.hAxRef);
@@ -569,16 +576,21 @@ hold on;
 
 %delete previous has been viewed
 if isfield(gui,'beenViewedH') && all(ishandle(gui.beenViewedH))
-    delete(gui.beenViewedH);
+    delete(gui.beenViewedH(:));
 end
 
 %create has been viewed sections
 gui.beenViewedH = imshow(label2rgb(gui.hasBeenViewed,[1 80/255 147/255]));
 beenViewedAlpha = double(gui.hasBeenViewed); %initialize alpha map
-beenViewedAlpha = transp*beenViewedAlpha;
+beenViewedAlpha = beenViewedTransp*beenViewedAlpha;
 set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
 
 if ~isempty(gui.roiInfo.roiList)
+    
+    %create rePlot
+    if ~isfield(gui,'rePlot')
+        gui.rePlot = false;
+    end
     
     %get number of groups
     uniqueGroups = unique(gui.roiInfo.grouping);
@@ -589,19 +601,18 @@ if ~isempty(gui.roiInfo.roiList)
     
     colorOptions = gui.roiColors(mod(1:nGroups, 30)+1, :);
     
-    %delete current objects
-    if isfield(gui,'roiPlotH') && all(ishandle(gui.roiPlotH))
+%     %delete current objects
+    if isfield(gui,'roiPlotH') && all(ishandle(gui.roiPlotH)) && gui.rePlot
         delete(gui.roiPlotH(:));
     end
     
-    if verLessThan('matlab', '8.4') %if older than 2014b
+    if ~isfield(gui,'roiPlotH') && verLessThan('matlab', '8.4') %if older than 2014b
         gui.roiPlotH = zeros(1,nROI);
-    else
+    elseif ~isfield(gui,'roiPlotH')
         gui.roiPlotH = gobjects(1,nROI);
     end
-    
     %loop through each roi
-    for roiInd = 1:nROI
+    for roiInd = sum(ishandle(gui.roiPlotH))+1:nROI
 
         %get current roi
         currROI = gui.roiInfo.roiLabels == roiInd;
@@ -612,9 +623,44 @@ if ~isempty(gui.roiInfo.roiList)
         %create patch object
         gui.roiPlotH(roiInd) = patch(rowInd, colInd,...
             colorOptions(gui.roiInfo.grouping(roiInd), :));  
-        gui.roiPlotH(roiInd).FaceAlpha = transp;
+        gui.roiPlotH(roiInd).FaceAlpha = roiTransp;
     end
-    
+
+%     if verLessThan('matlab', '8.4') %if older than 2014b
+%         gui.roiPlotH = zeros(1,nGroups);
+%         gui.roiEdgePlotH = zeros(1,nGroups);
+%     else
+%         gui.roiPlotH = gobjects(1,nGroups);
+%         gui.roiEdgePlotH = gobjects(1,nGroups);
+%     end
+%     tic;
+%     %loop through each roi
+%     for groupInd = 1:nGroups
+% 
+%         %get current roiLabels
+%         matchGroup = find(gui.roiInfo.grouping == groupInd);
+%         matchROIs = ismember(gui.roiInfo.roiLabels, matchGroup);
+%         
+%         %plot face image
+%         gui.roiPlotH(groupInd) = imshow(label2rgb(matchROIs,colorOptions(groupInd,:)));
+%         faceAlpha = double(matchROIs); %initialize alpha map
+%         faceAlpha = roiTransp*faceAlpha;
+%         set(gui.roiPlotH(groupInd), 'AlphaData', faceAlpha);
+%         
+%         %find edges
+%         boundaries = bwboundaries(matchROIs);
+%         boundaries = cat(1,boundaries{:});
+%         boundaries = unique(boundaries,'rows'); %take unique entries
+%         boundaries = sub2ind(size(matchROIs),boundaries(:,1),boundaries(:,2)); %convert to linear indices
+%         edgeImage = false(size(matchROIs)); %initialize image
+%         edgeImage(boundaries) = true; %set boundary pixels to true
+%         
+%         %plot edges image
+%         gui.roiEdgePlotH(groupInd) = imshow(label2rgb(edgeImage,[0 0 0]));
+%         edgeAlpha = double(edgeImage); %initialize alpha map
+%         set(gui.roiEdgePlotH(groupInd), 'AlphaData', edgeAlpha);
+%     end
+%     toc
 end
 
 %update image
