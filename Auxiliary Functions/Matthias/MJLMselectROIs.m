@@ -568,22 +568,29 @@ img(img>prctile(img(:), 98)) = prctile(img(:), 95);
 
 %set transparency
 beenViewedTransp = 0.15;
-roiTransp = .2;
+roiTransp = 0.4;
 
 %turn hold on
 axes(gui.hAxRef);
 hold on;
 
-%delete previous has been viewed
-if isfield(gui,'beenViewedH') && all(ishandle(gui.beenViewedH))
-    delete(gui.beenViewedH(:));
-end
+% %delete previous has been viewed
+% if isfield(gui,'beenViewedH') && all(ishandle(gui.beenViewedH))
+%     delete(gui.beenViewedH(:));
+% end
 
 %create has been viewed sections
-gui.beenViewedH = imshow(label2rgb(gui.hasBeenViewed,[1 80/255 147/255]));
-beenViewedAlpha = double(gui.hasBeenViewed); %initialize alpha map
-beenViewedAlpha = beenViewedTransp*beenViewedAlpha;
-set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
+if ~isfield(gui,'beenViewedH') || ~all(ishandle(gui.beenViewedH))
+    gui.beenViewedH = imshow(label2rgb(gui.hasBeenViewed,[1 80/255 147/255]));
+    beenViewedAlpha = double(gui.hasBeenViewed); %initialize alpha map
+    beenViewedAlpha = beenViewedTransp*beenViewedAlpha;
+    set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
+else
+    set(gui.beenViewedH,'CData',label2rgb(gui.hasBeenViewed,[1 80/255 147/255]));
+    beenViewedAlpha = double(gui.hasBeenViewed); %initialize alpha map
+    beenViewedAlpha = beenViewedTransp*beenViewedAlpha;
+    set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
+end
 
 if ~isempty(gui.roiInfo.roiList)
     
