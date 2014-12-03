@@ -364,6 +364,11 @@ switch evt.Key
         gui.cROI = gui.cROI + 1;
         gui.roiTitle = title(gui.hAxROI, sprintf('%s: #%03.0f',newTitle,gui.cROI-1));
         
+        %create hasBeenViewed if field doesn't exist
+        if ~isfield(gui.hAcq.roiInfo.slice(gui.sliceNum),'hasBeenViewed')
+            gui.hAcq.roiInfo.slice(gui.sliceNum).hasBeenViewed = gui.hasBeenViewed;
+        end
+        
         % Save gui data to acquisition object handle
         gui.hAcq.roiInfo.slice(gui.sliceNum) = ...
             orderfields(gui.roiInfo, gui.hAcq.roiInfo.slice(gui.sliceNum));
@@ -468,6 +473,7 @@ switch evt.Key
                 clf;
                 gui.hAxDeTrendTrace = axes;
             end
+            cla(gui.hAxDeTrendTrace);
             hold(gui.hAxDeTrendTrace,'on');
             plot(cellNeuropil+100,'Parent',gui.hAxDeTrendTrace)
             plot(cellBody+100,'Parent',gui.hAxDeTrendTrace)
@@ -665,6 +671,7 @@ else
     beenViewedAlpha = beenViewedTransp*beenViewedAlpha;
     set(gui.beenViewedH, 'AlphaData', beenViewedAlpha);
 end
+
 
 if ~isempty(gui.roiInfo.roiList)
     
