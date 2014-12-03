@@ -375,6 +375,8 @@ switch evt.Key
         
         %save and update display
         set(gui.hFig, 'userdata', gui);
+        displayROI(gui.hFig);
+        gui = get(gui.hFig, 'userdata');
         updateReferenceDisplay(gui.hFig);
         gui = get(gui.hFig, 'userdata');
     case 'f'
@@ -415,6 +417,13 @@ switch evt.Key
         plot(dF', 'linewidth', 1,'Parent',gui.hAxClusterTrace);
         %         plot(dF(:, round(1:end/6))', 'linewidth', 1)
         gui.roiTitle = title(gui.hAxROI, 'This trace loaded');
+        
+        %add arrow to current cluster
+        if isfield(gui,'hArrow'); delete(gui.hArrow);end %delete arrow if it already exists
+        [arrowXPos, arrowYPos] = ds2nfu(gui.hAxClusterTrace, ...
+            size(dF,2),mean(dF(gui.cluster,end-1000:end))); %get y value of last point of current cluster
+        gui.hArrow = annotation(gui.hFigTrace, 'arrow',...
+            [1.1*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2));
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
         gui.indNeuropil = [];
