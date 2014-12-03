@@ -871,10 +871,45 @@ roiOverlay(:,:,1) = gui.roiMask;
 roiOverlay(:,:,2) = 1;
 roiOverlay(:,:,3) = ~gui.roiMask;
 imshow(img .* roiOverlay,'Parent',gui.hAxROI),
-% axes(gui.hAxROI),
-set(gui.hAxROI,'XLim',[roiCenter(1)-displayWidth roiCenter(1)+displayWidth]);
-set(gui.hAxROI,'YLim',[roiCenter(2)-displayWidth roiCenter(2)+displayWidth]);
+axes(gui.hAxROI),
+% set(gui.hAxROI,'XLim',[roiCenter(1)-displayWidth roiCenter(1)+displayWidth]);
+xlim([roiCenter(1)-displayWidth roiCenter(1)+displayWidth]);
+ylim([roiCenter(2)-displayWidth roiCenter(2)+displayWidth]);
+% set(gui.hAxROI,'YLim',[roiCenter(2)-displayWidth roiCenter(2)+displayWidth]);
 gui.roiTitle = title(gui.hAxROI, currentTitle);
+
+%show current patches in roi selection panel
+neighborhoodLabels = gui.roiInfo.roiLabels(roiCenter(2) - displayWidth + iOffS:...
+    roiCenter(2) + displayWidth - iOffE,...
+    roiCenter(1) - displayWidth + jOffS:...
+    roiCenter(1) + displayWidth - jOffE); %get subset of labels that match neighborhood
+uniqueLabels = unique(neighborhoodLabels(:)); %get unique labels
+uniqueLabels = uniqueLabels(uniqueLabels~=0); %remove zero label
+
+if isfield(gui,'roiSelectPatchH') && any(ishandle(gui.roiSelectPatchH))
+    delete(gui.roiSelectPatchH(ishandle(roiSelectPatchH)));
+end
+
+if ~isfield(gui,'roiSelectPatchH') && verLessThan('matlab', '8.4') %if older than 2014b
+    gui.roiSelectPatchH = zeros(1,length(uniqueLabels));
+elseif ~isfield(gui,'roiSelectPatchH')
+    gui.roiSelectPatchH = gobjects(1,length(uniqueLabels));
+end
+hold(gui.hAxROI,'on');
+for labelInd = uniqueLabels' %for each label
+    %get current roi
+    currROI = gui.roiInfo.roiLabels == labelInd;
+    
+    %find edges of current roi
+    [rowInd,colInd] = findEdges(currROI);
+    
+    %create patch object
+    gui.roiSelectPatchH(ismember(uniqueLabels,labelInd)) = ...
+        patch(rowInd, colInd, 'k','FaceAlpha',0,...
+        'EdgeColor','k','Parent', gui.hAxROI);
+end
+hold(gui.hAxROI,'off');
+
 set(gui.hFig, 'userdata', gui);
 % set(0,'CurrentFigure',gui.hFig);
 end
