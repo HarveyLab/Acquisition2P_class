@@ -113,7 +113,7 @@ gui.movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fil
     'Format', {'int16', [sum(movLengths), movSizes(1)*movSizes(2)], 'mov'});
 
 %% Create GUI figure
-gui.hFig = figure;
+gui.hFig = figure('Name','ROI Selection');
 set(gui.hFig, 'DefaultAxesFontSize', 10);
 
 %Layout is based on screen size
@@ -140,6 +140,13 @@ if screenSize(3) > screenSize(4)
         'Min', 0, 'Max', 1, 'Value', 1, 'SliderStep', [0.01 0.1],...
         'Callback',{@sliderCallback,gui.hFig});
     
+    %create traces figure
+    gui.hFigTrace = figure('Name','Additional Trace Information');
+    gui.hAxClusterTrace = subplot(2,2,1);
+    gui.hAxSubTrace = subplot(2,2,2);
+    gui.hAxDeTrendTrace = subplot(2,2,3);
+    gui.hAxSubSlope = subplot(2,2,4);
+    
 else
     gui.hAxRef = subplot(6, 4, 9:24);
     gui.hEig1 = subplot(6, 4,1);
@@ -150,6 +157,13 @@ else
     gui.hEig6 = subplot(6, 4,8);
     gui.hAxClus = subplot(6, 4, 5);
     gui.hAxROI = subplot(6, 4, 6);    
+    
+    %create traces figure
+    gui.hFigTrace = figure('Name','Additional Trace Information');
+    gui.hAxClusterTrace = subplot(4,1,1);
+    gui.hAxSubTrace = subplot(4,1,2);
+    gui.hAxDeTrendTrace = subplot(4,1,3);
+    gui.hAxSubSlope = subplot(4,1,4);
 end
 
 %Set callbacks and update display of ROIs on reference
@@ -376,28 +390,29 @@ switch evt.Key
             dF(i,:) = conv(dF(i,:)-1,gausswin(gui.smoothWindow)/sum(gausswin(gui.smoothWindow)),'same');
         end
         dF = bsxfun(@plus, dF, 1*(size(dF, 1):-1:1)'); % Offset traces in y.
-        figure(786),
-        clf
-        whitebg(786, [0.2 0.2 0.2]);
+        if ~ishandle(gui.hAxClusterTrace)
+            figure(786),
+            clf
+            whitebg(786, [0.2 0.2 0.2]);
+            gui.hAxClusterTrace = axes;
+        end
         
         % Coloring: use same hues as in the image showing the cuts, but
         % scale saturation according to the magnitude of the fluorescence
         % signal:
         clut = jet(gui.clusterNum+1);
-%         clut = rgb2hsv(clut);
-%         clut(:, 2) = scaleImg(median(gui.traceF, 2));
-%         clut(:, 3) = clut(:, 2);
-%         clut = hsv2rgb(clut);
-        clut = cat(1, clut, jet(gui.clusterNum+1));
-        set(gcf, 'defaultAxesColorOrder', clut);
-        hold on
-        plot(dF', 'linewidth', 1)
-%         plot(dF(:, round(1:end/6))', 'linewidth', 1)
+        hold(gui.hAxClusterTrace,'on');
+        set(gui.hAxClusterTrace, 'ColorOrder', clut, 'ColorOrderIndex', 1);
+        plot(dF', 'linewidth', 1,'Parent',gui.hAxClusterTrace);
+        %         plot(dF(:, round(1:end/6))', 'linewidth', 1)
         gui.roiTitle = title(gui.hAxROI, 'This trace loaded');
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
         gui.indNeuropil = [];
         figure(gui.hFig)
+        
+        set(gui.hAxClusterTrace,'Color',[0.2 0.2 0.2]); %set color to gray
+        drawnow;
     case 'space'
         %Determine if selection is new cell body or paired neuropil
         neuropilSelection = strcmp('Select neuropil pairing', get(gui.roiTitle,'string'));
@@ -444,11 +459,14 @@ switch evt.Key
             end
             
             % Remove bleaching:
-            figure(784)
-            clf
-            hold on
-            plot(cellNeuropil+100)
-            plot(cellBody+100)
+            if ~ishandle(gui.hAxDeTrendTrace)
+                figure(784);
+                clf;
+                gui.hAxDeTrendTrace = axes;
+            end
+            hold(gui.hAxDeTrendTrace,'on');
+            plot(cellNeuropil+100,'Parent',gui.hAxDeTrendTrace)
+            plot(cellBody+100,'Parent',gui.hAxDeTrendTrace)
             
             cellF = prctile(cellBody,10);
             cellBody = deBleach(cellBody, 'linear');
@@ -464,27 +482,36 @@ switch evt.Key
             %cellInd = ones(length(cellNeuropil),1);
             gui.neuropilCoef = robustfit(cellNeuropil(cellInd)-median(cellNeuropil),cellBody(cellInd)-median(cellBody),...
                 'bisquare',4);
-            figure(783)
-            plot(cellNeuropil-median(cellNeuropil), cellBody-median(cellBody),'.','markersize',3)
+            
+            if ~ishandle(gui.hAxSubSlope)
+                figure(783);
+                gui.hAxSubSlope = axes;
+            end
+            plot(cellNeuropil-median(cellNeuropil), cellBody-median(cellBody),...
+                '.', 'markersize', 3, 'Parent',gui.hAxSubSlope)
             xRange = round(min(cellNeuropil-median(cellNeuropil))):round(max(cellNeuropil-median(cellNeuropil)));
-            hold on
-            plot(xRange,xRange*gui.neuropilCoef(2) + gui.neuropilCoef(1),'r')
-            hold off
-            title(sprintf('Fitted subtractive coefficient is: %0.3f (%0.3f w/o debleach)',gui.neuropilCoef(2), neuropilCoefWithBleaching(2))),
+            hold(gui.hAxSubSlope,'on');
+            plot(xRange,xRange*gui.neuropilCoef(2) + gui.neuropilCoef(1), ...
+                'r', 'Parent', gui.hAxSubSlope)
+            hold(gui.hAxSubSlope,'off');
+            title(gui.hAxSubSlope, sprintf('Fitted subtractive coefficient is: %0.3f (%0.3f w/o debleach)',...
+                gui.neuropilCoef(2), neuropilCoefWithBleaching(2)))
             
             %Calculate corrected dF and plot
             dF = cellBody-cellNeuropil*gui.neuropilCoef(2);
             dF = dF/cellF;
             dF = dF - median(dF);
-            figure(784),
-            plot(cellNeuropil),
-            hold on,
-            plot(cellBody),
-            hold off,
-            legend('NP raw', 'Body raw', 'NP debleached', 'Body debleached');
+            plot(cellNeuropil,'Parent',gui.hAxDeTrendTrace);
+            hold(gui.hAxDeTrendTrace,'on');
+            plot(cellBody,'Parent',gui.hAxDeTrendTrace);
+            hold(gui.hAxDeTrendTrace,'off');
+            legend(gui.hAxDeTrendTrace,'NP raw', 'Body raw', 'NP debleached', 'Body debleached');
             
-            figure(785),
-            plot(dF,'linewidth',1.5)
+            if ~ishandle(gui.hAxSubTrace)
+                figure(785);
+                gui.hAxSubTrace = axes;
+            end
+            plot(dF,'linewidth',1.5,'Parent',gui.hAxSubTrace)
             gui.roiTitle = title(gui.hAxROI, 'This pairing loaded');
             figure(gui.hFig);
             
