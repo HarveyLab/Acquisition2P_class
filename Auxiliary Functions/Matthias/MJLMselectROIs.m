@@ -403,6 +403,7 @@ switch evt.Key
         % Coloring: use same hues as in the image showing the cuts, but
         % scale saturation according to the magnitude of the fluorescence
         % signal:
+        cla(gui.hAxClusterTrace);
         clut = jet(gui.clusterNum+1);
         hold(gui.hAxClusterTrace,'on');
         set(gui.hAxClusterTrace, 'ColorOrder', clut, 'ColorOrderIndex', 1);
