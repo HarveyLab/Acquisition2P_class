@@ -25,6 +25,8 @@ function MJLMselectROIs(obj,img,sliceNum,channelNum,smoothWindow)
 % Use '1'-'9' to save an ROI or pairing w/ the corresponding numbered group
 % Use 'backspace' to delete the last saved ROI
 % Use 'm' to initiate manual drawing of polygon ROI (adds polygon to current clustering results)
+% Use '+' or '=' to zoom into the reference plot (on the center of the plot)
+% Use '-' to zoom out of the reference plot 
 % Use left slider to set black level and right slider to set white level
 
 %% Error checking and input handling
@@ -170,6 +172,7 @@ end
 set(gui.hFig, 'WindowButtonDownFcn', @cbMouseclick, ...
               'WindowScrollWheelFcn', @cbScrollwheel, ...
               'WindowKeyPressFcn', @cbKeypress);
+
 % gui.hImgMain = imshow(gui.img, 'parent', gui.hAxRef);
 gui.hImgMain = imagesc(gui.img,'parent', gui.hAxRef);
 axis(gui.hAxRef, 'square'); %make axis square
@@ -585,6 +588,13 @@ switch evt.Key
         set(gui.hFig, 'userdata', gui);
         cbMouseclick(obj, [], row, col);
         gui = get(gui.hFig, 'userdata');
+    case {'add', 'equal'}
+        %zoom in
+        zoom(gui.hAxRef, 1.5);
+    case {'hyphen','subtract'}
+        %zoom out
+        zoom(gui.hAxRef, 0.5);
+        
 end
 
 set(gui.hFig, 'userdata', gui);
