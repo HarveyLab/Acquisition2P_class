@@ -79,7 +79,16 @@ gui.roiInfo.roiList = unique(gui.roiInfo.roiLabels(:));
 % Set the current ROI to be 1 greater than last selected
 gui.cROI = max(gui.roiInfo.roiList)+1;
 gui.roiInfo.roiList(gui.roiInfo.roiList==0) = [];
-gui.roiColors = lines(30);
+% gui.roiColors = parula(30);
+gui.roiColors =  [0 0 1;...
+                  1 0 0;
+                  0 1 0;...
+                  0 0 0.172413793103448;...
+                  1 0.103448275862069 0.724137931034483;...
+                  1 0.827586206896552 0;...
+                  0 0.344827586206897 0;...
+                  0.517241379310345 0.517241379310345 1;...
+                  0.620689655172414 0.310344827586207 0.275862068965517];
 
 % Initialize cell/cluster fields:
 gui.clusterNum = 3;
@@ -690,13 +699,12 @@ if ~isempty(gui.roiInfo.roiList)
     end
     
     %get number of groups
-    uniqueGroups = unique(gui.roiInfo.grouping);
-    nGroups = length(uniqueGroups);
+    nGroups = 9;
     
     %get number of rois
     nROI = max(gui.roiInfo.roiList);
     
-    colorOptions = gui.roiColors(mod(1:nGroups, 30)+1, :);
+    colorOptions = gui.roiColors;
     
 %     %delete current objects
     if isfield(gui,'roiPlotH') && all(ishandle(gui.roiPlotH)) && gui.rePlot
@@ -760,6 +768,9 @@ if ~isempty(gui.roiInfo.roiList)
 %     end
 %     toc
 end
+
+%turn rePlot off
+% gui.rePlot = false;
 
 %update image
 set(gui.hImgMain,'cdata',img);
