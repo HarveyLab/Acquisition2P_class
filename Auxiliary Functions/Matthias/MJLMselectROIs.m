@@ -28,6 +28,7 @@ function MJLMselectROIs(obj,img,sliceNum,channelNum,smoothWindow)
 % Use '+' or '=' to zoom into the reference plot (on the center of the plot)
 % Use '-' to zoom out of the reference plot 
 % Use left slider to set black level and right slider to set white level
+% Right click on ROIs to delete or change the roi label
 
 %% Error checking and input handling
 if ~exist('img','var') || isempty(img)
