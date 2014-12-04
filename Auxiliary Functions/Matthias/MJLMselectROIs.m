@@ -199,6 +199,11 @@ function cbMouseclick(obj, ~, row, col)
 %Allows selecting a seed location around which to perform clustering
 %and select ROIs
 
+%ignore if right click
+if strcmp(get(obj,'SelectionType'),'alt') %if right click
+    return; %ignore
+end
+
 persistent initialClusterNum
 if isempty(initialClusterNum)
     initialClusterNum = 6;
@@ -428,11 +433,16 @@ switch evt.Key
         gui.roiTitle = title(gui.hAxROI, 'This trace loaded');
         
         %add arrow to current cluster
+        if ishandle(gui.hFigTrace) %get proper parent for annotation if second figure deleted
+            arrowParent = gui.hFigTrace;
+        else
+            arrowParent = get(gui.hAxClusterTrace,'Parent');
+        end
         if isfield(gui,'hArrow'); delete(gui.hArrow);end %delete arrow if it already exists
         [arrowXPos, arrowYPos] = ds2nfu(gui.hAxClusterTrace, ...
             size(dF,2),mean(dF(gui.cluster,end-1000:end))); %get y value of last point of current cluster
-        gui.hArrow = annotation(gui.hFigTrace, 'arrow',...
-            [1.1*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2));
+        gui.hArrow = annotation(arrowParent, 'arrow',...
+            [1.1*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
         gui.indNeuropil = [];
@@ -618,8 +628,7 @@ switch evt.Key
         zoom(gui.hAxRef, 1.5);
     case {'hyphen','subtract'}
         %zoom out
-        zoom(gui.hAxRef, 0.5);
-        
+        zoom(gui.hAxRef, 0.5);              
 end
 
 set(gui.hFig, 'userdata', gui);
@@ -663,7 +672,6 @@ if isfield(gui,'hBlackSlider')
 end
 % img = img ./ (gui.hasBeenViewed*0.2+1);
 
-
 %set transparency
 beenViewedTransp = 0.15;
 roiTransp = 0.4;
@@ -698,17 +706,14 @@ if ~isempty(gui.roiInfo.roiList)
         gui.rePlot = false;
     end
     
-    %get number of groups
-    nGroups = 9;
-    
     %get number of rois
     nROI = max(gui.roiInfo.roiList);
     
     colorOptions = gui.roiColors;
     
 %     %delete current objects
-    if isfield(gui,'roiPlotH') && all(ishandle(gui.roiPlotH)) && gui.rePlot
-        delete(gui.roiPlotH(:));
+    if isfield(gui,'roiPlotH') && (all(ishandle(gui.roiPlotH)) || gui.rePlot)
+        delete(gui.roiPlotH(ishandle(gui.roiPlotH)));
     end
     
     if ~isfield(gui,'roiPlotH') && verLessThan('matlab', '8.4') %if older than 2014b
@@ -729,44 +734,16 @@ if ~isempty(gui.roiInfo.roiList)
         gui.roiPlotH(roiInd) = patch(rowInd, colInd,...
             colorOptions(gui.roiInfo.grouping(roiInd), :),...
             'Parent', gui.hAxRef);  
-        gui.roiPlotH(roiInd).FaceAlpha = roiTransp;
+        set(gui.roiPlotH(roiInd),'FaceAlpha',roiTransp);
+        
+        %create context menu
+        hMenu = uicontextmenu('Parent',gui.hFig);
+        uimenu(hMenu,'Label',sprintf('Delete ROI %d',roiInd),...
+            'Callback',{@deleteROI,roiInd});
+        uimenu(hMenu,'Label','Change Label','Callback',{@changeROILabel,roiInd});
+        set(gui.roiPlotH(roiInd),'UIContextMenu',hMenu)
     end
 
-%     if verLessThan('matlab', '8.4') %if older than 2014b
-%         gui.roiPlotH = zeros(1,nGroups);
-%         gui.roiEdgePlotH = zeros(1,nGroups);
-%     else
-%         gui.roiPlotH = gobjects(1,nGroups);
-%         gui.roiEdgePlotH = gobjects(1,nGroups);
-%     end
-%     tic;
-%     %loop through each roi
-%     for groupInd = 1:nGroups
-% 
-%         %get current roiLabels
-%         matchGroup = find(gui.roiInfo.grouping == groupInd);
-%         matchROIs = ismember(gui.roiInfo.roiLabels, matchGroup);
-%         
-%         %plot face image
-%         gui.roiPlotH(groupInd) = imshow(label2rgb(matchROIs,colorOptions(groupInd,:)));
-%         faceAlpha = double(matchROIs); %initialize alpha map
-%         faceAlpha = roiTransp*faceAlpha;
-%         set(gui.roiPlotH(groupInd), 'AlphaData', faceAlpha);
-%         
-%         %find edges
-%         boundaries = bwboundaries(matchROIs);
-%         boundaries = cat(1,boundaries{:});
-%         boundaries = unique(boundaries,'rows'); %take unique entries
-%         boundaries = sub2ind(size(matchROIs),boundaries(:,1),boundaries(:,2)); %convert to linear indices
-%         edgeImage = false(size(matchROIs)); %initialize image
-%         edgeImage(boundaries) = true; %set boundary pixels to true
-%         
-%         %plot edges image
-%         gui.roiEdgePlotH(groupInd) = imshow(label2rgb(edgeImage,[0 0 0]));
-%         edgeAlpha = double(edgeImage); %initialize alpha map
-%         set(gui.roiEdgePlotH(groupInd), 'AlphaData', edgeAlpha);
-%     end
-%     toc
 end
 
 %turn rePlot off
@@ -775,6 +752,82 @@ end
 %update image
 set(gui.hImgMain,'cdata',img);
 
+set(gui.hFig, 'userdata', gui);
+end
+
+function changeROILabel(obj,~,roiInd)
+%get updated guidata
+gui = get(obj.Parent.Parent,'userdata');
+
+%get newLabel
+options.Resize = 'on';
+options.WindowStyle = 'normal';
+newLabel = inputdlg('Provide new label',...
+    sprintf('Select new label for roi %d',roiInd),1,{''},options);
+newLabel = str2double(newLabel);
+
+%error check
+if isempty(newLabel) || isnan(newLabel)
+    return;
+end
+
+%change grouping label
+oldLabel = gui.roiInfo.grouping(roiInd);
+gui.roiInfo.grouping(roiInd) = newLabel;
+
+%save
+gui.hAcq.roiInfo.slice(gui.sliceNum) = orderfields(gui.roiInfo,...
+    gui.hAcq.roiInfo.slice(gui.sliceNum));
+
+%Update Display
+gui.roiTitle = title(gui.hAxROI, sprintf('Changed label for ROI %d from %d to %d',...
+    roiInd,oldLabel,newLabel));
+set(gui.roiPlotH(roiInd),'FaceColor',gui.roiColors(newLabel,:));
+set(gui.hFig, 'userdata', gui);
+
+
+end
+
+function deleteROI(obj,~,roiInd)
+
+%get updated guidata
+gui = get(obj.Parent.Parent,'userdata');
+
+% Decrement roi Counter and blank gui label/list
+gui.cROI = gui.cROI - 1;
+gui.roiInfo.roiLabels(gui.roiInfo.roiLabels == roiInd) = 0;
+gui.roiInfo.roiList(gui.roiInfo.roiList == roiInd) = [];
+gui.roiInfo.grouping(roiInd) = [];
+
+%decrement everything else in roiLabels and roiList
+gui.roiInfo.roiLabels(gui.roiInfo.roiLabels > roiInd) = ...
+    gui.roiInfo.roiLabels(gui.roiInfo.roiLabels > roiInd) - 1;
+gui.roiInfo.roiList(gui.roiInfo.roiList > roiInd) = ...
+    gui.roiInfo.roiList(gui.roiInfo.roiList > roiInd) - 1;
+
+% Remove indexes from roiInfo and update acquisition object
+gui.roiInfo.roi(roiInd) = [];
+gui.hAcq.roiInfo.slice(gui.sliceNum) = orderfields(gui.roiInfo,...
+    gui.hAcq.roiInfo.slice(gui.sliceNum));
+
+%Update Display
+gui.roiTitle = title(gui.hAxROI, sprintf('ROI %d deleted',roiInd));
+
+%change context menu of patches greater than roiInd
+for menuInd = roiInd + 1:length(gui.roiPlotH)
+    %create new menus
+    hMenu = uicontextmenu('Parent',gui.hFig);
+    uimenu(hMenu,'Label',sprintf('Delete ROI %d',menuInd-1),...
+        'Callback',{@deleteROI,menuInd-1});
+    uimenu(hMenu,'Label','Change Label','Callback',{@changeROILabel,menuInd-1});
+    set(gui.roiPlotH(menuInd),'UIContextMenu',hMenu);
+end
+
+%delete patch 
+delete(gui.roiPlotH(roiInd));
+gui.roiPlotH(roiInd) = [];
+
+%store gui data
 set(gui.hFig, 'userdata', gui);
 end
 
