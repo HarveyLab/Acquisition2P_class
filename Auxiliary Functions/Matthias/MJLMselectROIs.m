@@ -201,7 +201,7 @@ function cbMouseclick(obj, ~, row, col)
 %and select ROIs
 
 %ignore if right click
-if strcmp(get(obj,'SelectionType'),'alt') %if right click
+if ~strcmp(get(obj,'SelectionType'),'normal') %if right click
     return; %ignore
 end
 
@@ -264,7 +264,11 @@ mask = zeros(gui.movSize(1), gui.movSize(2));
 for nEig = 1:6
     mask(pxNeighbors) = gui.cutVecs(:,nEig);
     hEig = eval(sprintf('gui.hEig%d',nEig));
-    imshow(scaleImg(mask),'Parent',hEig),
+    if isempty(hEig.Children)
+        imshow(scaleImg(mask),'Parent',hEig),
+    else
+        set(hEig.Children,'CData',scaleImg(mask));
+    end
     axes(hEig),
     xlim([col-displayWidth col+displayWidth]),
     ylim([row-displayWidth row+displayWidth]),
@@ -713,7 +717,7 @@ if ~isempty(gui.roiInfo.roiList)
     colorOptions = gui.roiColors;
     
 %     %delete current objects
-    if isfield(gui,'roiPlotH') && (all(ishandle(gui.roiPlotH)) || gui.rePlot)
+    if isfield(gui,'roiPlotH') && gui.rePlot
         delete(gui.roiPlotH(ishandle(gui.roiPlotH)));
     end
     
