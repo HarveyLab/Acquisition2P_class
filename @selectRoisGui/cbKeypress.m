@@ -86,7 +86,7 @@ switch evt.Key
         
         %save and update display
         sel.displayRoi;
-        sel.updateOverviewDisplay;
+        sel.updateOverviewDisplay(false);
         sel.h.ui.roiPoint.delete;
         
     case 'f'
