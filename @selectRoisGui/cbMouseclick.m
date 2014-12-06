@@ -5,7 +5,7 @@ function cbMouseclick(sel, objClick, ~, row, col)
 persistent initialClusterNum
 
 % Ignore if right click
-if strcmp(get(objClick, 'SelectionType'), 'alt') %if right click
+if ~strcmp(get(objClick, 'SelectionType'), 'normal') %if right click
     return
 end
 
