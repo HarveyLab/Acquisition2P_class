@@ -10,6 +10,12 @@ function calcSeedCov(obj,movNums,radiusPxCov,seedBin,temporalBin,sliceNum,channe
 % temporalBin - Factor by which movie is binned temporally to facilitate covariance computation, defaults to 8
 % writeDir - Directory in which pixel covariance information will be saved, defaults to obj.defaultDir
 
+
+% CalcSeedCov is deprecated:
+error('Do not use calcSeedCov -- use calcPxCov. If calcSeedCov is required for historical purposes, edid this error out of the file.');
+
+
+
 %% Input handling / Error Checking
 if ~exist('sliceNum','var') || isempty(sliceNum)
     sliceNum = 1;

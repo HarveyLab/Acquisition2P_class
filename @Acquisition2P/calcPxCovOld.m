@@ -1,4 +1,4 @@
-function calcPxCov(obj,movNums,widthPxCov,temporalBin,sliceNum,channelNum,writeDir)
+function calcPxCovOld(obj,movNums,widthPxCov,temporalBin,sliceNum,channelNum,writeDir)
 %EXPERIMENTAL FUNCTION: not for general use
 
 % radiusPxCov - radius in pixels around seed point to include in covariance calculation
