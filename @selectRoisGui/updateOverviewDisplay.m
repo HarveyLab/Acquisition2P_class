@@ -63,7 +63,7 @@ if redrawRois
         hMenu = uicontextmenu('Parent', sel.h.fig.main);
         uimenu(hMenu, 'Label', sprintf('Delete ROI %d', roiInd),...
             'Callback', {@sel.cbDeleteRoi, roiInd});
-        uimenu(hMenu, 'Label', 'Change Label', 'Callback', {@sel.dbChangeRoiLabel, roiInd});
+        uimenu(hMenu, 'Label', 'Change Label', 'Callback', {@sel.cbChangeRoiLabel, roiInd});
         set(sel.h.ui.roiPatches(roiInd), 'UIContextMenu', hMenu)
     end
 

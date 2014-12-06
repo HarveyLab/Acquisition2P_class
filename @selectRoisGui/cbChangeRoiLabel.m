@@ -1,4 +1,4 @@
-function changeRoiLabel(sel, ~, ~, roiInd)
+function cbChangeRoiLabel(sel, ~, ~, roiInd)
 
 %get newLabel
 options.Resize = 'on';
@@ -8,7 +8,7 @@ newLabel = inputdlg('Provide new label',...
 newLabel = str2double(newLabel);
 
 %error check
-if isempty(newLabel) || isnan(newLabel)
+if isempty(newLabel) || isnan(newLabel) || newLabel<1 || newLabel>9
     return;
 end
 
@@ -16,13 +16,8 @@ end
 oldLabel = sel.roiInfo.grouping(roiInd);
 sel.roiInfo.grouping(roiInd) = newLabel;
 
-%save
-sel.acq.roiInfo.slice(sel.sliceNum) = orderfields(sel.roiInfo,...
-    sel.acq.roiInfo.slice(sel.sliceNum));
-
 %Update Display
-sel.roiTitle = title(sel.hAxROI, sprintf('Changed label for ROI %d from %d to %d',...
+title(sel.h.ax.roi, sprintf('Changed label for ROI %d from %d to %d',...
     roiInd,oldLabel,newLabel));
-set(sel.roiPlotH(roiInd),'FaceColor',sel.roiColors(newLabel,:));
-set(sel.h.fig.main, 'userdata', sel);
+set(sel.h.ui.roiPatches(roiInd),'FaceColor',sel.disp.roiColors(newLabel,:));
 end

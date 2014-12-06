@@ -40,7 +40,7 @@ switch evt.Key
         %         displayROI(sel.h.fig.main),
         %         sel = get(keyPressObj, 'userdata');
         
-    case 'backspace'
+    case 'backspace'    
         lastRoi = max(sel.roiInfo.roiList);
         if isempty(lastRoi)
             return
