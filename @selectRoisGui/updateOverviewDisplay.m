@@ -5,12 +5,12 @@ if ~exist('redrawRois', 'var') || isempty(redrawRois)
     redrawRois = true;
 end
 
-% Redraw image if slider is used:
-if isfield(sel.h.ui,'sliderBlack') % Slider is not implemented in portrait format figure...maybe change.
-    img = sel.disp.img;
-    img = mat2gray(img, [get(sel.h.ui.sliderBlack, 'Value'), get(sel.h.ui.sliderWhite, 'Value')]);
-    set(sel.h.img.overview, 'cdata', img);
-end
+% % Redraw image if slider is used:
+% if isfield(sel.h.ui,'sliderBlack') % Slider is not implemented in portrait format figure...maybe change.
+%     img = sel.disp.img;
+%     img = mat2gray(img, [get(sel.h.ui.sliderBlack, 'Value'), get(sel.h.ui.sliderWhite, 'Value')]);
+%     set(sel.h.img.overview, 'cdata', img);
+% end
 
 % Set transparency
 beenViewedTransp = 0.15;
