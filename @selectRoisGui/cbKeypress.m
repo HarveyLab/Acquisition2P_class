@@ -87,7 +87,7 @@ switch evt.Key
         %save and update display
         sel.displayRoi;
         sel.updateOverviewDisplay(false);
-        sel.h.ui.roiPoint.delete;
+%         sel.h.ui.roiPoint.delete;
         
     case 'f'
         % Tell user that we're loading the traces:
