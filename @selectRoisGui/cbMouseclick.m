@@ -16,7 +16,8 @@ if nargin < 4
     col = clickCoord(1, 1);
     
     % Ignore out-of-bounds clicks:
-    if row<1 || row>sel.disp.movSize(1) || col<1 || col>sel.disp.movSize(2)
+    if row < sel.h.ax.overview.YLim(1) || row > sel.h.ax.overview.YLim(2) ||...
+            col < sel.h.ax.overview.XLim(1) || col > sel.h.ax.overview.XLim(2)
         return
     end
     sel.disp.currentPos = [row col];
