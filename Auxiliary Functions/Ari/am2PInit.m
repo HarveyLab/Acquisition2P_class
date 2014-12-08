@@ -64,6 +64,10 @@ end
 % end
 obj.Movies = cellfun(@(x) sprintf('%s%s%s',movPath,filesep,x),movNames,'UniformOutput',false);
 
+%add in scanimage metadata
+[~,metadata] = loadtiffAM(obj.Movies{1},NaN);
+obj.derivedData(1).SIData = metadata;
+
 %Automatically fill in fields for motion correction
 obj.motionRefMovNum = ceil(length(movNames)/2);
 obj.motionRefChannel = 2; %red channel should be used for motion correction
@@ -78,7 +82,7 @@ assignin('base',obj.acqName,obj);
 
 %Copy acquisition object to should process folder
 shouldProcFolder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
-eval(sprintf('%s=obj',obj.acqName));
+eval(sprintf('%s=obj;',obj.acqName));
 save(sprintf('%s%s%s_acq.mat',shouldProcFolder,filesep,obj.acqName),obj.acqName);
 
 %Notify user of success
