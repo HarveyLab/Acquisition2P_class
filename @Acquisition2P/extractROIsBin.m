@@ -1,11 +1,11 @@
-function [traces, rawF, roiList, roiGroup, traceNeuropil] = ...
+function [traces, rawF, roi, traceNeuropil] = ...
     extractROIsBin(obj,roiGroups,sliceNum,channelNum)
 % Function for extracting ROIs from movies using grouping assigned by
 % selectROIs. This function uses a memorymapped binary file of the entire
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
 % from tiff files instead
 %
-% [traces,rawF,roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
+% [traces, rawF, roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
 %
 % roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
 % traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
@@ -25,13 +25,16 @@ if ~exist('roiGroups','var') || isempty(roiGroups)
     roiGroups = 1:9;
 end
 
+% Update roi information to new structure:
+if isfield(obj.roiInfo.slice(sliceNum), 'roiList')
+    removeRoiList(obj);
+end
+
 %% ROI Extraction
 
 %Find relevant ROIs
-roiGroup = obj.roiInfo.slice(sliceNum).grouping;
-roiList = find(ismember(roiGroup,roiGroups));
-roiGroup = roiGroup(roiList);
-nRois = numel(roiList);
+isRoiSelected = ismember([obj.roiInfo.slice(sliceNum).roi.group], roiGroups);
+roi = obj.roiInfo.slice(sliceNum).roi(isRoiSelected);
 
 %Memory Map Movie
 movSizes = cat(1, obj.derivedData.size);
@@ -43,28 +46,26 @@ movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileNam
     'Format', {'int16', [nFramesTotal, h*w], 'mov'});
 mov = movMap.Data.mov;
 
-%Loop over each ROI,
-traces = nan(nRois, nFramesTotal);
-rawF = nan(nRois, nFramesTotal);
-traceNeuropil = nan(nRois, nFramesTotal);
+% Loop over each ROI to be extracted:
+nRoi = numel(roi);
+traces = nan(nRoi, nFramesTotal);
+rawF = nan(nRoi, nFramesTotal);
+traceNeuropil = nan(nRoi, nFramesTotal);
 
-for nROI = 1:nRois
-    fprintf('Extracting ROI %03.0f of %03.0f\n',nROI,length(roiList));
+for r = 1:nRoi
+    fprintf('Extracting ROI %03.0f of %03.0f\n', r, nRoi);
     
-    thisRoi = obj.roiInfo.slice(sliceNum).roi(roiList(nROI));
-    
-    indCell = obj.mat2binInd(thisRoi.indBody);
+    indCell = obj.mat2binInd(roi(r).indBody);
     traceCell = mean(mov(:, indCell), 2)';
-    rawF(nROI,:) = traceCell;
+    rawF(r,:) = traceCell;
     
-    
-    if isfield(thisRoi,'indNeuropil') && ~isempty(thisRoi.indNeuropil)
-        subCoef = thisRoi.subCoef;
-        indNeuropil = obj.mat2binInd(thisRoi.indNeuropil);
-        traceNeuropil(nROI,:) = mean(mov(:, indNeuropil), 2)';
-        traces(nROI,:) = traceCell - traceNeuropil(nROI,:)*subCoef;
+    if isfield(roi(r),'indNeuropil') && ~isempty(roi(r).indNeuropil)
+        subCoef = roi(r).subCoef;
+        indNeuropil = obj.mat2binInd(roi(r).indNeuropil);
+        traceNeuropil(r,:) = mean(mov(:, indNeuropil), 2)';
+        traces(r,:) = traceCell - traceNeuropil(r,:)*subCoef;
     else
-        traces(nROI,:) = rawF(nROI,:);
+        traces(r,:) = rawF(r,:);
     end
 end
 

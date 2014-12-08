@@ -1,8 +1,8 @@
-function updateOverviewDisplay(sel, redrawRois)
+function updateOverviewDisplay(sel, redrawAllRois)
 %Helper function that updates the reference image with current ROI labels
 
-if ~exist('redrawRois', 'var') || isempty(redrawRois)
-    redrawRois = true;
+if ~exist('redrawAllRois', 'var') || isempty(redrawAllRois)
+    redrawAllRois = true;
 end
 
 % % Redraw image if slider is used:
@@ -22,11 +22,11 @@ hold(sel.h.ax.overview,'on');
 % Display which areas have been viewed already:
 set(sel.h.img.hasBeenViewed, 'AlphaData', beenViewedTransp*sel.roiInfo.hasBeenViewed);
 
-%get number of rois
-nRoi = max(sel.roiInfo.roiList);
+% The patch vector has one element for each ROI ID up to the maximum ID,
+% even if not all IDs are used. This is for easy indexing.
+nPatches = max([sel.roiInfo.roi.id]);
 
-if redrawRois
-    
+if redrawAllRois
     %delete current objects
     if isfield(sel.h.ui, 'roiPatches')
         delete(sel.h.ui.roiPatches(ishandle(sel.h.ui.roiPatches)));
@@ -34,47 +34,55 @@ if redrawRois
     
     %initialize patch array
     if ~isfield(sel.h.ui, 'roiPatches') && verLessThan('matlab', '8.4') %if older than 2014b
-        sel.h.ui.roiPatches = zeros(1, nRoi);
-    elseif ~isfield(sel,'roiPlotH')
-        sel.h.ui.roiPatches = gobjects(1, nRoi);
+        sel.h.ui.roiPatches = nan(1, nPatches);
+    else
+        sel.h.ui.roiPatches = gobjects(1, nPatches);
     end
-end
-    
-% If no rois to draw, abort:
-if isempty(nRoi)
-    return
+else
+    % Only new ROI is drawn: extend patch array accordingly:
+    lastExistingPatch = find(ishandle(sel.h.ui.roiPatches), 1, 'last');
+    if verLessThan('matlab', '8.4') %if older than 2014b
+        sel.h.ui.roiPatches(lastExistingPatch:nPatches) = nan;
+    else
+        sel.h.ui.roiPatches(lastExistingPatch:nPatches) = gobjects;
+    end
 end
 
-%loop through each roi which has to be drawn
-for roiInd = sel.roiInfo.roiList(:)'
+% Loop through each potential patch and draw it if necessary. Recall that
+% the patch array goes from 1 to max(roiId) and has valid handles in
+% exactly those elements that do not need to be drawn:
+isExistingRoi = ishandle(sel.h.ui.roiPatches);
+for roiId = 1:nPatches
     
-    if roiInd <= length(sel.h.ui.roiPatches) && ishandle(sel.h.ui.roiPatches(roiInd)) %if object already exists
-        continue; %skip
+    % Don't re-draw existing patches:
+    if isExistingRoi(roiId)
+        continue
     end
     
-    %get current roi
-    currROI = sel.roiInfo.roiLabels == roiInd;
-    
-    %skip if empty roi
-    if ~any(currROI(:))
-        continue;
+    % Don't draw patches for non-exising ROIs:
+    if ~ismember(roiId, [sel.roiInfo.roi.id])
+        continue
     end
+    
+    % Get mask for ROI to be drawn:
+    currRoiMask = sel.disp.roiLabels == roiId;
     
     %find edges of current roi
-    [rowInd,colInd] = sel.findEdges(currROI);
+    [rowInd,colInd] = sel.findEdges(currRoiMask);
     
     %create patch object
-    sel.h.ui.roiPatches(roiInd) = patch(rowInd, colInd,...
-        sel.disp.roiColors(sel.roiInfo.grouping(roiInd), :),...
+    roiGroup = sel.roiInfo.roi([sel.roiInfo.roi.id]==roiId).group;
+    sel.h.ui.roiPatches(roiId) = patch(rowInd, colInd,...
+        sel.disp.roiColors(roiGroup, :),...
         'Parent', sel.h.ax.overview);
-    set(sel.h.ui.roiPatches(roiInd), 'FaceAlpha', roiTransp);
+    set(sel.h.ui.roiPatches(roiId), 'FaceAlpha', roiTransp);
     
     %create context menu
     hMenu = uicontextmenu('Parent', sel.h.fig.main);
-    uimenu(hMenu, 'Label', sprintf('Delete ROI %d', roiInd),...
-        'Callback', {@sel.cbDeleteRoi, roiInd});
-    uimenu(hMenu, 'Label', 'Change Label', 'Callback', {@sel.cbChangeRoiLabel, roiInd});
-    set(sel.h.ui.roiPatches(roiInd), 'UIContextMenu', hMenu)
+    uimenu(hMenu, 'Label', sprintf('Delete ROI %d', roiId),...
+        'Callback', {@sel.cbDeleteRoi, roiId});
+    uimenu(hMenu, 'Label', 'Change Label', 'Callback', {@sel.cbChangeRoiLabel, roiId});
+    set(sel.h.ui.roiPatches(roiId), 'UIContextMenu', hMenu)
 end
 
 end

@@ -3,7 +3,7 @@ function cbKeypress(sel, ~, evt)
 % 'tab' - Cycles through selection of each cluster in seed region as current ROI.
 % 'f' - loads fluorescence trace for currently selected ROI, can be iteratively called to display multiple traces within single seed region
 % 'space' - selects current ROI as cell body or neuropil, depending on state, and displays evaluative plots
-% '1'-'9' - Selects current ROI or pairing and assigns it to grouping 1-9
+% '1'-'9' - Selects current ROI or pairing and assigns it to group 1-9
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
 % 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 switch evt.Key
@@ -40,37 +40,40 @@ switch evt.Key
         %         displayROI(sel.h.fig.main),
         %         sel = get(keyPressObj, 'userdata');
         
-    case 'backspace'    
-        lastRoi = max(sel.roiInfo.roiList);
-        if isempty(lastRoi)
+    case 'backspace'
+        if numel(sel.roiInfo.roi)==0
             return
         end
-        sel.cbDeleteRoi(lastRoi)
+        lastRoiId = sel.roiInfo.roi(end).id;
+        sel.cbDeleteRoi([], [], lastRoiId)
         
     case {'1', '2', '3', '4', '5', '6', '7', '8', '9'}
         % cRoi is the unique number that the current ROI will get. It is
         % not stored globally but always determined locally from the
-        % roiList such that it's always up to date:
-        if isempty(sel.roiInfo.roiList)
-            cRoi = 1;
+        % roiInfo structure such that it's always up to date:
+        if isempty(sel.roiInfo.roi)
+            newRoiNum = 1;
         else
-            cRoi = max(sel.roiInfo.roiList)+1;
+            newRoiNum = max([sel.roiInfo.roi.id])+1;
         end
         
-        sel.roiInfo.grouping(cRoi) = str2double(evt.Key);
+        % Save current ROI:
+        newInd = numel(sel.roiInfo.roi); % Attention: newRoiIndex is no necessarily the same as the roiNumber of the current ROI!
+        sel.roiInfo.roi(newInd).id = newRoiNum;
+        sel.roiInfo.roi(newInd).group = str2double(evt.Key);
         
-        %Check to see if a pairing has just been loaded
+        % Check to see if a pairing has just been loaded
         selectStatus = strcmp('This pairing loaded', get(get(sel.h.ax.roi, 'Title'), 'string'));
         
         if ~selectStatus || isempty(sel.disp.indBody) || isempty(sel.disp.indNeuropil)
-            % Save information for currently selected ROI grouping
-            sel.roiInfo.roi(cRoi).indBody = sel.nh2movInd(find(sel.disp.roiMask)); %#ok<FNDSB>
+            % Save information for currently selected ROI group
+            sel.roiInfo.roi(newInd).indBody = sel.nh2movInd(find(sel.disp.roiMask)); %#ok<FNDSB>
             newTitle = 'ROI Saved';
         else
             % Save information for recently selected pairing
-            sel.roiInfo.roi(cRoi).indBody = sel.nh2movInd(sel.disp.indBody);
-            sel.roiInfo.roi(cRoi).indNeuropil = sel.nh2movInd(sel.disp.indNeuropil);
-            sel.roiInfo.roi(cRoi).subCoef = sel.disp.neuropilCoef(2);
+            sel.roiInfo.roi(newInd).indBody = sel.nh2movInd(sel.disp.indBody);
+            sel.roiInfo.roi(newInd).indNeuropil = sel.nh2movInd(sel.disp.indNeuropil);
+            sel.roiInfo.roi(newInd).subCoef = sel.disp.neuropilCoef(2);
             newTitle = 'Cell-Neuropil Pairing Saved';
             
             % Set cluster to be equal to the one after the just selected
@@ -79,15 +82,13 @@ switch evt.Key
             sel.disp.currentClustInd = sel.disp.currentClustering(sel.disp.indBody(1))+1;
         end
         
-        % Update roilabels, list, display.
-        sel.roiInfo.roiLabels(sel.roiInfo.roi(cRoi).indBody) = cRoi;
-        sel.roiInfo.roiList = sort([sel.roiInfo.roiList; cRoi]);
-        title(sel.h.ax.roi, sprintf('%s: #%03.0f', newTitle, cRoi));
+        % Update roilabels and display.
+        sel.disp.roiLabels(sel.roiInfo.roi(newInd).indBody) = newRoiNum;
+        title(sel.h.ax.roi, sprintf('%s: #%03.0f', newTitle, newRoiNum));
         
         %save and update display
         sel.displayRoi;
         sel.updateOverviewDisplay(false);
-%         sel.h.ui.roiPoint.delete;
         
     case 'f'
         % Tell user that we're loading the traces:
