@@ -8,22 +8,29 @@ sel.acq = acq;
 sel.slice = sliceNum;
 
 % Set up roiInfo: The roiInfo property of the sel object automatically
-% points to the acq object, so whatever we do
-if ~isfield(sel.roiInfo, 'roiList') || isempty(sel.roiInfo.roiList)
+% points to the acq object, so whatever we do to sel get's propagated to
+% acq.
+if ~isfield(sel.roiInfo, 'roi') || isempty(sel.roiInfo.roi)
     % If this is acq object has not been processed before, initialize
     % fields:
     sel.roiInfo.hasBeenViewed = zeros(size(img));
-    sel.roiInfo.roiLabels = zeros(size(img));
-    sel.roiInfo.roiList = [];
-    sel.roiInfo.grouping = [];
-    sel.roiInfo.roi = struct();
+    sel.roiInfo.roi = struct('id', [], 'group', [], 'indBody', [], ...
+        'indNeuropil', [], 'subCoef', []);
 end
 
-sel.roiInfo.roiList = unique(sel.roiInfo.roiLabels(:));
+% Update roi information to new structure:
+if isfield(sel.roiInfo, 'roiList')
+    removeRoiList(sel.acq);
+end
+
+% Create roiLabels:
+sel.disp.roiLabels = zeros(size(img));
+for roi = sel.roiInfo.roi(:)'
+    sel.disp.roiLabels(roi.indBody) = roi.id;
+end
 
 % Set the current ROI to be 1 greater than last selected
-sel.disp.currentRoi = max(sel.roiInfo.roiList)+1;
-sel.roiInfo.roiList(sel.roiInfo.roiList==0) = [];
+sel.disp.currentRoi = max([sel.roiInfo.roi.id])+1;
 
 % Initialize data/settings for display:
 sel.disp.clusterNum = 3; % Initial number of cuts.

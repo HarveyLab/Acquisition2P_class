@@ -94,6 +94,9 @@ seedCov = seedCov / length(movNums);
 
 %% Write results to disk
 display('-----------------Saving Results-----------------')
+if ~exist(writeDir,'dir')
+    mkdir(writeDir)
+end
 covFileName = fullfile(writeDir,[obj.acqName '_covFile.mat']);
 obj.roiInfo.slice(sliceNum).covFile = covFileName;
 covFile = matfile(covFileName,'Writable',true);

@@ -36,7 +36,7 @@ roiCenter = round(sel.disp.currentPos);
 roiImg = interp2(sel.disp.img, roiRegionX, roiRegionY, 'nearest', nan);
 
 % Grab same region from roiLabels to display previously selected rois:
-roiLabels = interp2(sel.roiInfo.roiLabels, roiRegionX, roiRegionY, 'nearest', nan);
+roiLabels = interp2(sel.disp.roiLabels, roiRegionX, roiRegionY, 'nearest', nan);
 
 
 % Scale image:
