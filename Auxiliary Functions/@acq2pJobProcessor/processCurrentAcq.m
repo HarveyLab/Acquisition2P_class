@@ -9,6 +9,22 @@ if ajp.debug
     return
 end
 
+%figure out pixel neighborhood
+neighborhoodConstant = 1.5;
+if isfield(ajp.currentAcq.derivedData(1),'SIData')
+    if isfield(ajp.currentAcq.derivedData(1).SIData,'SI4')
+        objectiveMag = 25;
+        zoomFac = ajp.currentAcq.derivedData(1).SIData.SI4.scanZoomFactor;
+    elseif isfield(ajp.currentAcq.derivedData(1).SIData,'SI5')
+        objectiveMag = 16;
+        zoomFac = ajp.currentAcq.derivedData(1).SIData.SI5.zoomFactor;
+    end
+    pxCovRad = round(objectiveMag*zoomFac/neighborhoodConstant);
+else
+    pxCovRad = [];
+end
+    
+
 % Motion correction:
 %check if motion correction already applied
 if isempty(ajp.currentAcq.shifts)
@@ -48,10 +64,10 @@ saveUpdatedObject(ajp);
 
 % Caclulate pixel covariance:
 %check if pixel covariance already calculated
-if isempty(ajp.currentAcq.roiInfo)
+if isempty(ajp.currentAcq.roiInfo) || ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1) %if no roi info or if different neighborhood
     try
         ajp.log('Started pixel covariance calculation.');
-        ajp.currentAcq.calcPxCov;
+        ajp.currentAcq.calcPxCov([],pxCovRad);
     catch err
         msg = sprintf('Pixel covariance calculation aborted with error: %s', err.message);
         ajp.log(msg);
