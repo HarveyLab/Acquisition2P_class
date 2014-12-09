@@ -51,14 +51,14 @@ switch evt.Key
         % cRoi is the unique number that the current ROI will get. It is
         % not stored globally but always determined locally from the
         % roiInfo structure such that it's always up to date:
-        if isempty(sel.roiInfo.roi)
+        if isempty([sel.roiInfo.roi.id])
             newRoiNum = 1;
         else
             newRoiNum = max([sel.roiInfo.roi.id])+1;
         end
         
         % Save current ROI:
-        newInd = numel(sel.roiInfo.roi); % Attention: newRoiIndex is no necessarily the same as the roiNumber of the current ROI!
+        newInd = numel([sel.roiInfo.roi.id])+1; % Attention: newRoiIndex is no necessarily the same as the roiNumber of the current ROI!
         sel.roiInfo.roi(newInd).id = newRoiNum;
         sel.roiInfo.roi(newInd).group = str2double(evt.Key);
         
