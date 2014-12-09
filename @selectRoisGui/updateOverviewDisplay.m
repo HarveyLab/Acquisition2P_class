@@ -26,6 +26,10 @@ set(sel.h.img.hasBeenViewed, 'AlphaData', beenViewedTransp*sel.roiInfo.hasBeenVi
 % even if not all IDs are used. This is for easy indexing.
 nPatches = max([sel.roiInfo.roi.id]);
 
+if isempty(nPatches)
+    return;
+end
+
 if redrawAllRois
     %delete current objects
     if isfield(sel.h.ui, 'roiPatches')
