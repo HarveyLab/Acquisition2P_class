@@ -5,11 +5,13 @@ function acq = mjlmInitialization(acqId, savePath)
 
 acq = Acquisition2P(acqId, @(acq) init(acq, acqId));
 
-if exist('savePath', 'var')
-    save(fullfile(savePath, acq.acqName), 'acq');
+if ~exist('savePath', 'var')
+    savePath = improc.dir.jobsToDo;
 end
 
+save(fullfile(savePath, acq.acqName), 'acq');
 fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, numel(acq.Movies));
+fprintf('Saved acquisition file to %s.\n', savePath);
 
 function init(acq, acqId)
 % Add remote files:

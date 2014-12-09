@@ -38,11 +38,31 @@ if ~exist('writeDir','var') || isempty(writeDir)
 end 
 
 %% Loop over movies to get covariance matrix
-for nMovie = movNums
-    fprintf('Processing movie %03.0f of %03.0f.\n',find(movNums==nMovie),length(movNums));
+nMovies = numel(movNums);
+for m = 1:nMovies
+    fprintf('Processing movie %03.0f of %03.0f.\n',find(movNums==m),length(movNums));
     loopTime = tic;
-    %Read movie, bin temporally using reshape and sum, and center data
-    mov = readCor(obj,nMovie,'single');
+    
+    %Load movie:
+    if m==1
+        % Load first movie conventionally:
+        fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movNums(m),nMovies)
+        mov = obj.readRaw(movNums(m),'single');
+    else
+        % Following movies: Retrieve movie that was loaded in parallel:
+        fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movNums(m),nMovies)
+        mov = fetchOutputs(parObjRead);
+        delete(parObjRead); % Necessary to delete data on parallel worker.
+    end
+    
+    % Start parallel loading of next movie:
+    if m<nMovies
+        % Start loading on parallel worker:
+        isSilent = true;
+        parObjRead = parfeval(@obj.readCor, 1, movNums(m+1), 'single', isSilent);
+    end    
+    
+    % Bin temporally using reshape and sum, and center data
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
     movSize = size(mov);
     [h, w, z] = size(mov);
@@ -50,7 +70,7 @@ for nMovie = movNums
     mov = squeeze(sum(reshape(mov,movSize(1)*movSize(2),temporalBin,movSize(3)/temporalBin),2));
     mov = bsxfun(@minus,mov,mean(mov,2));
     
-    if nMovie == 1
+    if m == 1
         nPix = w*h;
 
         % Neighborhood is square, and the edge length must be odd:

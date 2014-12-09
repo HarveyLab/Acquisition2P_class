@@ -70,15 +70,42 @@ movieOrder([1 obj.motionRefMovNum]) = [obj.motionRefMovNum 1];
 
 %Load movies one at a time in order, apply correction, and save as
 %split files (slice and channel)
-for movNum = movieOrder
-    fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movNum,nMovies),
-    [mov, scanImageMetadata] = obj.readRaw(movNum,'single');
+for m = 1:nMovies
+    fprintf('Free memory at start of movie %d: %1.0f MB.\n', m, getFreeMem);
+    
+    %Load movie:
+    if m==1
+        % Load first movie conventionally:
+        fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+        distTimer = tic;
+        [mov, scanImageMetadata] = obj.readRaw(movieOrder(m),'single');
+        fprintf('Done loading (%1.0f s).\n', toc(distTimer));
+    else
+        if exist('parObjRead', 'var')
+            % Following movies: Retrieve movie that was loaded in parallel:
+            fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+            [mov, scanImageMetadata] = fetchOutputs(parObjRead);
+            delete(parObjRead); % Necessary to delete data on parallel worker.
+        else
+            fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+            [mov, scanImageMetadata] = obj.readRaw(movieOrder(m),'single');
+        end
+    end
+    
+    % Start parallel loading of next movie:
+    if m<nMovies && getFreeMem > 3000
+        % Start loading on parallel worker:
+        isSilent = true;
+        parObjRead = parfeval(@obj.readRaw, 2, movieOrder(m+1), 'single', isSilent);
+    end
+    
+    % Spatial binning:
     if obj.binFactor > 1
         mov = binSpatial(mov, obj.binFactor);
     end
     
     % Apply line shift:
-    fprintf('Line Shift Correcting Movie #%03.0f of #%03.0f\n', movNum, nMovies),
+    fprintf('Line Shift Correcting Movie #%03.0f of #%03.0f\n', movieOrder(m), nMovies),
     mov = correctLineShift(mov);
     try
         [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, scanImageMetadata);
@@ -88,33 +115,47 @@ for movNum = movieOrder
     clear mov
     
     % Find motion:
-    fprintf('Identifying Motion Correction for Movie #%03.0f of #%03.0f\n', movNum, nMovies),
-    obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movNum, 'identify');
+    fprintf('Identifying Motion Correction for Movie #%03.0f of #%03.0f\n', movieOrder(m), nMovies),
+    obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movieOrder(m), 'identify');
     
     % Apply motion correction and write separate file for each
     % slice\channel:
-    fprintf('Applying Motion Correction for Movie #%03.0f of #%03.0f\n', movNum, nMovies),
-    movStruct = obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movNum, 'apply');
+    fprintf('Applying Motion Correction for Movie #%03.0f of #%03.0f\n', movieOrder(m), nMovies),
+    movStruct = obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movieOrder(m), 'apply');
     for nSlice = 1:nSlices
         for nChannel = 1:nChannels
-            movFileName = feval(namingFunction,obj.acqName, nSlice, nChannel, movNum);
-            obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFileName);
-            fprintf('Writing Movie #%03.0f of #%03.0f\n',movNum,nMovies),
-            try
-                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
-            catch
-                % Sometimes, disk access fails due to intermittent
-                % network problem. In that case, wait and re-try once:
-                pause(60);
-                tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
+            movFileName = feval(namingFunction,obj.acqName, nSlice, nChannel, movieOrder(m));
+            obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movieOrder(m)} = fullfile(writeDir,movFileName);
+            fprintf('Writing Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+            
+            if exist('parObjWrite', 'var')
+                wait(parObjWrite); % Make sure it's not deleated before it's done.
+                delete(parObjWrite);
             end
+            
+            parObjWrite = parfeval(@tiffWrite, 0, ...
+                movStruct.slice(nSlice).channel(nChannel).mov, ...
+                movFileName, ...
+                writeDir, ...
+                'int16', ...
+                isSilent);
+            
+            if getFreeMem < 3000
+                disp('Too little free memory...waiting for write.')
+                wait(parObjWrite); % Make sure it's not deleated before it's done.
+                delete(parObjWrite);
+            end
+            
         end
     end
     
     % Store movie dimensions (this is the same for all channels and
     % slices):
-    obj.derivedData(movNum).size = size(movStruct.slice(nSlice).channel(nChannel).mov);
+    obj.derivedData(movieOrder(m)).size = size(movStruct.slice(nSlice).channel(nChannel).mov);
 end
+
+% Clean up data on parallel workers:
+delete(parObjWrite)
 
 %Assign acquisition to a variable with its own name, and write to same
 %directory
@@ -128,4 +169,16 @@ function movFileName = defaultNamingFunction(acqName, nSlice, nChannel, movNum)
 
 movFileName = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif',...
     acqName, nSlice, nChannel, movNum);
+end
+
+function free = getFreeMem
+%MONITOR_MEMORY grabs the memory usage from the feature('memstats')
+%function and returns the amount (1) in use, (2) free, and (3) the largest
+%contiguous block.
+
+memtmp = regexp(evalc('feature(''memstats'')'),'(\w*) MB','match'); 
+memtmp = sscanf([memtmp{:}],'%f MB');
+% in_use = memtmp(1);
+free = memtmp(2);
+% largest_block = memtmp(10);
 end
