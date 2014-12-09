@@ -91,15 +91,18 @@ classdef Acquisition2P < handle
             obj.dateCreated = date;
         end       
         
-        function [movie, metaMovie] = readRaw(obj,movNum,castType)
+        function [movie, metaMovie] = readRaw(obj,movNum,castType,isSilent)
             %Reads in raw data from an acquisition
             if ~exist('castType', 'var') || isempty(castType)
                 castType = 'uint16';
             end
-            [movie, metaMovie] = tiffRead(obj.Movies{movNum},castType);
+            if ~exist('isSilent', 'var') || isempty(isSilent)
+                isSilent = false;
+            end
+            [movie, metaMovie] = tiffRead(obj.Movies{movNum},castType,isSilent);
         end
         
-        function movie = readCor(obj,movNum,castType,sliceNum,chanNum)
+        function movie = readCor(obj,movNum,castType,sliceNum,chanNum,isSilent)
             %Reads in motion corrected data from an acquisition. Defaults
             %to slice 1 channel 1 if non specified
             if isempty(obj.correctedMovies)
@@ -114,8 +117,11 @@ classdef Acquisition2P < handle
             if ~exist('chanNum', 'var') || isempty(chanNum)
                 chanNum = 1;
             end
+            if ~exist('isSilent', 'var') || isempty(isSilent)
+                isSilent = false;
+            end
             movName = obj.correctedMovies.slice(sliceNum).channel(chanNum).fileName{movNum};
-            movie = tiffRead(movName,castType);
+            movie = tiffRead(movName,castType,isSilent);
         end
     end
     
