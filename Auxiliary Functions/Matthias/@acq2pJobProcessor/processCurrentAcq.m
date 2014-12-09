@@ -1,6 +1,9 @@
 function processCurrentAcq(ajp)
 % Performs all processing of currently loaded acquisition.
 
+%create cleanup obj
+cleanupObj = onCleanup(@() moveBackToUnproc(ajp));
+
 if ajp.debug
     ajp.log('Skipping all processing because debug mode is on.');
     return
@@ -18,7 +21,7 @@ if isempty(ajp.currentAcq.shifts)
         printStack(ajp, err.stack);
         return % If motion correction fails, then no further processing can happen.
     end
-else 
+else
     ajp.log('Motion correction already performed. Skipping...');
 end
 
@@ -36,7 +39,7 @@ if isempty(ajp.currentAcq.indexedMovie)
         ajp.log(msg);
         printStack(ajp, err.stack);
     end
-else 
+else
     ajp.log('Binary movie already created. Skipping...');
 end
 
@@ -94,5 +97,14 @@ catch err
     msg = sprintf('Saving aborted with error: %s', err.message);
     ajp.log(msg);
     printStack(ajp, err.stack);
+end
+end
+
+function moveBackToUnproc(ajp)
+if exist(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName),'file')
+    movefile(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName),...
+        fullfile(ajp.dir.jobs, ajp.currentAcqFileName));
+    msg = 'Exectuion terminated. File moved back to queue.';
+    ajp.log(msg);    
 end
 end
