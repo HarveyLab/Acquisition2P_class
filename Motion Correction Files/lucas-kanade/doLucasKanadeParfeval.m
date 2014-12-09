@@ -18,14 +18,14 @@ if isGpu
     memAvailable = gpu.AvailableMemory;
     
     stackInfo = whos('stackFull');
-    memFactor = 4; % We need memory equal to this many times the size of the stack.
+    memFactor = 3; % We need memory equal to this many times the size of the stack.
     memRequired = memFactor*stackInfo.bytes;
     
     if memAvailable<memRequired
         % Split stack into chunks of ~equal size:
         nChunks = ceil(memRequired/memAvailable);
         [h, w, z] = size(stackFull);
-        chunkSize = round(z/nChunks);
+        chunkSize = ceil(z/nChunks);
         chunkSizes = zeros(1, nChunks)+chunkSize;
         chunkSizes(end) = z-(nChunks-1)*chunkSize;
         stackChunked = mat2cell(stackFull, h, w, chunkSizes);
@@ -58,7 +58,7 @@ function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD_chunk(stackFull, ref, is
 nSlice = 3;
 
 % Parameters:
-nBasis = 16;
+nBasis = 4;
 
 % Precalculate constants:
 [h, w, z] = size(stackFull);
@@ -85,7 +85,7 @@ theI = (eye(nBasis+1, 'like', stackFull)*lambda);
 for sl = 1:nSlice
     stackSliced = stackFull(:, :, sl:nSlice:end);
     future(sl) = parfeval(@parfevalFun, 4, stackSliced, ref, isGpu, ...
-    nBasis, B, allBs, theI, xi, yi, Tnorm, minIters); %#ok<AGROW>
+        nBasis, B, allBs, theI, xi, yi, Tnorm, minIters); %#ok<AGROW>
 end
 
 disp('parfeval set up, now computing...');
@@ -174,10 +174,9 @@ end
 
 function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
     T, I, dpx, dpy, minIters, ...
-    B, allBs, xi, yi, theI, Tnorm)
+    B, allBs, xi, yi, theI, Tnorm, nBasis)
 
 warning('off','fastBSpline:nomex');
-nBasis = 16;
 maxIters = 50;
 deltacorr = 0.0005;
 [~, w] = size(T);
@@ -194,6 +193,8 @@ for ii = 1:maxIters
     
     %gradient
     [dTx, dTy] = imgradientxy(Id, 'centraldifference');
+    dTx(:, [1, end]) = 0;
+    dTy([1, end], :) = 0;
     
     if ii > minIters
         c = mycorr(Id(:), Tnorm);
@@ -276,17 +277,12 @@ for ii = 1:nBlocks
     T_ = T(lower:upper,:);
     I_ = I(lower:upper,:);
     
-    % From original Lucas-Kanade function:
-    %         T_ = bsxfun(@minus,T_,mean(T_,1));
-    %         I_ = bsxfun(@minus,I_,mean(I_,1));
-    %         dx = fftshift(ifft2(fft2(T_).*conj(fft2(I_))));
-    %         [yy,xx] = find(dx == max(dx(:)));
+    T_ = bsxfun(@minus,T_,mean(T_,1));
+    I_ = bsxfun(@minus,I_,mean(I_,1));
+    dx = fftshift(ifft2(fft2(T_).*conj(fft2(I_))));
+    [~, i] = max(dx(:));
     
-    % From fftalign.m:
-    C = fftshift(real(ifft2(fft2(T_).*fft2(rot90(I_,2)))));
-    [~,i] = max(C(:));
     [yy, xx] = ind2sub([blockSize, w], gather(i));
-    
     
     dpx(ii) = xx-xCenter;
     dpy(ii) = yy-yCenter;
