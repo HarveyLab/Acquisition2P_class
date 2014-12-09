@@ -43,12 +43,16 @@ if redrawAllRois
         sel.h.ui.roiPatches = gobjects(1, nPatches);
     end
 else
-    % Only new ROI is drawn: extend patch array accordingly:
-    lastExistingPatch = find(ishandle(sel.h.ui.roiPatches), 1, 'last');
-    if verLessThan('matlab', '8.4') %if older than 2014b
-        sel.h.ui.roiPatches(lastExistingPatch:nPatches) = nan;
+    if isfield(sel.h.ui,'roiPatches') 
+        % Only new ROI is drawn: extend patch array accordingly:
+        lastExistingPatch = find(ishandle(sel.h.ui.roiPatches), 1, 'last');
     else
-        sel.h.ui.roiPatches(lastExistingPatch:nPatches) = gobjects;
+        lastExistingPatch = 0;
+    end
+    if verLessThan('matlab', '8.4') %if older than 2014b
+        sel.h.ui.roiPatches(lastExistingPatch+1:nPatches) = nan;
+    else
+        sel.h.ui.roiPatches(lastExistingPatch+1:nPatches) = gobjects;
     end
 end
 
