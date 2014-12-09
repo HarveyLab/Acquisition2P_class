@@ -24,7 +24,7 @@ switch opMode
             % First, find within-movie displacements:
             ref = mean(single(movStruct.slice(iSl).channel(refCh).mov), 3);
             [movTemp, dpx, dpy, basisFunctions] = ...
-                doLucasKanadeSPMD(single(movStruct.slice(iSl).channel(refCh).mov), ref);
+                doLucasKanadeParfeval(single(movStruct.slice(iSl).channel(refCh).mov), ref);
                         
             % Second, find global displacement with respect to reference
             % image:
