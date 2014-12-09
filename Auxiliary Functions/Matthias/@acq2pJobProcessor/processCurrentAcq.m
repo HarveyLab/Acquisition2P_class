@@ -48,7 +48,7 @@ saveUpdatedObject(ajp);
 if isempty(ajp.currentAcq.roiInfo)
     try
         ajp.log('Started pixel covariance calculation.');
-        ajp.currentAcq.calcPxCovMJLM;
+        ajp.currentAcq.calcPxCov;
     catch err
         msg = sprintf('Pixel covariance calculation aborted with error: %s', err.message);
         ajp.log(msg);
