@@ -52,6 +52,33 @@ for mouseInd = 1:nMouseDir
             
             %check if complete txt exists
             if exist(acqStatusPath,'file')
+                
+%                 obj = load(acqPath);
+%                 
+%                 neighborhoodConstant = 1.5;
+%                 if isfield(obj.(acqName).derivedData(1),'SIData')
+%                     if isfield(obj.(acqName).derivedData(1).SIData,'SI4')
+%                         objectiveMag = 25;
+%                         zoomFac = obj.(acqName).derivedData(1).SIData.SI4.scanZoomFactor;
+%                     elseif isfield(obj.(acqName).derivedData(1).SIData,'SI5')
+%                         objectiveMag = 16;
+%                         zoomFac = obj.(acqName).derivedData(1).SIData.SI5.zoomFactor;
+%                     end
+%                     pxCovRad = round(objectiveMag*zoomFac/neighborhoodConstant);
+%                 else
+%                     pxCovRad = [];
+%                 end
+%                 
+%                 if obj.(acqName).roiInfo.slice(1).covFile.nh ~= (pxCovRad*2 + 1)
+%                     delete(acqStatusPath);
+%                     fprintf('Deleted %s\n',acqPath);
+%                     obj.(acqName).roiInfo = [];
+%                     shouldProcFolder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
+%                     eval(sprintf('%s=obj;',acqName));
+%                     save(sprintf('%s%s%s_acq.mat',shouldProcFolder,filesep,acqName),acqName);
+%                 end
+                
+                
                 continue;
             end
             

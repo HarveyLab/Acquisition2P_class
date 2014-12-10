@@ -32,6 +32,7 @@ classdef acq2pJobProcessor < handle
             ajp.dir.jobs = jobDir;
             ajp.dir.inProgress = fullfile(jobDir, 'inProgress');
             ajp.dir.done = fullfile(jobDir, 'done');
+            ajp.dir.error = fullfile(jobDir, 'error');
             
             ajp.logFileName = fullfile(jobDir, 'acqJobLog.txt');
             
