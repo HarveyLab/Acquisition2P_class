@@ -94,12 +94,20 @@ end
 end
 
 function moveBackToUnproc(ajp)
+%get error information
+errInfo = lasterror; %#ok<LERR>
+if isempty(errInfo.identifier)
+    moveDest = fullfile(ajp.dir.jobs, ajp.currentAcqFileName);
+else
+    moveDest = fullfile(ajp.dir.error, ajp.currentAcqFileName);
+end
+
 if exist(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName),'file')
     if ~exist(ajp.dir.error, 'dir');
         mkdir(ajp.dir.error);
     end
     movefile(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName),...
-        fullfile(ajp.dir.error, ajp.currentAcqFileName));
+        moveDest);
     msg = 'Exectuion terminated. Moved file to error folder.';
     ajp.log(msg);    
 end
