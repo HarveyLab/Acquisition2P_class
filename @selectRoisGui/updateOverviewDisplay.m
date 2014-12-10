@@ -90,6 +90,7 @@ for roiId = 1:nPatches
     uimenu(hMenu, 'Label', sprintf('Delete ROI %d', roiId),...
         'Callback', {@sel.cbDeleteRoi, roiId});
     uimenu(hMenu, 'Label', 'Change Label', 'Callback', {@sel.cbChangeRoiLabel, roiId});
+    uimenu(hMenu, 'Label', 'Show Trace Data', 'Callback', {@sel.cbShowROITrace, roiId});
     set(sel.h.ui.roiPatches(roiId), 'UIContextMenu', hMenu)
 end
 
