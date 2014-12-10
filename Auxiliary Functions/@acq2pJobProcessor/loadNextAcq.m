@@ -23,7 +23,7 @@ end
 movefile(nextAcqFile, fullfile(ajp.dir.inProgress, ajp.currentAcqFileName));
 
 % Log information:
-msg = sprintf('Loaded acq2p for processing and moved file to "done" folder: %s.\n', nextAcqFile);
+msg = sprintf('Loaded acq2p for processing and moved file to "inProgress" folder: %s', nextAcqFile);
 ajp.log(msg);
 
 success = true;
