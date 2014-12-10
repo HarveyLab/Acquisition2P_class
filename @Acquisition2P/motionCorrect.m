@@ -94,7 +94,6 @@ for m = 1:nMovies
     
     % Start parallel loading of next movie:
     if m<nMovies && getFreeMem > 3000
-        % Start loading on parallel worker:
         isSilent = true;
         parObjRead = parfeval(@obj.readRaw, 2, movieOrder(m+1), 'single', isSilent);
     end
@@ -169,16 +168,4 @@ function movFileName = defaultNamingFunction(acqName, nSlice, nChannel, movNum)
 
 movFileName = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif',...
     acqName, nSlice, nChannel, movNum);
-end
-
-function free = getFreeMem
-%MONITOR_MEMORY grabs the memory usage from the feature('memstats')
-%function and returns the amount (1) in use, (2) free, and (3) the largest
-%contiguous block.
-
-memtmp = regexp(evalc('feature(''memstats'')'),'(\w*) MB','match'); 
-memtmp = sscanf([memtmp{:}],'%f MB');
-% in_use = memtmp(1);
-free = memtmp(2);
-% largest_block = memtmp(10);
 end

@@ -44,20 +44,23 @@ for m = 1:nMovies
     loopTime = tic;
     
     %Load movie:
-    if m==1
-        % Load first movie conventionally:
-        fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movNums(m),nMovies)
-        mov = obj.readRaw(movNums(m),'single');
-    else
-        % Following movies: Retrieve movie that was loaded in parallel:
-        fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movNums(m),nMovies)
-        mov = fetchOutputs(parObjRead);
+    if exist('parObjRead', 'var')
+        % A parObjRead was created in a previous iteration, so we can
+        % simply retrieve the pre-loaded movie:
+        fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+        [mov, scanImageMetadata] = fetchOutputs(parObjRead);
         delete(parObjRead); % Necessary to delete data on parallel worker.
+    else
+        % No parObjRead exists, so this is either the first movie or
+        % pre-loading is switched off, so we load the movie conventionally.
+        fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+        distTimer = tic;
+        [mov, scanImageMetadata] = obj.readRaw(movieOrder(m),'single');
+        fprintf('Done loading (%1.0f s).\n', toc(distTimer));
     end
     
     % Start parallel loading of next movie:
-    if m<nMovies
-        % Start loading on parallel worker:
+    if m<nMovies && getFreeMem > 3000
         isSilent = true;
         parObjRead = parfeval(@obj.readCor, 1, movNums(m+1), 'single', isSilent);
     end    
