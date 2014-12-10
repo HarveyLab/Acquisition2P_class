@@ -45,9 +45,11 @@ roiImg = max(0.3, roiImg); % Make dark areas brighter so that colors are more ea
 
 % Overlay mask and image
 % (Existing ROIs = green, potential new ROI = yellow, overlap = red.
-roiOverlay(:,:,1) =  (sel.disp.roiMask & ~roiLabels) | ~(~sel.disp.roiMask & roiLabels) |  (sel.disp.roiMask & roiLabels);
-roiOverlay(:,:,2) =  (sel.disp.roiMask & ~roiLabels) |  (~sel.disp.roiMask & roiLabels) | ~(sel.disp.roiMask & roiLabels);
-roiOverlay(:,:,3) = ~(sel.disp.roiMask & ~roiLabels) & ~(~sel.disp.roiMask & roiLabels) & ~(sel.disp.roiMask & roiLabels);
+old = roiLabels;
+new = sel.disp.roiMask;
+roiOverlay(:,:,1) = 1.0*(new & ~old) + 0.0*(~new & old) + 1.0*(new & old) + 1.0*(~new & ~old);
+roiOverlay(:,:,2) = 0.6*(new & ~old) + 1.0*(~new & old) + 0.0*(new & old) + 1.0*(~new & ~old);
+roiOverlay(:,:,3) = 0.0*(new & ~old) + 0.0*(~new & old) + 0.0*(new & old) + 1.0*(~new & ~old);
 roiImg = repmat(roiImg, [1 1 3]);
 roiImg = roiImg .* roiOverlay;
 
