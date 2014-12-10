@@ -71,26 +71,26 @@ movieOrder([1 obj.motionRefMovNum]) = [obj.motionRefMovNum 1];
 %Load movies one at a time in order, apply correction, and save as
 %split files (slice and channel)
 for m = 1:nMovies
-    fprintf('Free memory at start of movie %d: %1.0f MB.\n', m, getFreeMem);
-    
     %Load movie:
-    if m==1
-        % Load first movie conventionally:
+    if exist('parObjRead', 'var')
+        % A parObjRead was created in a previous iteration, so we can
+        % simply retrieve the pre-loaded movie:
+        fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
+        [mov, scanImageMetadata] = fetchOutputs(parObjRead);
+        delete(parObjRead); % Necessary to delete data on parallel worker.
+    else
+        % No parObjRead exists, so this is either the first movie or
+        % pre-loading is switched off, so we load the movie conventionally.
         fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
         distTimer = tic;
         [mov, scanImageMetadata] = obj.readRaw(movieOrder(m),'single');
         fprintf('Done loading (%1.0f s).\n', toc(distTimer));
-    else
-        if exist('parObjRead', 'var')
-            % Following movies: Retrieve movie that was loaded in parallel:
-            fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
-            [mov, scanImageMetadata] = fetchOutputs(parObjRead);
-            delete(parObjRead); % Necessary to delete data on parallel worker.
-        else
-            fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
-            [mov, scanImageMetadata] = obj.readRaw(movieOrder(m),'single');
-        end
     end
+    
+    % Re-start parallel pool. This is necessary to counteract memory leaks:
+    fprintf('Re-starting parallel pool to clear leaked memory (this is a known Matlab bug):\n');
+    delete(gcp);
+    parpool;
     
     % Start parallel loading of next movie:
     if m<nMovies && getFreeMem > 3000
@@ -138,7 +138,7 @@ for m = 1:nMovies
                 movFileName, ...
                 writeDir, ...
                 'int16', ...
-                isSilent);
+                true);
             
             if getFreeMem < 3000
                 disp('Too little free memory...waiting for write.')

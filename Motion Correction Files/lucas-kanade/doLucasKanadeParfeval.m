@@ -41,9 +41,13 @@ nChunks = numel(stackChunked);
 dpxAl = cell(1, nChunks);
 dpyAl = cell(1, nChunks);
 for s = 1:nChunks
-    fprintf('Processing chunk %1.0f of %1.0f...\n', s, nChunks);
+    if nChunks == 1
+        fprintf('Starting motion correction...\n');
+    else
+        fprintf('Processing chunk %1.0f of %1.0f...\n', s, nChunks);
+    end
     [stackChunked{s}, dpxAl{s}, dpyAl{s}, B] = ...
-        doLucasKanadeSPMD_chunk(stackChunked{s}, ref, isGpu);
+        doLucasKanade_chunk(stackChunked{s}, ref, isGpu);
 end
 
 % De-chunk:
@@ -53,17 +57,15 @@ dpxAl = cell2mat(dpxAl);
 dpyAl = cell2mat(dpyAl);
 end
 
-function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD_chunk(stackFull, ref, isGpu)
+function [aligned, dpxAl, dpyAl, B] = doLucasKanade_chunk(stackFull, ref, isGpu)
 
-nSlice = 3;
+nSlice = 30;
 
 % Parameters:
-nBasis = 4;
+nBasis = 8;
 
 % Precalculate constants:
-[h, w, z] = size(stackFull);
-% nIters = nan(z, 1, 'like', stackFull);
-minIters = 5;
+[h, w, ~] = size(stackFull);
 
 knots = linspace(1, h, nBasis+1);
 knots = [knots(1)-(knots(2)-knots(1)),knots,knots(end)+(knots(end)-knots(end-1))];
@@ -85,12 +87,8 @@ theI = (eye(nBasis+1, 'like', stackFull)*lambda);
 for sl = 1:nSlice
     stackSliced = stackFull(:, :, sl:nSlice:end);
     future(sl) = parfeval(@parfevalFun, 4, stackSliced, ref, isGpu, ...
-        nBasis, B, allBs, theI, xi, yi, Tnorm, minIters); %#ok<AGROW>
+        nBasis, B, allBs, theI, xi, yi, Tnorm); %#ok<AGROW>
 end
-
-disp('parfeval set up, now computing...');
-
-% Start loading job:
 
 % Retrieve aligned data:
 if isGpu
@@ -101,46 +99,34 @@ aligned = zeros(size(stackFull), 'like', stackFull);
 dpxAl = zeros(nBasis+1, size(stackFull, 3), 'like', stackFull);
 dpyAl = zeros(nBasis+1, size(stackFull, 3), 'like', stackFull);
 
+fprintf('Progress: % 3.0f%%', 0);
 for ii = 1:nSlice
     [sl, stackSliced, dpx, dpy, nIters] = fetchNext(future);
     aligned(:, :, sl:nSlice:end) = stackSliced;
     dpxAl(:, sl:nSlice:end) = dpx;
     dpyAl(:, sl:nSlice:end) = dpy;
-    disp('retrieved slice');
+    fprintf('\b\b\b\b% 3.0f%%', 100*ii/nSlice);
 end
-
-
-delete(future)
-disp('all slices retrieved');
-
-fprintf(' Done.\n');
+fprintf('\b\b\b\b'); % Remove progress indicator.
+fprintf('Done.\n');
 end
 
 function [stackSliced, dpx, dpy, nIters] = parfevalFun(stackSliced, ref, isGpu, ...
-    nBasis, B, allBs, theI, xi, yi, Tnorm, minIters)
-% First, we use a parfor loop to quickly calculate the initial block
-% shifts (this is slow on the GPU):
-%     if labindex==1
-%         fprintf('Calculating coarse shifts.\n')
-%         dispInterval = ceil(z/10);
-%     end
+    nBasis, B, allBs, theI, xi, yi, Tnorm)
+
 z = size(stackSliced, 3);
-
-
-
 dpx = zeros(nBasis+1, z, 'like', stackSliced);
 dpy = zeros(nBasis+1, z, 'like', stackSliced);
+
 for f = 1:z
     [dpx_, dpy_] = doBlockAlignment(stackSliced(:,:,f), ref, nBasis);
     dpx(:, f) = [dpx_(1); (dpx_(1:end-1)+dpx_(2:end))/2; dpx_(end)];
     dpy(:, f) = [dpy_(1); (dpy_(1:end-1)+dpy_(2:end))/2; dpy_(end)];
 end
 
-nIters = zeros(z, 1);
+nIters = nan(z, 1);
+minIters = 1;
 
-%     if labindex==1
-%         fprintf('Calculating sub-pixel shifts:\n');
-%     end
 if isGpu
     % Send data to GPU:
     dpx_g = gpuArray(dpx);
@@ -157,6 +143,7 @@ if isGpu
         [stack_g(:,:,f), dpx_g(:,f), dpy_g(:,f), nIters(f)] = doLucasKanade_singleFrame(...
             ref_g, stack_g(:,:,f), dpx_g(:, f), dpy_g(:, f), minIters, ...
             B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g);
+        minIters = nanmedian(nIters);
     end
     
     % Get data from GPU:
@@ -167,7 +154,8 @@ else
     for f = 1:z
         [stackSliced(:,:,f), dpx(:,f), dpy(:,f), nIters(f)] = doLucasKanade_singleFrame(...
             ref, stackSliced(:,:,f), dpx(:, f), dpy(:, f), minIters, ...
-            B, allBs, xi, yi, theI, Tnorm);
+            B, allBs, xi, yi, theI, Tnorm, nBasis);
+        minIters = nanmedian(nIters);
     end
 end
 end
@@ -177,7 +165,7 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
     B, allBs, xi, yi, theI, Tnorm, nBasis)
 
 warning('off','fastBSpline:nomex');
-maxIters = 50;
+maxIters = 25;
 deltacorr = 0.0005;
 [~, w] = size(T);
 
