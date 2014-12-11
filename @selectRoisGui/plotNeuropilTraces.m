@@ -1,12 +1,12 @@
-function plotNeuropilTraces(sel, bodyInd, neuropilInd, currNeighborhood)
+function plotNeuropilTraces(sel, bodyInd, neuropilInd, isIndInNhCoords)
 
-if ~exist('currNeighborhood','var') || isempty(currNeighborhood)
-    currNeighborhood = true;
+if ~exist('isIndInNhCoords','var') || isempty(isIndInNhCoords)
+    isIndInNhCoords = true;
 end
 
 %Load cell body and neuropil fluorescence
 mov = sel.movMap.Data.mov;
-if currNeighborhood %if currently in neighborhood coord
+if isIndInNhCoords %if currently in neighborhood coord
     movIndBody = sel.nh2movInd(bodyInd);
     movIndNeuropil = sel.nh2movInd(neuropilInd);
 else
