@@ -19,8 +19,8 @@ acq.Movies = improc.findFiles(acqId, 0, 0);
 [~, host] = system('hostname');
 host = strtrim(host);
 switch host
-    case 'Matthias-X230'
-        acq.defaultDir = improc.dir.getDir(acqId, 1, 1);
+%     case 'Matthias-X230'
+%         acq.defaultDir = improc.dir.getDir(acqId, 1, 1);
     otherwise
         acq.defaultDir = improc.dir.getDir(acqId, 0, 1);
 end
