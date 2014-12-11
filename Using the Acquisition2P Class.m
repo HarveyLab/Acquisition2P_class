@@ -9,8 +9,9 @@
 
 % In addition to these functions, you need to add the 'Acquisition2P_class'
 % folder to your path (NOT the '@Acquisition2P' folder), as well as
-% the Motion Correction Files directory and all its subdirectories.
-% The 'Auxiliary Functions' directory is optional
+% the "common" directory (with all subdirectories). You can add personal functions 
+% to you own folder in the "personal" directory.
+
 %% Overview
 % In a typical imaging experiment, we image activity at one field-of-view for some 
 % duration. This FOV may be subdivided into multiple axial slices, each of which 
