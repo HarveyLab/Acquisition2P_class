@@ -129,7 +129,7 @@ switch evt.Key
         %add arrow to current cluster
         delete(findall(sel.h.fig.trace, 'type', 'annotation')); % Delete old annotations.
         [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
-            size(dF,2), mean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
+            size(dF,2), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
         annotation(sel.h.fig.trace, 'arrow',...
             [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
         
