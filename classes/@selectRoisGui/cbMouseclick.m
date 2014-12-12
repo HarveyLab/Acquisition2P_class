@@ -58,9 +58,15 @@ nEigs = 13;
 sel.disp.cutVecs = eVec(:, eigOrder(2:nEigs));
 
 %Update cut display axes
+nh = sel.roiInfo.covFile.nh;
+existingRoiMask = double(~reshape(sel.disp.roiLabels(pxNeighbors), nh, nh));
+existingRoiMask(existingRoiMask==0) = 0.9;
 for ii = 1:numel(sel.h.img.eig);
-    eVecImg = reshape(sel.disp.cutVecs(:,ii), sel.roiInfo.covFile.nh, sel.roiInfo.covFile.nh);
+    eVecImg = reshape(sel.disp.cutVecs(:,ii), nh, nh);
     eVecImg = mat2gray(eVecImg);
+    eVecImg = repmat(eVecImg, 1, 1, 3);
+    eVecImg(:,:,1) = eVecImg(:,:,1) .* existingRoiMask;
+    eVecImg(:,:,3) = eVecImg(:,:,3) .* existingRoiMask;
     set(sel.h.img.eig(ii), 'cdata', eVecImg);
     title(sel.h.ax.eig(ii), sprintf('Cut %d', ii))
 end
