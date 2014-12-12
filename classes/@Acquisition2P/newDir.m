@@ -58,7 +58,7 @@ for nSlice = 1:nSlices
             covName = [covName covExt];
             newCovName = fullfile(destDir,covName);
             copyfile(fullfile(covPath,covName),newCovName);
-            obj.roiInfo.slice(nSlice).covFile = newCovName;
+            obj.roiInfo.slice(nSlice).covFile.fileName = newCovName;
         end
             
     end
