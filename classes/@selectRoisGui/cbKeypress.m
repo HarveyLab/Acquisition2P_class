@@ -101,6 +101,7 @@ switch evt.Key
         for i = 1:sel.disp.clusterNum+1
             nhInd = find(sel.disp.currentClustering==i);
             movInd = sel.nh2movInd(nhInd); %#ok<FNDSB>
+            movInd = movInd(~isnan(movInd)); % If click was at the edge, missing values are nan.
             F(i,:) = mean(mov(:, sel.acq.mat2binInd(movInd)), 2)';
             F(i, sel.disp.excludeFrames) = nan;
         end
@@ -152,8 +153,12 @@ switch evt.Key
             
             % For upcoming neuropil selection, switch to largest cut,
             % because that's probably the neuropil:
-            [~, clustSizeInd] = sort(histcounts(sel.disp.currentClustering(:)), 'descend');
-            sel.disp.currentClustInd = clustSizeInd(1);
+            clustStats = regionprops(sel.disp.currentClustering, 'BoundingBox');
+            boundingBoxCoords = reshape([clustStats.BoundingBox], 2, 2, []);
+            boundingBoxSize = abs(diff(boundingBoxCoords, [], 2));
+            boundingBoxArea = squeeze(prod(boundingBoxSize, 1));
+            boundingBoxArea(sel.disp.currentClustering(sel.disp.indBody(1))) = 0; % Exclude the cluster that was just selected as ROI body.
+            [~, sel.disp.currentClustInd] = max(boundingBoxArea);
             
             %Update ROI display
             sel.displayRoi;
@@ -166,7 +171,6 @@ switch evt.Key
             sel.disp.indNeuropil = find(sel.disp.roiMask);
             
             sel.plotNeuropilTraces(sel.disp.indBody, sel.disp.indNeuropil);
-            
         end
         
     case 'tab'
