@@ -54,7 +54,7 @@ for nSlice = 1:nSlices
         end
         if doCov && ~isempty(obj.roiInfo) && isfield(obj.roiInfo.slice(nSlice),'covFile')
             fprintf('\n Copying Pixel Covariance File\n'),
-            [covPath,covName,covExt] = fileparts(obj.roiInfo.slice(nSlice).covFile);
+            [covPath,covName,covExt] = fileparts(obj.roiInfo.slice(nSlice).covFile.fileName);
             covName = [covName covExt];
             newCovName = fullfile(destDir,covName);
             copyfile(fullfile(covPath,covName),newCovName);
