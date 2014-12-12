@@ -33,7 +33,7 @@ margin = round((sel.roiInfo.covFile.nh-1)/2); % NH is constrained to be of the f
 relInd = -margin:margin;
 roiCenter = round(sel.disp.currentPos);
 [roiRegionX, roiRegionY] = meshgrid(roiCenter(2)+relInd, roiCenter(1)+relInd);
-roiImg = interp2(sel.disp.img, roiRegionX, roiRegionY, 'nearest', nan);
+roiImg = interp2(sel.disp.img(:,:,min(end, 2)), roiRegionX, roiRegionY, 'nearest', nan); % If img is RGB, pick green channel.
 
 % Grab same region from roiLabels to display previously selected rois:
 roiLabels = interp2(sel.disp.roiLabels, roiRegionX, roiRegionY, 'nearest', nan);
