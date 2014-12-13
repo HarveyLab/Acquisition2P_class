@@ -11,7 +11,7 @@ end
 
 %figure out pixel neighborhood
 neighborhoodConstant = 1.5;
-if isfield(ajp.currentAcq,'derivedData') ...
+if isprop(ajp.currentAcq,'derivedData') ...
         && isfield(ajp.currentAcq.derivedData(1),'SIData')
     if isfield(ajp.currentAcq.derivedData(1).SIData,'SI4')
         objectiveMag = 25;
