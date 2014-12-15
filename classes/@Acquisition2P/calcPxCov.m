@@ -137,7 +137,7 @@ obj.roiInfo.slice(sliceNum).covFile.diags = diags;
 obj.roiInfo.slice(sliceNum).covFile.channelNum = channelNum;
 obj.roiInfo.slice(sliceNum).covFile.temporalBin = temporalBin;
 obj.roiInfo.slice(sliceNum).covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);
-
+end
 
 function [mov, siStruct] = ioFun(obj, movieOrder, m, movStruct, writeDir, namingFunction)
 % [mov, siStruct] = ioFun(obj, movieOrder, m, movStruct, writeDir, namingFunction)
