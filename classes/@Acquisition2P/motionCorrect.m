@@ -161,18 +161,21 @@ movFileName = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif',...
     acqName, nSlice, nChannel, movNum);
 end
      
-function saveMovStruct(movStruct, writeDir, namingFunction, acqName, movNum)
+function saveMovStruct(obj, movStruct, writeDir, namingFunction, acqName, movNum)
 nSlices = numel(movStruct.slice);
 nChannels = numel(movStruct.slice(1).channel);
 for nSlice = 1:nSlices
     for nChannel = 1:nChannels
         movFileName = feval(namingFunction, acqName, nSlice, nChannel, movNum);
-
+        
         tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, ...
             movFileName, ...
             writeDir, ...
             'int16', ...
             true);
+        
+        obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = ...
+            fullfile(writeDir,movFileName);
     end
 end
 end
@@ -199,5 +202,5 @@ if m==1
 end
 
 % Save movStruct from last iteration:
-saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m-1));
+saveMovStruct(obj, movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m-1));
 end
