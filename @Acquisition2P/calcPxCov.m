@@ -44,26 +44,32 @@ for m = 1:nMovies
     loopTime = tic;
     
     %Load movie:
-    if exist('parObjRead', 'var')
-        % A parObjRead was created in a previous iteration, so we can
-        % simply retrieve the pre-loaded movie:
-        fprintf('\nRetrieving pre-loaded movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
-        [mov, scanImageMetadata] = fetchOutputs(parObjRead);
-        delete(parObjRead); % Necessary to delete data on parallel worker.
+    if exist('parallelIo', 'var')
+        % A parallelIo object was created in a previous iteration, so we
+        % can simply retrieve the pre-loaded movie:
+        fprintf('\nRetrieving pre-loaded movie %1.0f of %1.0f...\n',m,nMovies)
+        [~, mov] = fetchNext(parallelIo);
+        delete(parallelIo); % Delete data on parallel worker.
     else
-        % No parObjRead exists, so this is either the first movie or
+        % No parallelIo exists, so this is either the first movie or
         % pre-loading is switched off, so we load the movie conventionally.
-        fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movieOrder(m),nMovies)
-        distTimer = tic;
-        [mov, scanImageMetadata] = obj.readRaw(movieOrder(m),'single');
-        fprintf('Done loading (%1.0f s).\n', toc(distTimer));
+        fprintf('\nLoading movie %1.0f of %1.0f\n',m,nMovies)
+        ticLoad = tic;
+        mov = obj.readRaw(m,'single');
+        fprintf('Done loading (%1.0f s).\n', toc(ticLoad));
     end
     
-    % Start parallel loading of next movie:
-    if m<nMovies && getFreeMem > 3000
-        isSilent = true;
-        parObjRead = parfeval(@obj.readCor, 1, movNums(m+1), 'single', isSilent);
-    end    
+    % Re-start parallel pool. This is necessary to counteract a memory leak
+    % in the parallel workers (this is an issue known to MathWorks): (This
+    % will not pre-maturely abort parallelIo because the fetchNext blocks
+    % Matlab until the parfeval finishes.)
+    fprintf('Re-starting parallel pool to clear leaked memory:\n');
+    delete(gcp);
+    parpool;
+    
+    % Start parallel I/O job: This loads the mov for the next iteration:
+    parallelIo = parfeval(@ioFun, 2, ...
+        obj, [], m);
     
     % Bin temporally using reshape and sum, and center data
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
@@ -131,3 +137,33 @@ obj.roiInfo.slice(sliceNum).covFile.diags = diags;
 obj.roiInfo.slice(sliceNum).covFile.channelNum = channelNum;
 obj.roiInfo.slice(sliceNum).covFile.temporalBin = temporalBin;
 obj.roiInfo.slice(sliceNum).covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);
+
+
+function [mov, siStruct] = ioFun(obj, movieOrder, m, movStruct, writeDir, namingFunction)
+% [mov, siStruct] = ioFun(obj, movieOrder, m, movStruct, writeDir, namingFunction)
+% This function handles thes disk input/output for one iteration of the
+% motion correction loop. By executing this function with parfeval, all I/O
+% can be done in the background, while
+
+if isempty(movieOrder)
+    movieOrder = 1:m;
+end
+
+% Load movie for next iteration:
+if m<numel(movieOrder)
+    [mov, siStruct] = obj.readRaw(movieOrder(m+1), 'single', true);
+else
+    % There's nothing to be loaded if we're at the last movie in the
+    % movieOrder:
+    mov = [];
+    siStruct = [];
+end
+
+% Stop here if there is nothing to be saved:
+if m==1
+    return
+end
+
+% Save movStruct from last iteration:
+saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m-1));
+end

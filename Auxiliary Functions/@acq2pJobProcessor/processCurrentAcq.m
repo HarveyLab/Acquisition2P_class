@@ -36,6 +36,7 @@ if isempty(ajp.currentAcq.shifts)
         msg = sprintf('Motion correction aborted with error: %s', err.message);
         ajp.log(msg);
         printStack(ajp, err.stack);
+        rethrow(err)
         return % If motion correction fails, then no further processing can happen.
     end
 else
