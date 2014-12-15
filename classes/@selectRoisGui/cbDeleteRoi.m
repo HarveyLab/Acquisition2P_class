@@ -12,4 +12,7 @@ if verLessThan('matlab', '8.4') %if older than 2014b
 else
     sel.h.ui.roiPatches(roiId) = gobjects(1);
 end
+
+% Update roiLabels;
+sel.disp.roiLabels(sel.disp.roiLabels==roiId) = 0;
 end

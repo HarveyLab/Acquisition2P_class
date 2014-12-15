@@ -104,7 +104,7 @@ for m = 1:nMovies
         pixCov = zeros(nPix, nDiags, 'single');
     end
     
-    for px = 1:nPix-diags(end)
+    parfor px = 1:nPix-diags(end)
         pixCov(px,:) = pixCov(px, :) + (mov(px, :)*mov(px+diags, :)')/z;
     end
     

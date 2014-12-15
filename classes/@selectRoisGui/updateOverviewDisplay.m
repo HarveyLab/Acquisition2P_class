@@ -13,15 +13,21 @@ end
 % end
 
 % Set transparency
-beenViewedTransp = 0.15;
 roiTransp = 0.4;
 
 % Turn hold on
 hold(sel.h.ax.overview,'on');
 
 % Display which areas have been viewed already:
-set(sel.h.img.hasBeenViewed, 'AlphaData', beenViewedTransp*sel.roiInfo.hasBeenViewed);
-
+if size(sel.disp.img, 3) == 3
+    % Overview image is colored: Only show hasbeenviewed-outlines:
+    beenViewedTransp = 0.35;
+    set(sel.h.img.hasBeenViewed, 'AlphaData', bwperim(beenViewedTransp*sel.roiInfo.hasBeenViewed));
+else
+    beenViewedTransp = 0.15;
+    set(sel.h.img.hasBeenViewed, 'AlphaData', beenViewedTransp*sel.roiInfo.hasBeenViewed);
+end
+    
 % The patch vector has one element for each ROI ID up to the maximum ID,
 % even if not all IDs are used. This is for easy indexing.
 nPatches = max([sel.roiInfo.roi.id]);
@@ -90,6 +96,7 @@ for roiId = 1:nPatches
     uimenu(hMenu, 'Label', sprintf('Delete ROI %d', roiId),...
         'Callback', {@sel.cbDeleteRoi, roiId});
     uimenu(hMenu, 'Label', 'Change Label', 'Callback', {@sel.cbChangeRoiLabel, roiId});
+    uimenu(hMenu, 'Label', 'Show Trace Data', 'Callback', {@sel.cbShowROITrace, roiId});
     set(sel.h.ui.roiPatches(roiId), 'UIContextMenu', hMenu)
 end
 

@@ -24,7 +24,7 @@ if isfield(sel.roiInfo, 'roiList')
 end
 
 % Create roiLabels:
-sel.disp.roiLabels = zeros(size(img));
+sel.disp.roiLabels = zeros(size(img, 1), size(img, 2));
 for roi = sel.roiInfo.roi(:)'
     sel.disp.roiLabels(roi.indBody) = roi.id;
 end
@@ -56,13 +56,9 @@ sel.disp.roiColors =  [0 0 1;...
     0.620689655172414 0.310344827586207 0.275862068965517];
 
 % Create overview image:
-img = imadjust(img);
-useActImg = false;
-if useActImg
-    img = repmat(img, 1, 1, 3);
-    actImg = imadjust(adapthisteq(mat2gray(sel.roiInfo.covFile.activityImg), 'cliplim', 0.03, 'numtiles', [50 50]));
-    img(:,:,2) = actImg;
-    img(:,:,3) = 0;
+if size(img, 3) == 1
+    % Img is a grayscale image:
+    img = imadjust(img);
 end
 sel.disp.img = img;
 
@@ -158,8 +154,15 @@ colormap(sel.h.ax.overview, 'gray'); %set colormap to gray
 title(sel.h.ax.overview, 'Overview')
 
 % "Has been viewed" overlay:
+if size(sel.disp.img, 3) == 3
+    % Overview image is colored: Show outlines of "has been viewed" in
+    % gray:
+    hasBeenViewedColor = repmat(permute([0; 0; 0], [2 3 1]), sel.disp.movSize(1), sel.disp.movSize(2));
+else
+    % Grayscale image: show "has been viewed" area in red:
+    hasBeenViewedColor = repmat(permute([1; 0.3; 0.6], [2 3 1]), sel.disp.movSize(1), sel.disp.movSize(2));
+end
 hold(sel.h.ax.overview, 'on')
-hasBeenViewedColor = repmat(permute([1; 0.3; 0.6], [2 3 1]), sel.disp.movSize(1), sel.disp.movSize(2));
 sel.h.img.hasBeenViewed = imshow(hasBeenViewedColor, 'Parent', sel.h.ax.overview);
 hold(sel.h.ax.overview, 'off')
 
