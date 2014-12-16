@@ -59,18 +59,10 @@ for m = 1:nMovies
         fprintf('Done loading (%1.0f s).\n', toc(ticLoad));
     end
     
-    % Re-start parallel pool. This is necessary to counteract a memory leak
-    % in the parallel workers (this is an issue known to MathWorks): (This
-    % will not pre-maturely abort parallelIo because the fetchNext blocks
-    % Matlab until the parfeval finishes.)
-%     fprintf('Re-starting parallel pool to clear leaked memory:\n');
-%     delete(gcp);
-%     parpool;
-    
     % Start parallel I/O job: This loads the mov for the next iteration:
-    if m < nMovies
-        parallelIo = parfeval(@obj.readCor, 1, m+1, 'single', [], [], true);
-    end
+%     if m < nMovies
+%         parallelIo = parfeval(@obj.readCor, 1, m+1, 'single', [], [], false);
+%     end
     
     % Bin temporally using reshape and sum, and center data
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
@@ -138,22 +130,4 @@ obj.roiInfo.slice(sliceNum).covFile.diags = diags;
 obj.roiInfo.slice(sliceNum).covFile.channelNum = channelNum;
 obj.roiInfo.slice(sliceNum).covFile.temporalBin = temporalBin;
 obj.roiInfo.slice(sliceNum).covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);
-end
-
-function mov = ioFun(obj, movieOrder, m)
-% mov = ioFun(obj, movieOrder, m) This function handles thes disk
-% input/output for one iteration of the main loop.
-
-if isempty(movieOrder)
-    movieOrder = 1:m;
-end
-
-% Load movie for next iteration:
-if m<numel(movieOrder)
-    mov = obj.readCor(movieOrder(m+1), 'single', true);
-else
-    % There's nothing to be loaded if we're at the last movie in the
-    % movieOrder:
-    mov = [];
-end
 end
