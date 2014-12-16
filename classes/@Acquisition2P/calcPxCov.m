@@ -40,14 +40,14 @@ end
 %% Loop over movies to get covariance matrix
 nMovies = numel(movNums);
 for m = 1:nMovies
-    fprintf('Processing movie %03.0f of %03.0f.\n',find(movNums==m),length(movNums));
+    fprintf('\nProcessing movie %03.0f of %03.0f.\n',find(movNums==m),length(movNums));
     loopTime = tic;
     
     %Load movie:
     if exist('parallelIo', 'var')
         % A parallelIo object was created in a previous iteration, so we
         % can simply retrieve the pre-loaded movie:
-        fprintf('\nRetrieving pre-loaded movie %1.0f of %1.0f...\n',m,nMovies)
+        fprintf('Retrieving pre-loaded movie %1.0f of %1.0f...\n',m,nMovies)
         [~, mov] = fetchNext(parallelIo);
         delete(parallelIo); % Delete data on parallel worker.
     else
