@@ -55,7 +55,7 @@ for m = 1:nMovies
         % pre-loading is switched off, so we load the movie conventionally.
         fprintf('\nLoading movie %1.0f of %1.0f\n',m,nMovies)
         ticLoad = tic;
-        mov = obj.readRaw(m,'single');
+        mov = obj.readCor(m, 'single');
         fprintf('Done loading (%1.0f s).\n', toc(ticLoad));
     end
     
@@ -63,13 +63,14 @@ for m = 1:nMovies
     % in the parallel workers (this is an issue known to MathWorks): (This
     % will not pre-maturely abort parallelIo because the fetchNext blocks
     % Matlab until the parfeval finishes.)
-    fprintf('Re-starting parallel pool to clear leaked memory:\n');
-    delete(gcp);
-    parpool;
+%     fprintf('Re-starting parallel pool to clear leaked memory:\n');
+%     delete(gcp);
+%     parpool;
     
     % Start parallel I/O job: This loads the mov for the next iteration:
-    parallelIo = parfeval(@ioFun, 2, ...
-        obj, [], m);
+    if m < nMovies
+        parallelIo = parfeval(@obj.readCor, 1, m+1, 'single', [], [], true);
+    end
     
     % Bin temporally using reshape and sum, and center data
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
@@ -139,11 +140,9 @@ obj.roiInfo.slice(sliceNum).covFile.temporalBin = temporalBin;
 obj.roiInfo.slice(sliceNum).covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);
 end
 
-function [mov, siStruct] = ioFun(obj, movieOrder, m, movStruct, writeDir, namingFunction)
-% [mov, siStruct] = ioFun(obj, movieOrder, m, movStruct, writeDir, namingFunction)
-% This function handles thes disk input/output for one iteration of the
-% motion correction loop. By executing this function with parfeval, all I/O
-% can be done in the background, while
+function mov = ioFun(obj, movieOrder, m)
+% mov = ioFun(obj, movieOrder, m) This function handles thes disk
+% input/output for one iteration of the main loop.
 
 if isempty(movieOrder)
     movieOrder = 1:m;
@@ -151,19 +150,10 @@ end
 
 % Load movie for next iteration:
 if m<numel(movieOrder)
-    [mov, siStruct] = obj.readRaw(movieOrder(m+1), 'single', true);
+    mov = obj.readCor(movieOrder(m+1), 'single', true);
 else
     % There's nothing to be loaded if we're at the last movie in the
     % movieOrder:
     mov = [];
-    siStruct = [];
 end
-
-% Stop here if there is nothing to be saved:
-if m==1
-    return
-end
-
-% Save movStruct from last iteration:
-saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m-1));
 end

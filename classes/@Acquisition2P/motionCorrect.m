@@ -91,9 +91,9 @@ for m = 1:nMovies
     % in the parallel workers (this is an issue known to MathWorks): (This
     % will not pre-maturely abort parallelIo because the fetchNext blocks
     % Matlab until the parfeval finishes.)
-    fprintf('Re-starting parallel pool to clear leaked memory:\n');
-    delete(gcp);
-    parpool;
+%     fprintf('Re-starting parallel pool to clear leaked memory:\n');
+%     delete(gcp);
+%     parpool;
     
     % Start parallel I/O job: This saves the movStruct from the previous
     % iteration and loads the mov for the next iteration:
@@ -136,7 +136,7 @@ for m = 1:nMovies
         % in the background, using parfeval, so that calculations can
         % proceed during slow I/O (the code for this is above, in the
         % beginning of the for-loop).
-        saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m));
+        saveMovStruct(obj, movStruct, writeDir, namingFunction, acqName, movNum)
     end
     
     % Store movie dimensions (this is the same for all channels and
