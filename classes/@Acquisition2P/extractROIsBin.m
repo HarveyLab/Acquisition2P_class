@@ -37,7 +37,7 @@ isRoiSelected = ismember([obj.roiInfo.slice(sliceNum).roi.group], roiGroups);
 roi = obj.roiInfo.slice(sliceNum).roi(isRoiSelected);
 
 %Memory Map Movie
-movSizes = cat(1, obj.derivedData.size);
+movSizes = obj.correctedMovies.slice(sliceNum).channel(channelNum).size;
 h = movSizes(1, 1);
 w = movSizes(1, 2);
 nFramesTotal = sum(movSizes(:, 3));

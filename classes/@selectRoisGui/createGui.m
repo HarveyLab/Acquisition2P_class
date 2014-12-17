@@ -67,10 +67,10 @@ sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
 
 % Create memory mapped binary file of movie:
-movSizes = [sel.acq.derivedData.size];
-movLengths = movSizes(3:3:end);
+movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;
+movLengths = movSizes(:, 3);
 sel.movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
-    'Format', {'int16', [sum(movLengths), movSizes(1)*movSizes(2)], 'mov'});
+    'Format', {'int16', [sum(movLengths), movSizes(1,1)*movSizes(1,2)], 'mov'});
 
 %% Create GUI layout:
 sel.h.fig.main = figure('Name','ROI Selection');
