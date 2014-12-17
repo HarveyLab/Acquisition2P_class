@@ -13,6 +13,7 @@ classdef Acquisition2P < handle
         dateCreated         %Date the acquisition was created
         defaultDir          %Default directory for saving motion corrected data and metadata
         Movies = {};        %Cell array containing full filepaths to raw movie data
+        metaDataSI          %Metadata structure derived from scanimage tiff file
         binFactor           %Spatial bin of pixels, defaults to 1
         motionRefChannel    %Channel to use for identifying motion correction, defaults to 1 in constructer
         motionRefMovNum     %Movie to which other movies will be aligned during motion correction

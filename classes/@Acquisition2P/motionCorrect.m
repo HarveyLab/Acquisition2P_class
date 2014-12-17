@@ -1,6 +1,5 @@
 function motionCorrect(obj,writeDir,motionCorrectionFunction,namingFunction)
-%Generic wrapper function for managing motion correction of an
-%acquisition object
+%Wrapper function managing motion correction of an acquisition object
 %
 %motionCorrect(obj,writeDir,motionCorrectionFunction,namingFunction)
 %
@@ -97,8 +96,13 @@ for movNum = movieOrder
     movStruct = obj.motionCorrectionFunction(obj, movStruct, scanImageMetadata, movNum, 'apply');
     for nSlice = 1:nSlices
         for nChannel = 1:nChannels
+            % Create movie fileName and save in acq object
             movFileName = feval(namingFunction,obj.acqName, nSlice, nChannel, movNum);
             obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFileName);
+            % Determine 3D-size of movie and store w/ fileNames
+            obj.correctedMovies.slice(nSlice).channel(nChannel).size(movNum,:) = ...
+                size(movStruct.slice(nSlice).channel(nChannel).mov);            
+            % Write corrected movie to disk
             fprintf('Writing Movie #%03.0f of #%03.0f\n',movNum,nMovies),
             try
                 tiffWrite(movStruct.slice(nSlice).channel(nChannel).mov, movFileName, writeDir, 'int16');
@@ -110,11 +114,10 @@ for movNum = movieOrder
             end
         end
     end
-    
-    % Store movie dimensions (this is the same for all channels and
-    % slices):
-    obj.derivedData(movNum).size = size(movStruct.slice(nSlice).channel(nChannel).mov);
 end
+
+% Store SI metadata in acq object
+obj.metaDataSI = scanImageMetadata;
 
 %Assign acquisition to a variable with its own name, and write to same
 %directory
