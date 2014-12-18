@@ -141,12 +141,14 @@ drawnow,
 setFigDockGroup(sel.h.fig.trace,'tracePlotsGUI')
 set(sel.h.fig.trace,'WindowStyle','docked');
 
+
 % Set callbacks:
 set(sel.h.fig.main, 'WindowButtonDownFcn', @sel.cbMouseclick, ...
     'WindowScrollWheelFcn', @sel.cbScrollwheel, ...
     'WindowKeyPressFcn', @sel.cbKeypress, ...
     'CloseRequestFcn', @sel.cbCloseRequestMain);
 set(sel.h.fig.trace(4), 'WindowScrollWheelFcn', @sel.subCoefScrollWheel),
+set(sel.h.fig.trace(:), 'WindowKeyPressFcn', @sel.cbKeypressTraceWin);
 for nWin = 1:4
     set(sel.h.fig.trace(nWin), 'CloseRequestFcn', @sel.cbCloseRequestMain);
 end
