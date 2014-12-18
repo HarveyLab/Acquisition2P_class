@@ -122,23 +122,21 @@ switch evt.Key
         set(sel.h.ax.traceClusters, 'ColorOrder', clut, 'ColorOrderIndex', 1);
         
         plot(dF', 'linewidth', 1,'Parent',sel.h.ax.traceClusters);
-        
-        
-        
+
         title(sel.h.ax.roi, 'This trace loaded');
         
         %add arrow to current cluster
-        delete(findall(sel.h.fig.trace, 'type', 'annotation')); % Delete old annotations.
+        delete(findall(sel.h.fig.trace(1), 'type', 'annotation')); % Delete old annotations.
         [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
             size(dF,2), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
-        annotation(sel.h.fig.trace, 'arrow',...
+        annotation(sel.h.fig.trace(1), 'arrow',...
             [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
         sel.disp.indNeuropil = [];
         set(sel.h.ax.traceClusters, 'Color', [0.2 0.2 0.2]); %set color to gray
         
-        figure(sel.h.fig.trace) % Bring traces figure to front if it's hidden.
+        figure(sel.h.fig.trace(1)) % Bring traces figure to front if it's hidden.
         drawnow
         figure(sel.h.fig.main) % Focus back on main figure.
         
