@@ -11,6 +11,8 @@ switch evt.Key
         addOverlayTrace(sel),
     case 'c'
         cla(sel.h.ax.traceOverlay);
+    case 'n'
+        figure(sel.h.fig.trace(4));
     case 'm'
         doManualROI(sel),
     case 'backspace'
