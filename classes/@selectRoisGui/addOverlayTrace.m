@@ -3,6 +3,8 @@ function addOverlayTrace(sel)
 thisROIind = sel.nh2movInd(find(sel.disp.roiMask));
 mov = sel.movMap.Data.mov;
 thisROItrace = mean(mov(:, sel.acq.mat2binInd(thisROIind)), 2)';
+smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
+thisROItrace = conv(thisROItrace,smoothWin, 'valid');
 plot(sel.h.ax.traceOverlay, thisROItrace),
 title(sel.h.ax.traceOverlay, 'Raw Trace Overlay'),
 
