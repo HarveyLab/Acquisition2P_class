@@ -22,6 +22,7 @@ manualMask = manualMask(yInd,xInd);
 newClusterNum = max(sel.disp.currentClustering(:))+1;
 sel.disp.currentClustering(manualMask) = newClusterNum;
 sel.disp.currentClustInd = newClusterNum;
+sel.disp.clusterNum = sel.disp.clusterNum + 1;
 
 % %Update cluster display
 % displayWidth = ceil(sel.covFile.radiusPxCov+2);
