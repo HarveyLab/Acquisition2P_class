@@ -122,6 +122,7 @@ sel.h.fig.trace(2) = figure('Name','Raw Trace Overlays');
 sel.h.ax.traceDetrend = axes;
 sel.h.fig.trace(3) = figure('Name','Neuropil-sub Traces');
 sel.h.ax.traceSub = axes;
+sel.h.ui.plotRaw = uicontrol('Style', 'checkbox','String','Raw Plot');
 sel.h.fig.trace(4) = figure('Name','Neuropil-sub Scatter');
 sel.h.ax.subSlope = axes;
 drawnow,
