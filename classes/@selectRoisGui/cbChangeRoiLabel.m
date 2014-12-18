@@ -1,16 +1,4 @@
-function cbChangeRoiLabel(sel, ~, ~, roiId)
-
-%get newLabel
-options.Resize = 'on';
-options.WindowStyle = 'normal';
-newLabel = inputdlg('Provide new label',...
-    sprintf('Select new label for roi %d',roiId),1,{''},options);
-newLabel = str2double(newLabel);
-
-%error check
-if isempty(newLabel) || isnan(newLabel) || newLabel<1 || newLabel>9
-    return;
-end
+function cbChangeRoiLabel(sel, ~, ~, roiId, newLabel)
 
 %change group label
 oldLabel = sel.roiInfo.roi([sel.roiInfo.roi.id]==roiId).group;
