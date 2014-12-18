@@ -11,4 +11,6 @@ switch evt.Key
         
         %restore focus to original window
         setfocus(sel.h.ax.roi);
+    case 'c'
+        cla(sel.h.ax.traceOverlay);
 end

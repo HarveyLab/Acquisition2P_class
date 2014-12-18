@@ -9,6 +9,8 @@ function cbKeypress(sel, ~, evt)
 switch evt.Key
     case 't'
         addOverlayTrace(sel),
+    case 'c'
+        cla(sel.h.ax.traceOverlay);
     case 'm'
         warning('this key still needs to be implemented')
         %         %Turn off figure click callback while drawing ROI
