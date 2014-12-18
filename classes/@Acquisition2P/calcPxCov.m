@@ -60,9 +60,9 @@ for m = 1:nMovies
     end
     
     % Start parallel I/O job: This loads the mov for the next iteration:
-%     if m < nMovies
-%         parallelIo = parfeval(@obj.readCor, 1, m+1, 'single', [], [], false);
-%     end
+    if m < nMovies
+        parallelIo = parfeval(@obj.readCor, 1, m+1, 'single', [], [], false);
+    end
     
     % Bin temporally using reshape and sum, and center data
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
@@ -97,12 +97,27 @@ for m = 1:nMovies
         pixCov = zeros(nPix, nDiags, 'single');
     end
     
-    parfor px = 1:nPix-diags(end)
-        pixCov(px,:) = pixCov(px, :) + (mov(px, :)*mov(px+diags, :)')/z;
+    nChunks = 50; % Should be a few times the number of parallel workers.
+    pixList = 1:nPix-diags(end);
+    pixListChunked = mat2cell(pixList, 1, chunkSize(numel(pixList), nChunks));
+    future = [];
+    for ch = 1:nChunks
+       pxHere = pixListChunked{ch};
+       nPixHere = numel(pxHere);
+       movHere = mov(pxHere(1):pxHere(end+diags(end))); % Each worker gets only the pixels it needs.
+       future(ch) = parfeval(@calcPxCovChunk, 1, movHere, nPixHere, diags); %#ok<AGROW>
+    end
+    
+    % Retrieve data:
+    for ii = 1:nChunks
+       [ch, pixCovChunk] = fetchNext(future);
+       pxHere = pixListChunked{ch};
+       pixCov(pxHere, :) = pixCov(pxHere, :) + pixCovChunk/z;
     end
     
     fprintf('Last movie took %3f seconds to process.\n', toc(loopTime));
 end
+
 
 % Shift into SPDIAGS format:
 for ii = 1:nDiags
@@ -130,4 +145,11 @@ obj.roiInfo.slice(sliceNum).covFile.diags = diags;
 obj.roiInfo.slice(sliceNum).covFile.channelNum = channelNum;
 obj.roiInfo.slice(sliceNum).covFile.temporalBin = temporalBin;
 obj.roiInfo.slice(sliceNum).covFile.activityImg = calcActivityOverviewImg(pixCov, diags, h, w);
+end
+
+function pixCov = calcPxCovChunk(mov, nPix, diags)
+pixCov = zeros(nPix, numel(diags), 'single');
+for px = 1:nPix
+    pixCov = (mov(px, :)*mov(px+diags, :)');
+end
 end
