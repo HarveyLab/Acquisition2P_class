@@ -120,7 +120,8 @@ sel.h.fig.trace(1) = figure('Name','Cluster Traces');
 sel.h.ax.traceClusters = axes;
 sel.h.ui.autoLoadTraces = uicontrol('Style', 'checkbox','String','Auto Load');
 sel.h.fig.trace(2) = figure('Name','Raw Trace Overlays');
-sel.h.ax.traceDetrend = axes;
+sel.h.ax.traceOverlay = axes;
+hold(sel.h.ax.traceOverlay, 'on'),
 sel.h.fig.trace(3) = figure('Name','Neuropil-sub Traces');
 sel.h.ax.traceSub = axes;
 sel.h.ui.plotRaw = uicontrol('Style', 'checkbox','String','Raw Plot');

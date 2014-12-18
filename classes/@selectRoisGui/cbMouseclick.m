@@ -42,6 +42,9 @@ sel.disp.indBody = [];
 sel.disp.indNeuropil = [];
 sel.disp.roiInd = [];
 
+% Clear overlay plot
+cla(sel.h.ax.traceOverlay),
+
 %Get data from cov file and calculate cuts
 [covMat, pxNeighbors] = sel.getCovData;
 

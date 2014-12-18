@@ -13,9 +13,8 @@ else
     movIndBody = bodyInd;
     movIndNeuropil = neuropilInd;
 end
+
 sel.disp.fBody = mean(mov(:, sel.acq.mat2binInd(movIndBody)), 2)';
-
-
 sel.disp.fNeuropil = mean(mov(:, sel.acq.mat2binInd(movIndNeuropil)), 2)';
 
 % Remove excluded frames (removing them seems to be the most
@@ -24,16 +23,12 @@ sel.disp.fNeuropil = mean(mov(:, sel.acq.mat2binInd(movIndNeuropil)), 2)';
 sel.disp.fBody(sel.disp.excludeFrames) = [];
 sel.disp.fNeuropil(sel.disp.excludeFrames) = [];
 
-% Plot non-debleached traces:
-cla(sel.h.ax.traceDetrend);
-hold(sel.h.ax.traceDetrend, 'on');
-plot(sel.h.ax.traceDetrend, sel.disp.fNeuropil+100)
-plot(sel.h.ax.traceDetrend, sel.disp.fBody+100)
-
 % Remove bleaching:
-sel.disp.f0Body = prctile(sel.disp.fBody,10);
+% sel.disp.fBody = deBleach(sel.disp.fBody, 'runningAvg',9001);
+% sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'runningAvg',9001);
 sel.disp.fBody = deBleach(sel.disp.fBody, 'linear');
 sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'linear');
+sel.disp.f0Body = prctile(sel.disp.fBody,10);
 
 % Smooth traces:
 smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
@@ -56,14 +51,6 @@ title(sel.h.ax.subSlope, sprintf('Fitted subtractive coefficient is: %0.3f',...
 % Plot subtracted Trace
 doSubTracePlot(sel),
 title(sel.h.ax.roi, 'This pairing loaded');
-
-% Also plot in detrend/nondetrend plot:
-plot(sel.disp.fNeuropil, 'Parent', sel.h.ax.traceDetrend);
-hold(sel.h.ax.traceDetrend, 'on');
-plot(sel.disp.fBody, 'Parent', sel.h.ax.traceDetrend);
-hold(sel.h.ax.traceDetrend, 'off');
-legend(sel.h.ax.traceDetrend, 'NP raw', 'Body raw', 'NP debleached', 'Body debleached');
-title(sel.h.ax.traceDetrend, 'Raw vs. debleached');
 
 % Focus back to main:
 figure(sel.h.fig.main);

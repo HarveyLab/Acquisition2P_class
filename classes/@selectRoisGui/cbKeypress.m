@@ -7,6 +7,8 @@ function cbKeypress(sel, ~, evt)
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
 % 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 switch evt.Key
+    case 't'
+        addOverlayTrace(sel),
     case 'm'
         warning('this key still needs to be implemented')
         %         %Turn off figure click callback while drawing ROI
