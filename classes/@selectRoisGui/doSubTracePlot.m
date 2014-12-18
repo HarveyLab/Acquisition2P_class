@@ -1,4 +1,4 @@
-function doSubTracePlot(sel)
+function doSubTracePlot(sel,~,~)
 
 % Calculate corrected dF and plot
 dF = sel.disp.fBody-sel.disp.fNeuropil*sel.disp.neuropilCoef(2);

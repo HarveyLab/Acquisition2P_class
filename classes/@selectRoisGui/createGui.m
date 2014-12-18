@@ -128,13 +128,16 @@ end
 %create traces figures
 sel.h.fig.trace(1) = figure('Name','Cluster Traces');
 sel.h.ax.traceClusters = axes;
-sel.h.ui.autoLoadTraces = uicontrol('Style', 'checkbox','String','Auto Load');
+sel.h.ui.autoLoadTraces = uicontrol('Style', 'checkbox','String','Auto Load',...
+    'Units', 'Normalized', 'Position', [0.034 0.02 0.15 0.048]);
 sel.h.fig.trace(2) = figure('Name','Raw Trace Overlays');
 sel.h.ax.traceOverlay = axes;
 hold(sel.h.ax.traceOverlay, 'on'),
 sel.h.fig.trace(3) = figure('Name','Neuropil-sub Traces');
 sel.h.ax.traceSub = axes;
-sel.h.ui.plotRaw = uicontrol('Style', 'checkbox','String','Raw Plot');
+sel.h.ui.plotRaw = uicontrol('Style', 'checkbox','String','Raw Plot',...
+    'Callback', @sel.doSubTracePlot, 'Units', 'Normalized', 'Position',...
+    [0.034 0.02 0.15 0.048]);
 sel.h.fig.trace(4) = figure('Name','Neuropil-sub Scatter');
 sel.h.ax.subSlope = axes;
 drawnow,
