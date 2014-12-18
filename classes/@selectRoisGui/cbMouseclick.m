@@ -75,8 +75,11 @@ end
 sel.calcRoi;
 sel.updateOverviewDisplay(false);
 
-% Load traces:
-if strcmp(sel.h.timers.loadTraces.Running, 'off')
+% Load traces if requested
+if get(sel.h.ui.autoLoadTraces,'Value') == 1 && strcmp(sel.h.timers.loadTraces.Running, 'off')
     start(sel.h.timers.loadTraces);
+else
+    stop(sel.h.timers.loadTraces);
 end
+
 end

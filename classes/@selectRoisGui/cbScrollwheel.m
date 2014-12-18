@@ -27,10 +27,11 @@ end
 % Recalculate clusters with new cluster count:
 sel.calcRoi;
 
-%  Display traces automatically (use timers to make things
-% snappier):
-if strcmp(sel.h.timers.loadTraces.Running, 'off')
+%  Load Traces if requested
+if get(sel.h.ui.autoLoadTraces,'Value') == 1 && strcmp(sel.h.timers.loadTraces.Running, 'off')
     start(sel.h.timers.loadTraces);
+else
+    stop(sel.h.timers.loadTraces);
 end
 
 end
