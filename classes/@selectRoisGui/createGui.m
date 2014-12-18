@@ -197,6 +197,7 @@ sel.h.img.roi = imshow(zeros(sel.roiInfo.covFile.nh), 'Parent', sel.h.ax.roi);
 sel.updateOverviewDisplay;
 
 % Maximize figure window:
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame'); %disable java warning
 jFrame = get(sel.h.fig.main, 'JavaFrame');
 drawnow % Required for maximization to work.
 jFrame.setMaximized(1);
