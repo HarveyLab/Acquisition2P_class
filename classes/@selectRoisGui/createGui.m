@@ -55,6 +55,16 @@ sel.disp.roiColors =  [0 0 1;...
     0.517241379310345 0.517241379310345 1;...
     0.620689655172414 0.310344827586207 0.275862068965517];
 
+if isfield(sel.acq.metaDataSI,'SI4')
+    sel.disp.framePeriod = sel.acq.metaDataSI.SI4.scanFramePeriod;
+elseif isfield(sel.acq.metaDataSI,'SI5')
+    sel.disp.framePeriod = sel.acq.metaDataSI.SI5.scanFramePeriod;
+else
+    warning('Unable to Automatically determine scanFramePeriod')
+    sel.disp.framePeriod = input('Input scanFramePeriod: ');
+end
+
+
 % Create overview image:
 if size(img, 3) == 1
     % Img is a grayscale image:

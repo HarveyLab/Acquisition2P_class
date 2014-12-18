@@ -123,14 +123,15 @@ switch evt.Key
         hold(sel.h.ax.traceClusters,'on');
         set(sel.h.ax.traceClusters, 'ColorOrder', clut, 'ColorOrderIndex', 1);
         
-        plot(dF', 'linewidth', 1,'Parent',sel.h.ax.traceClusters);
+        xFrames = sel.disp.framePeriod:sel.disp.framePeriod:sel.disp.framePeriod*size(dF,2);
+        plot(xFrames,dF', 'linewidth', 1,'Parent',sel.h.ax.traceClusters);
 
         title(sel.h.ax.roi, 'This trace loaded');
         
         %add arrow to current cluster
         delete(findall(sel.h.fig.trace(1), 'type', 'annotation')); % Delete old annotations.
         [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
-            size(dF,2), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
+            max(xFrames), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
         annotation(sel.h.fig.trace(1), 'arrow',...
             [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
         

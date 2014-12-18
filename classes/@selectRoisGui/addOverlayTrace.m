@@ -5,7 +5,8 @@ mov = sel.movMap.Data.mov;
 thisROItrace = mean(mov(:, sel.acq.mat2binInd(thisROIind)), 2)';
 smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
 thisROItrace = conv(thisROItrace,smoothWin, 'valid');
-plot(sel.h.ax.traceOverlay, thisROItrace),
+xFrames = sel.disp.framePeriod:sel.disp.framePeriod:sel.disp.framePeriod*length(thisROItrace);
+plot(sel.h.ax.traceOverlay, xFrames, thisROItrace),
 title(sel.h.ax.traceOverlay, 'Raw Trace Overlay'),
 
 
