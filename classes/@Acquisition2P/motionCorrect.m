@@ -136,7 +136,21 @@ for m = 1:nMovies
         % in the background, using parfeval, so that calculations can
         % proceed during slow I/O (the code for this is above, in the
         % beginning of the for-loop).
-        saveMovStruct(obj, movStruct, writeDir, namingFunction, obj.acqName, m)
+        saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, m)
+    end
+    
+    % Store file names (this cannot be done in saveMovStruct because
+    % saveMovStruct is executed on a parallel worker, which does not share
+    % the same memory as the main instance and therefore cannot dynamically
+    % access the acq2p obj.
+    nSlices = numel(movStruct.slice);
+    nChannels = numel(movStruct.slice(1).channel);
+    for nSlice = 1:nSlices
+        for nChannel = 1:nChannels
+            movFileName = feval(namingFunction, acqName, nSlice, nChannel, movNum);
+            obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = ...
+                fullfile(writeDir,movFileName);
+        end
     end
     
     % Store movie dimensions (this is the same for all channels and
@@ -161,7 +175,7 @@ movFileName = sprintf('%s_Slice%02.0f_Channel%02.0f_File%03.0f.tif',...
     acqName, nSlice, nChannel, movNum);
 end
      
-function saveMovStruct(obj, movStruct, writeDir, namingFunction, acqName, movNum)
+function saveMovStruct(movStruct, writeDir, namingFunction, acqName, movNum)
 nSlices = numel(movStruct.slice);
 nChannels = numel(movStruct.slice(1).channel);
 for nSlice = 1:nSlices
@@ -173,9 +187,6 @@ for nSlice = 1:nSlices
             writeDir, ...
             'int16', ...
             true);
-        
-        obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = ...
-            fullfile(writeDir,movFileName);
     end
 end
 end
