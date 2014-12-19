@@ -18,7 +18,7 @@ ref_fftshift = fftshift(ref_ftt);
 ref_conj = conj(ref_ftt);
 upsamplingFac = 50;
 
-parfor f = 1:z
+for f = 1:z
 %     if mod(f,250)==0
 %         display(sprintf('Identifying Shift for Frame %04.0f of %04.0f',f,z)),
 %     end
