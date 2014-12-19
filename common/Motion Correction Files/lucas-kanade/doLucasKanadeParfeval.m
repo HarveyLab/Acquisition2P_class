@@ -13,8 +13,8 @@ end
 % Slice data into chunks to prevent GPU from filling up:
 if isGpu
     gpu = gpuDevice(1); % Select first GPU (GeForce 970 on my computer).
-    pctRunOnAll reset(gpuDevice);
-    wait(gpuDevice)
+    reset(gpuDevice);
+    wait(gpuDevice);
     memAvailable = gpu.AvailableMemory;
     
     stackInfo = whos('stackFull');

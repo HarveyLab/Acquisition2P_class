@@ -9,7 +9,7 @@ nChannel = numel(movStruct.slice(1).channel);
 isGpu = gpuDeviceCount>0;
 if isGpu
     gpu = gpuDevice;
-    pctRunOnAll reset(gpuDevice);
+    reset(gpuDevice);
     wait(gpu)
 end
 
