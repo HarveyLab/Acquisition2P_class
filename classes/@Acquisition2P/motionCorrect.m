@@ -1,6 +1,5 @@
 function motionCorrect(obj,writeDir,motionCorrectionFunction,namingFunction)
-%Generic wrapper function for managing motion correction of an
-%acquisition object
+%Wrapper function managing motion correction of an acquisition object
 %
 %motionCorrect(obj,writeDir,motionCorrectionFunction,namingFunction)
 %

@@ -8,8 +8,12 @@ for t = timerNames(:)'
 end
 
 % Delete figures:
-if ishandle(sel.h.fig.trace)
-    delete(sel.h.fig.trace)
+if ishandle(sel.h.fig.trace(1))
+    set(sel.h.fig.trace,'WindowStyle','normal');
+    drawnow,
+    for nWin = 1:4
+        delete(sel.h.fig.trace(nWin)),
+    end
 end
 
 delete(sel.h.fig.main)

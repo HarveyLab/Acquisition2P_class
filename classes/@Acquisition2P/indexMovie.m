@@ -60,7 +60,7 @@ for f = fileList(:)' % Deal with both column and row cell arrays.
 end
 
 % Get file info:
-movSizes = cat(1, obj.derivedData.size);
+movSizes = obj.correctedMovies.slice(nSlice).channel(nChannel).size;
 h = movSizes(1, 1);
 w = movSizes(1, 2);
 nFrames = movSizes(:, 3);

@@ -3,8 +3,9 @@ function binPixInd = mat2binInd(obj, matPixInd)
 % frame into and index that can be used with the column-major binary movie
 % file.
 
-movRows = obj.derivedData(1).size(1);
-movCols = obj.derivedData(1).size(2);
+% Assume all slices and Channels have same image size
+movRows = obj.correctedMovies.slice(1).channel(1).size(1,1);
+movCols = obj.correctedMovies.slice(1).channel(1).size(1,2);
 
 [pixRow, pixCol] = ind2sub([movRows, movCols], matPixInd);
 binPixInd = sub2ind([movCols, movRows], pixCol, pixRow);

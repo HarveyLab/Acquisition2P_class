@@ -7,39 +7,14 @@ function cbKeypress(sel, ~, evt)
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
 % 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 switch evt.Key
+    case 't'
+        addOverlayTrace(sel),
+    case 'c'
+        cla(sel.h.ax.traceOverlay);
+    case 'n'
+        figure(sel.h.fig.trace(4));
     case 'm'
-        warning('this key still needs to be implemented')
-        %         %Turn off figure click callback while drawing ROI
-        %         set(sel.h.fig.main, 'WindowButtonDownFcn', []),
-        %         sel.roiTitle = title(sel.h.ax.roi, 'Drawing Manual ROI');
-        %         %If a poly somehow wasn't deleted, do it now
-        %         if isfield(sel,'manualPoly') && isvalid(sel.manualPoly)
-        %             delete(sel.manualPoly)
-        %         end
-        %         %Draw polygon on reference image, use mask to add new 'cluster'
-        %         %to allClusters matrix, and select new cluster as current
-        %         sel.manualPoly = impoly(sel.h.ax.ref);
-        %         set(sel.h.fig.main, 'WindowButtonDownFcn', @cbMouseclick),
-        %         manualMask = createMask(sel.manualPoly);
-        %         newClusterNum = max(sel.disp.currentClustering(:))+1;
-        %         sel.disp.currentClustering(manualMask) = newClusterNum;
-        %         sel.disp.currentClustInd = newClusterNum;
-        %         %Update cluster display
-        %         displayWidth = ceil(sel.covFile.radiusPxCov+2);
-        %         roiCenter = round(getPosition(sel.hROIpt));
-        %         imshow(label2rgb(sel.disp.currentClustering),'Parent',sel.h.ax.cluster),
-        %         axes(sel.h.ax.cluster),
-        %         xlim([roiCenter(1)-displayWidth roiCenter(1)+displayWidth]),
-        %         ylim([roiCenter(2)-displayWidth roiCenter(2)+displayWidth]),
-        %         title(sel.h.ax.cluster, sprintf('Manual ROI over %01.0f cuts',newClusterNum-2)),
-        %         %Delete interactive polygon and update title
-        %         delete(sel.manualPoly),
-        %         sel.roiTitle = title(sel.h.ax.roi, 'Displaying Manual ROI');
-        %         %Update ROI display
-        %         set(sel.h.fig.main, 'userdata', sel);
-        %         displayROI(sel.h.fig.main),
-        %         sel = get(keyPressObj, 'userdata');
-        
+        doManualROI(sel),
     case 'backspace'
         if numel(sel.roiInfo.roi)==0
             return
@@ -51,97 +26,11 @@ switch evt.Key
         % cRoi is the unique number that the current ROI will get. It is
         % not stored globally but always determined locally from the
         % roiInfo structure such that it's always up to date:
-        if isempty([sel.roiInfo.roi.id])
-            newRoiNum = 1;
-        else
-            newRoiNum = max([sel.roiInfo.roi.id])+1;
-        end
         
-        % Save current ROI:
-        newInd = numel([sel.roiInfo.roi.id])+1; % Attention: newRoiIndex is no necessarily the same as the roiNumber of the current ROI!
-        sel.roiInfo.roi(newInd).id = newRoiNum;
-        sel.roiInfo.roi(newInd).group = str2double(evt.Key);
-        
-        % Check to see if a pairing has just been loaded
-        selectStatus = strcmp('This pairing loaded', get(get(sel.h.ax.roi, 'Title'), 'string'));
-        
-        if ~selectStatus || isempty(sel.disp.indBody) || isempty(sel.disp.indNeuropil)
-            % Save information for currently selected ROI group
-            sel.roiInfo.roi(newInd).indBody = sel.nh2movInd(find(sel.disp.roiMask)); %#ok<FNDSB>
-            newTitle = 'ROI Saved';
-        else
-            % Save information for recently selected pairing
-            sel.roiInfo.roi(newInd).indBody = sel.nh2movInd(sel.disp.indBody);
-            sel.roiInfo.roi(newInd).indNeuropil = sel.nh2movInd(sel.disp.indNeuropil);
-            sel.roiInfo.roi(newInd).subCoef = sel.disp.neuropilCoef(2);
-            newTitle = 'Cell-Neuropil Pairing Saved';
-            
-            % Set cluster to be equal to the one after the just selected
-            % cell body, rather than the neuropil, so that we can continue
-            % with the next one fluidly:
-            sel.disp.currentClustInd = sel.disp.currentClustering(sel.disp.indBody(1))+1;
-        end
-        
-        % Update roilabels and display.
-        sel.disp.roiLabels(sel.roiInfo.roi(newInd).indBody) = newRoiNum;
-        title(sel.h.ax.roi, sprintf('%s: #%03.0f', newTitle, newRoiNum));
-        
-        %save and update display
-        sel.displayRoi;
-        sel.updateOverviewDisplay(false);
+        saveNewROI(sel,evt);
         
     case 'f'
-        % Tell user that we're loading the traces:
-        title(sel.h.ax.roi, 'Loading Trace for Current ROI');
-        drawnow
-        
-        % Get matrix of fluorescence traces for all clusters:
-        mov = sel.movMap.Data.mov;
-        F = zeros(sel.disp.clusterNum+1, size(mov, 1));
-        for i = 1:sel.disp.clusterNum+1
-            nhInd = find(sel.disp.currentClustering==i);
-            movInd = sel.nh2movInd(nhInd); %#ok<FNDSB>
-            movInd = movInd(~isnan(movInd)); % If click was at the edge, missing values are nan.
-            F(i,:) = mean(mov(:, sel.acq.mat2binInd(movInd)), 2)';
-            F(i, sel.disp.excludeFrames) = nan;
-        end
-        
-        % Normalize, smooth, and plot all traces
-        dF = bsxfun(@rdivide, F, nanmedian(F, 2));
-        smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
-        for i = 1:size(dF,1)
-            dF(i,:) = conv(dF(i,:)-1, smoothWin,'same');
-        end
-        
-        dF = bsxfun(@plus, dF, 1*(size(dF, 1):-1:1)'); % Offset traces in y.
-        
-        % Coloring: use same hues as in the image showing the cuts:
-        cla(sel.h.ax.traceClusters);
-        clut = jet(sel.disp.clusterNum+1);
-        hold(sel.h.ax.traceClusters,'on');
-        set(sel.h.ax.traceClusters, 'ColorOrder', clut, 'ColorOrderIndex', 1);
-        
-        plot(dF', 'linewidth', 1,'Parent',sel.h.ax.traceClusters);
-        
-        
-        
-        title(sel.h.ax.roi, 'This trace loaded');
-        
-        %add arrow to current cluster
-        delete(findall(sel.h.fig.trace, 'type', 'annotation')); % Delete old annotations.
-        [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
-            size(dF,2), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
-        annotation(sel.h.fig.trace, 'arrow',...
-            [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
-        
-        % reset neuroPil index, to prevent accidental saving of previous pairing
-        sel.disp.indNeuropil = [];
-        set(sel.h.ax.traceClusters, 'Color', [0.2 0.2 0.2]); %set color to gray
-        
-        figure(sel.h.fig.trace) % Bring traces figure to front if it's hidden.
-        drawnow
-        figure(sel.h.fig.main) % Focus back on main figure.
-        
+        doAllClusterTraces(sel),        
     case 'space'
         %Determine if selection is new cell body or paired neuropil
         isNeuropilSelection = strcmp('Select neuropil pairing', get(get(sel.h.ax.roi, 'Title'), 'string'));

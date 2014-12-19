@@ -40,7 +40,7 @@ roiLabels = interp2(sel.disp.roiLabels, roiRegionX, roiRegionY, 'nearest', nan);
 
 % Scale image:
 roiImg = imadjust(mat2gray(roiImg));
-roiImg = max(0.3, roiImg); % Make dark areas brighter so that colors are more easily visible.
+roiImg = max(0.1, roiImg); % Make dark areas brighter so that colors are more easily visible.
 
 % Overlay mask and image
 % (Existing ROIs = green, potential new ROI = yellow, overlap = red.

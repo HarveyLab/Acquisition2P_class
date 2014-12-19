@@ -55,6 +55,16 @@ sel.disp.roiColors =  [0 0 1;...
     0.517241379310345 0.517241379310345 1;...
     0.620689655172414 0.310344827586207 0.275862068965517];
 
+if isfield(sel.acq.metaDataSI,'SI4')
+    sel.disp.framePeriod = sel.acq.metaDataSI.SI4.scanFramePeriod;
+elseif isfield(sel.acq.metaDataSI,'SI5')
+    sel.disp.framePeriod = sel.acq.metaDataSI.SI5.scanFramePeriod;
+else
+    warning('Unable to Automatically determine scanFramePeriod')
+    sel.disp.framePeriod = input('Input scanFramePeriod: ');
+end
+
+
 % Create overview image:
 if size(img, 3) == 1
     % Img is a grayscale image:
@@ -67,10 +77,10 @@ sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
 
 % Create memory mapped binary file of movie:
-movSizes = [sel.acq.derivedData.size];
-movLengths = movSizes(3:3:end);
+movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;
+movLengths = movSizes(:, 3);
 sel.movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
-    'Format', {'int16', [sum(movLengths), movSizes(1)*movSizes(2)], 'mov'});
+    'Format', {'int16', [sum(movLengths), movSizes(1,1)*movSizes(1,2)], 'mov'});
 
 %% Create GUI layout:
 sel.h.fig.main = figure('Name','ROI Selection');
@@ -99,14 +109,7 @@ if screenSize(3) > screenSize(4)
     sel.h.ui.sliderWhite = uicontrol('Style', 'slider', 'Units', 'Normalized',...
         'Position', [refPos(1)+0.35 refPos(2) - 0.05 .3*refPos(3) 0.02],...
         'Min', 0, 'Max', 1, 'Value', 1, 'SliderStep', [0.01 0.1],...
-        'Callback',@sel.cbSliderContrast);
-    
-    %create traces figure
-    sel.h.fig.trace = figure('Name','Additional Trace Information');
-    sel.h.ax.traceClusters = subplot(2,2,1);
-    sel.h.ax.traceSub = subplot(2,2,2);
-    sel.h.ax.traceDetrend = subplot(2,2,3);
-    sel.h.ax.subSlope = subplot(2,2,4);
+        'Callback',@sel.cbSliderContrast);    
     
 else
     % Portrait-format screen:
@@ -119,26 +122,42 @@ else
     sel.h.ax.eig(6) = subplot(6, 4, 8);
     sel.h.ax.cluster = subplot(6, 4, 5);
     sel.h.ax.roi = subplot(6, 4, 6);
-    
-    %create traces figure
-    sel.h.fig.trace = figure('Name','Additional Trace Information');
-    sel.h.ax.traceClusters = subplot(5, 2, 1:4);
-    sel.h.ax.traceDetrend = subplot(5, 2, [5, 7]);
-    sel.h.ax.subSlope = subplot(5, 2, [6, 8]);
-    sel.h.ax.traceSub = subplot(5, 2, [9, 10]);
+
 end
+
+%create traces figures
+sel.h.fig.trace(1) = figure('Name','Cluster Traces');
+sel.h.ax.traceClusters = axes;
+sel.h.ui.autoLoadTraces = uicontrol('Style', 'checkbox','String','Auto Load',...
+    'Units', 'Normalized', 'Position', [0.034 0.02 0.15 0.048]);
+sel.h.fig.trace(2) = figure('Name','Raw Trace Overlays');
+sel.h.ax.traceOverlay = axes;
+hold(sel.h.ax.traceOverlay, 'on'),
+sel.h.fig.trace(3) = figure('Name','Neuropil-sub Traces');
+sel.h.ax.traceSub = axes;
+sel.h.ui.plotRaw = uicontrol('Style', 'checkbox','String','Raw Plot',...
+    'Callback', @sel.doSubTracePlot, 'Units', 'Normalized', 'Position',...
+    [0.034 0.02 0.15 0.048]);
+sel.h.fig.trace(4) = figure('Name','Neuropil-sub Scatter');
+sel.h.ax.subSlope = axes;
+drawnow,
+setFigDockGroup(sel.h.fig.trace,'tracePlotsGUI')
+set(sel.h.fig.trace,'WindowStyle','docked');
+
 
 % Set callbacks:
 set(sel.h.fig.main, 'WindowButtonDownFcn', @sel.cbMouseclick, ...
     'WindowScrollWheelFcn', @sel.cbScrollwheel, ...
     'WindowKeyPressFcn', @sel.cbKeypress, ...
     'CloseRequestFcn', @sel.cbCloseRequestMain);
-set(sel.h.fig.trace, 'CloseRequestFcn', @sel.cbCloseRequestMain);
+set(sel.h.fig.trace(4), 'WindowScrollWheelFcn', @sel.subCoefScrollWheel),
+set(sel.h.fig.trace(:), 'WindowKeyPressFcn', @sel.cbKeypressTraceWin);
+for nWin = 1:4
+    set(sel.h.fig.trace(nWin), 'CloseRequestFcn', @sel.cbCloseRequestMain);
+end
 
 % Set up timers (they can be used to do calculations in the background to
 % improve perceived responsiveness of the GUI):
-sel.h.timers.calcRoi = timer('name', 'selectRoisGui:calcRoi', ...
-    'timerfcn', @(~, ~) sel.calcRoi, 'executionmode', 'singleshot', 'busymode', 'drop', 'StartDelay', 0.2);
 sel.h.timers.loadTraces = timer('name', 'selectRoisGui:loadTraces', ...
     'timerfcn', @(~, ~) sel.cbKeypress([], struct('Key', 'f')), 'executionmode', 'singleshot', 'busymode', 'drop', 'StartDelay', 0.2);
 
@@ -181,6 +200,7 @@ sel.h.img.roi = imshow(zeros(sel.roiInfo.covFile.nh), 'Parent', sel.h.ax.roi);
 sel.updateOverviewDisplay;
 
 % Maximize figure window:
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame'); %disable java warning
 jFrame = get(sel.h.fig.main, 'JavaFrame');
 drawnow % Required for maximization to work.
 jFrame.setMaximized(1);
