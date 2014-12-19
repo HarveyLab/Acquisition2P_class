@@ -28,17 +28,17 @@ end
 % Motion correction:
 %check if motion correction already applied
 if isempty(ajp.currentAcq.shifts)
-    try
+%     try
         ajp.log('Started motion correction.');
         ajp.currentAcq.motionCorrect([],[],ajp.nameFunc);
         ajp.saveCurrentAcq;
-    catch err
-        msg = sprintf('Motion correction aborted with error: %s', err.message);
-        ajp.log(msg);
-        printStack(ajp, err.stack);
-        rethrow(err)
-        return % If motion correction fails, then no further processing can happen.
-    end
+%     catch err
+%         msg = sprintf('Motion correction aborted with error: %s', err.message);
+%         ajp.log(msg);
+%         printStack(ajp, err.stack);
+%         rethrow(err)
+%         return % If motion correction fails, then no further processing can happen.
+%     end
 else
     ajp.log('Motion correction already performed. Skipping...');
 end

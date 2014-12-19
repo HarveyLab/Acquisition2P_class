@@ -55,8 +55,8 @@ end
 
 %% Roi extraction:
 %Find relevant ROIs
-roiGroup = acq.roiInfo.slice(sliceNum).grouping;
-roiList = find(ismember(roiGroup,roiGroups));
+roiGroup = [acq.roiInfo.slice.roi.group];
+roiList = find(ismember(roiGroup, roiGroups));
 roiGroup = roiGroup(roiList);
 nRois = numel(roiList);
 

@@ -12,7 +12,7 @@ end
 
 % Slice data into chunks to prevent GPU from filling up:
 if isGpu
-    gpu = gpuDevice;
+    gpu = gpuDevice(1); % Select first GPU (GeForce 970 on my computer).
     pctRunOnAll reset(gpuDevice);
     wait(gpuDevice)
     memAvailable = gpu.AvailableMemory;
@@ -139,17 +139,18 @@ if isGpu
     xi_g = gpuArray(xi);
     yi_g = gpuArray(yi);
     Tnorm_g = gpuArray(Tnorm);
+    nBasis_g = gpuArray(nBasis);
     for f = 1:z
         [stack_g(:,:,f), dpx_g(:,f), dpy_g(:,f), nIters(f)] = doLucasKanade_singleFrame(...
             ref_g, stack_g(:,:,f), dpx_g(:, f), dpy_g(:, f), minIters, ...
-            B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g);
+            B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g, nBasis_g);
         minIters = nanmedian(nIters);
     end
     
     % Get data from GPU:
     stackSliced = gather(stack_g);
     dpx = gather(dpx_g);
-    dpy = gather(dpy_g);a
+    dpy = gather(dpy_g);
 else
     for f = 1:z
         [stackSliced(:,:,f), dpx(:,f), dpy(:,f), nIters(f)] = doLucasKanade_singleFrame(...

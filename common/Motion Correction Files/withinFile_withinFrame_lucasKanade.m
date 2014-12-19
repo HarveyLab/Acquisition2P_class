@@ -1,5 +1,5 @@
 function movStruct = withinFile_withinFrame_lucasKanade(...
-    obj, movStruct, scanImageMetadata, movNum, opMode)
+    obj, movStruct, ~, movNum, opMode)
 % movStruct = withinFile_withinFrame_lucasKanade(obj, movStruct, scanImageMetadata, movNum, opMode)
 % finds/corrects in-frame motion with an algorithm that takes into account
 % that images are acquired by raster scanning (Greenberg and Kerr, 2009)
@@ -11,7 +11,6 @@ if isGpu
     gpu = gpuDevice;
     pctRunOnAll reset(gpuDevice);
     wait(gpu)
-    memAvailable = gpu.AvailableMemory;
 end
 
 switch opMode
@@ -79,24 +78,48 @@ switch opMode
     case 'apply'
         for iSl = 1:nSlice
             z = size(movStruct.slice(iSl).channel(1).mov, 3);
+            
             % Get full displacement fields:
             Dx = obj.shifts(movNum).slice(iSl).x();
             Dy = obj.shifts(movNum).slice(iSl).y();
             
-            for iCh = 1:nChannel
-                % This for-loop is faster than using interpn without a
-                % loop, both on the CPU and the GPU. Re-evaluate this if we
-                % have a GPU that can fit an entire movie into RAM.
-                for f = 1:z
-                    movStruct.slice(iSl).channel(iCh).mov(:,:,f) = ...
-                        interp2(...
-                            movStruct.slice(iSl).channel(iCh).mov(:,:,f), ...
-                            Dx(:,:,f), ...
-                            Dy(:,:,f), ...
-                            'linear');
+            % Using GPU?
+            isGpu = gpuDeviceCount > 0;
+            if isGpu
+                gpu = gpuDevice(1); % Select first GPU.
+                memAvailable = gpu.AvailableMemory;
+                mov = movStruct.slice(1).channel(1).mov;  %#ok<NASGU>
+                movInfo = whos('mov');
+                if memAvailable < 2.5 * movInfo.bytes % Need at least 2.5 * moviesize.
+                    isGpu = 0;
                 end
-            obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
-                nanmean(movStruct.slice(iSl).channel(iCh).mov,3);
+            end
+            
+            for iCh = 1:nChannel
+                if isGpu
+                    mov_g = gpuArray(movStruct.slice(iSl).channel(iCh).mov);
+                    cor_g = gpuArray.zeros(size(mov_g));
+                    for f = 1:z
+                        cor_g(:,:,f) = ...
+                            interp2(...
+                                mov_g(:,:,f), ...
+                                Dx(:,:,f), ...
+                                Dy(:,:,f), ...
+                                'linear');
+                    end
+                    movStruct.slice(iSl).channel(iCh).mov = gather(cor_g);
+                else
+                    for f = 1:z
+                        movStruct.slice(iSl).channel(iCh).mov(:,:,f) = ...
+                            interp2(...
+                                movStruct.slice(iSl).channel(iCh).mov(:,:,f), ...
+                                Dx(:,:,f), ...
+                                Dy(:,:,f), ...
+                                'linear');
+                    end
+                end
+                obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
+                    nanmean(movStruct.slice(iSl).channel(iCh).mov,3);
             end
         end
 end
