@@ -132,10 +132,10 @@ for m = 1:nMovies
      
     % Save as separate tiff file for each slice\channel:
     if m==nMovies
-        % Only the last movie is saved here. All other movies are saved
-        % in the background, using parfeval, so that calculations can
-        % proceed during slow I/O (the code for this is above, in the
-        % beginning of the for-loop).
+        % Only the last movie is saved here. All other movies are saved in
+        % the background, using parfeval, so that calculations can proceed
+        % during slow I/O (the code for this is above, in the beginning of
+        % the for-loop).
         saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, m)
     end
     
@@ -147,7 +147,7 @@ for m = 1:nMovies
     nChannels = numel(movStruct.slice(1).channel);
     for nSlice = 1:nSlices
         for nChannel = 1:nChannels
-            movFileName = feval(namingFunction, acqName, nSlice, nChannel, movNum);
+            movFileName = feval(namingFunction, obj.acqName, nSlice, nChannel, m);
             obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = ...
                 fullfile(writeDir,movFileName);
         end
