@@ -136,7 +136,7 @@ for m = 1:nMovies
         % in the background, using parfeval, so that calculations can
         % proceed during slow I/O (the code for this is above, in the
         % beginning of the for-loop).
-        saveMovStruct(obj, movStruct, writeDir, namingFunction, acqName, movNum)
+        saveMovStruct(obj, movStruct, writeDir, namingFunction, obj.acqName, m)
     end
     
     % Store movie dimensions (this is the same for all channels and
@@ -145,8 +145,8 @@ for m = 1:nMovies
 end
 
 % Clean up data on parallel workers:
-wait(parallelIo)
-delete(parallelIo)
+wait(parallelIo);
+delete(parallelIo);
 
 %Assign acquisition to a variable with its own name, and write to same
 %directory
