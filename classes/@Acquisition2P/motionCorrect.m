@@ -148,8 +148,8 @@ for m = 1:nMovies
     for nSlice = 1:nSlices
         for nChannel = 1:nChannels
             movFileName = feval(namingFunction, obj.acqName, nSlice, nChannel, m);
-            obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = ...
-                fullfile(writeDir,movFileName);
+            obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{m} = ...
+                fullfile(writeDir, movFileName);
         end
     end
     
@@ -213,5 +213,5 @@ if m==1
 end
 
 % Save movStruct from last iteration:
-saveMovStruct(obj, movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m-1));
+saveMovStruct(movStruct, writeDir, namingFunction, obj.acqName, movieOrder(m-1));
 end
