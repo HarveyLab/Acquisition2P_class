@@ -100,11 +100,10 @@ for m = 1:nMovies
     nChunks = 50; % Should be a few times the number of parallel workers.
     pixList = 1:nPix-diags(end);
     pixListChunked = mat2cell(pixList, 1, chunkSize(numel(pixList), nChunks));
-    future = [];
     for ch = 1:nChunks
        pxHere = pixListChunked{ch};
        nPixHere = numel(pxHere);
-       movHere = mov(pxHere(1):pxHere(end+diags(end))); % Each worker gets only the pixels it needs.
+       movHere = mov(pxHere(1):pxHere(end)+diags(end), :); % Each worker gets only the pixels it needs.
        future(ch) = parfeval(@calcPxCovChunk, 1, movHere, nPixHere, diags); %#ok<AGROW>
     end
     
@@ -150,6 +149,6 @@ end
 function pixCov = calcPxCovChunk(mov, nPix, diags)
 pixCov = zeros(nPix, numel(diags), 'single');
 for px = 1:nPix
-    pixCov = (mov(px, :)*mov(px+diags, :)');
+    pixCov(px, :) = (mov(px, :)*mov(px+diags, :)');
 end
 end
