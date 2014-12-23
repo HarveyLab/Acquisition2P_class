@@ -94,6 +94,8 @@ classdef Acquisition2P < handle
         
         function [movie, metaMovie] = readRaw(obj,movNum,castType)
             %Reads in raw data from an acquisition
+            %
+            % [movie, metaMovie] = readRaw(obj,movNum,castType)
             if ~exist('castType', 'var') || isempty(castType)
                 castType = 'uint16';
             end
@@ -103,6 +105,8 @@ classdef Acquisition2P < handle
         function movie = readCor(obj,movNum,castType,sliceNum,chanNum)
             %Reads in motion corrected data from an acquisition. Defaults
             %to slice 1 channel 1 if non specified
+            %
+            % movie = readCor(obj,movNum,castType,sliceNum,chanNum)
             if isempty(obj.correctedMovies)
                 error('This Acquisition Object is not Associated with Motion Corrected Data')
             end
