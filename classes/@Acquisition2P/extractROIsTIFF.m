@@ -4,7 +4,7 @@ function [traces,rawF,roiList,roiMat,rawMat] = extractROIsTIFF(obj,roiGroups,mov
 % selectROIs. This function motion corrected tiff files. See extractROI for a
 % sometimes faster method using a memory mapped 'indexed' binary file instead.
 %
-% [traces,rawF,roiList,roiMat,rawMat] = extractROIsTIFF(obj,roiGroups,movNums,sliceNum,channelNum)
+% [dF, traces ,rawF ,roiList,roiMat,rawMat] = extractROIsTIFF(obj,roiGroups,movNums,sliceNum,channelNum)
 %
 % roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
 % movNums is a vector of movie numbers to use, defaults to all movies
