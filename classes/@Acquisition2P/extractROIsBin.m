@@ -5,14 +5,13 @@ function [dF, traces, rawF, roi, traceNeuropil] = ...
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
 % from tiff files instead
 %
-% [dF, traces, rawF, roi, traceNeuropil] = extractROIs(obj,roiGroups,sliceNum,channelNum)
+% [dF, traces, rawF, roi, traceNeuropil] = extractROIsBin(obj,roiGroups,sliceNum,channelNum)
 %
 % roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
 % dF - dF calculation using (sub-baseSub)/baseRaw, w/ linear baseline extrapolation
 % traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
-% rawF - matrix of same size as traces, but without using neuropil correction
-% roiList - vector of ROI numbers corresponding to extracted ROIs
-% roiGroup - vector of ROI groupings for each returned trace.
+% roi - structure of roi information for selected ROIs
+% traceNeuropil - neuropil trace for each roi
 
 
 %% Input Handling
