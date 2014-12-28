@@ -85,7 +85,7 @@ ajp = acq2pJobProcessor(myJobDir);
 
 % ADVANCED FUNCTIONS:
 %
-% Ajp accepts optionak inputs for advanced customization. Look at function
+% Ajp accepts optional inputs for advanced customization. Look at function
 % files to see how it works:
 % ajp = acq2pJobProcessor(jobDir, debug, shouldContinue, nameFunc)
 
