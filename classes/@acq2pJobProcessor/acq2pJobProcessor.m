@@ -15,7 +15,7 @@ classdef acq2pJobProcessor < handle
     
     methods
         % Constructor:
-        function ajp = acq2pJobProcessor(jobDir, debug, shouldContinue,nameFunc)
+        function ajp = acq2pJobProcessor(jobDir, debug, shouldContinue, nameFunc)
             if ~exist('nameFunc','var')
                 ajp.nameFunc = [];
             else
