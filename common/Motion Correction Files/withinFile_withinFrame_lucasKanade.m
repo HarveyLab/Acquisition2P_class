@@ -97,6 +97,12 @@ switch opMode
             
             for iCh = 1:nChannel
                 if isGpu
+                    % Clear memory from previous iteration:
+                    wait(gpu); % Make sure that commands from previous iteration are done.
+                    reset(gpuDevice);
+                    wait(gpu);
+                    
+                    % Move data to GPU:
                     mov_g = gpuArray(movStruct.slice(iSl).channel(iCh).mov);
                     cor_g = gpuArray.zeros(size(mov_g));
                     for f = 1:z
