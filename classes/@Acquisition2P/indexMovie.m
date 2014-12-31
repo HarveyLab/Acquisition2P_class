@@ -35,6 +35,16 @@ if ~exist('nChannel','var') || isempty(nChannel)
     nChannel = 1;
 end
 
+%% Update old acq2p version:
+if ~isfield(obj.correctedMovies.slice(1).channel(1), 'size')
+    addMovieSizes(obj);
+    
+    % Remove size info from old location if necessary:
+    if isfield(obj.derivedData, 'size')
+        obj.derivedData = rmfield(obj.derivedData, 'size');
+    end
+end
+
 %% Create new binary movie file:
 thisFileName = sprintf('_slice%02.0f_chan%02.0f_mov.bin',nSlice,nChannel);
 movFileName = fullfile(writeDir,[obj.acqName, thisFileName]);
@@ -107,13 +117,3 @@ fclose(fid);
 
 % Add info to acq2p object last in case an error happens in the function:
 obj.indexedMovie.slice(nSlice).channel(nChannel).fileName = movFileName;
-
-function [h, w, nFrames] = getTiffSize(tiffObj)
-tiffObj.setDirectory(1);
-[h, w] = size(tiffObj.read);  
-
-while ~tiffObj.lastDirectory
-    tiffObj.nextDirectory;
-end
-nFrames = tiffObj.currentDirectory;
-tiffObj.setDirectory(1);

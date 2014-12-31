@@ -149,12 +149,12 @@ for m = 1:nMovies
             movFileName = feval(namingFunction, obj.acqName, nSlice, nChannel, m);
             obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{m} = ...
                 fullfile(writeDir, movFileName);
+            
+            % Determine 3D-size of movie and store w/ fileNames
+            obj.correctedMovies.slice(nSlice).channel(nChannel).size(movNum,:) = ...
+                size(movStruct.slice(nSlice).channel(nChannel).mov);
         end
     end
-    
-    % Store movie dimensions (this is the same for all channels and
-    % slices):
-    obj.derivedData(movieOrder(m)).size = size(movStruct.slice(1).channel(1).mov);
 end
 
 % Clean up data on parallel workers:
