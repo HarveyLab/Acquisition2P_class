@@ -151,7 +151,7 @@ for m = 1:nMovies
                 fullfile(writeDir, movFileName);
             
             % Determine 3D-size of movie and store w/ fileNames
-            obj.correctedMovies.slice(nSlice).channel(nChannel).size(movNum,:) = ...
+            obj.correctedMovies.slice(nSlice).channel(nChannel).size(m,:) = ...
                 size(movStruct.slice(nSlice).channel(nChannel).mov);
         end
     end
