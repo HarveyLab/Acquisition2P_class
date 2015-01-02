@@ -66,7 +66,11 @@ for sliceNum = 1:length(acqObj.roiInfo.slice)
     acqObj.roiInfo.slice(sliceNum).covFile.fileName = newRoiFileName;
 end
 
-%save
+%save to server
 serverAcqPath = fullfile(serverPath,sprintf('%s.mat', acqName));
 eval(sprintf('%s = acqObj;',objName{1}));
 save(serverAcqPath,objName{1});
+
+%save local 
+localAcqForServerPath = fullfile(path,sprintf('%s.mat', acqName));
+save(localAcqForServerPath, objName{1});
