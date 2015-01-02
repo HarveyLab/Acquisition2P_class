@@ -44,8 +44,14 @@ if exist(prevAcqFileName,'file')
     tempObj = load(prevAcqFileName,obj.acqName);
     obj = copyObj(obj,tempObj.(obj.acqName));
     
+    %if roiInfo is empty 
+    if isempty(obj.roiInfo)
+        copyToShouldProc(obj);
+    end
+    
     %Assign acquisition object to acquisition name variable in workspace
     assignin('base',obj.acqName,obj);
+    
     return;
 end
 
@@ -80,14 +86,19 @@ obj.dateCreated = date;
 %Assign acquisition object to acquisition name variable in workspace
 assignin('base',obj.acqName,obj);
 
-%Copy acquisition object to should process folder
-shouldProcFolder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
-eval(sprintf('%s=obj;',obj.acqName));
-save(sprintf('%s%s%s_acq.mat',shouldProcFolder,filesep,obj.acqName),obj.acqName);
+%copy to should process folder
+copyToShouldProc(obj);
 
 %Notify user of success
 fprintf('Successfully added %03.0f movies to acquisition: %s\n',length(movNames),obj.acqName);
 
+end
+
+function copyToShouldProc(obj)
+    %Copy acquisition object to should process folder
+    shouldProcFolder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
+    eval(sprintf('%s=obj;',obj.acqName));
+    save(sprintf('%s%s%s_acq.mat',shouldProcFolder,filesep,obj.acqName),obj.acqName);
 end
 
 function [split,numpieces]=explode(string,delimiters)

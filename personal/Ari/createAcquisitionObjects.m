@@ -11,6 +11,10 @@ if nargin < 1 || isempty(folder)
     folder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan';
 end
 
+%in progress directory 
+inProgressDir = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess\inProgress';
+inQueueDir = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan\Acq2PToProcess';
+
 %get subdirectories which match mouseName
 subDir = getSubDir(folder);
 mouseDir = subDir(~cellfun(@isempty,regexp(subDir,'[A-Z]{2}\d\d\d$')));
@@ -46,6 +50,8 @@ for mouseInd = 1:nMouseDir
         acqName = sprintf('%s_%s',fileParts{end-1},fileParts{end});
         acqPath = sprintf('%s%s%s_acq.mat',dateDir{dateInd},filesep,acqName);
         acqStatusPath = sprintf('%s%s%s_status.txt',dateDir{dateInd},filesep,acqName);
+        inProgressPath = sprintf('%s%s%s_acq.mat',inProgressDir,filesep,acqName);
+        inQueuePath = sprintf('%s%s%s_acq.mat',inQueueDir,filesep,acqName);
         
         if exist(acqStatusPath,'file')
             
@@ -78,33 +84,44 @@ for mouseInd = 1:nMouseDir
             continue;
         end
         
+        %check if acquisition currently in progress || in queue
+        if exist(inProgressPath, 'file') || exist(inQueuePath, 'file')
+            continue;
+        end
+        
         %check if acquisition object exists
-        if exist(acqPath,'file')
-            
-            %check if complete txt exists
-            
+        if exist(acqPath,'file')           
             
             %load in object
             obj = load(acqPath);
             
             %check if roiInfo is filled in
             if ~isempty(obj.(acqName).roiInfo) %if not empty, continue and skip file
-                %create status file
-                fid = fopen(acqStatusPath,'w');
-                fprintf(fid,'Complete');
-                fclose(fid);
+                writeStatusFile(acqStatusPath, 'Complete');
                 continue;
             end
             
         end
         
         %Create object
-        Acquisition2P([],{@am2PInit,[],dateDir{dateInd}});
+        obj = Acquisition2P([],{@am2PInit,[],dateDir{dateInd}});
+        
+        %if no movies, save status file
+        if isempty(obj.Movies)
+            writeStatusFile(acqStatusPath,'No Movies');
+        end
         
     end
     
 end
 
+end
+
+function writeStatusFile(acqStatusPath, writeStr)
+    %create status file
+    fid = fopen(acqStatusPath,'w');
+    fprintf(fid,writeStr);
+    fclose(fid);
 end
 
 function subDir = getSubDir(folder)
