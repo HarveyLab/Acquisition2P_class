@@ -82,7 +82,7 @@ for movNum = movieOrder
     try
         [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, scanImageMetadata);
     catch
-        error('parseScanimageTiff failed to parse metadata, likely non SI4 movie, modify function!'),
+        error('parseScanimageTiff failed to parse metadata'),
     end
     clear mov
     

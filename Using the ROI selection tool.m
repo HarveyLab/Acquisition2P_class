@@ -2,13 +2,10 @@
 
 % This guide explains how to use the ROI selection tool contained within the acq2P framework
 % The tool is designed to work optimally with a dual-monitor setup,
-% although that is not strictly necessary. The tool is designed to handle
-% selection of ROIs using semi-automated pixel-pixel correlation based
-% algorithms, assignment of ROIs into various user-defined groupings, and
-% correction for contamination of single-cell traces by various noise
-% sources (i.e. 'neuropil' correction) using individualized ROI fits, as
-% well as offering interactive trace examination tools for semi-automatic
-% and/or manually defined ROIs to determine signal quality.
+% although that is not strictly necessary. You will want a mouse with a
+% scroll wheel too. And if your data (specifically, the binary files created
+% by indexMovie and calcPxCov) are saved locally to a solid-state-drive,
+% load-induced lag times are minimized.
 
 %% Theory of Operation
 
@@ -17,7 +14,7 @@
 % of fluorescence should cause changes in pixel intensity correlated across
 % multiple pixels. This source may or may not be visible in a reference
 % image, such as a mean projection (e.g. a dendrite that briefly lights up across a FOV). 
-% Additionally, visible objects in a mean projection may or may not be viable sources.
+% Additionally, visible objects in a reference image may or may not be viable sources.
 % (e.g. a cell that is silent). Empirically, there is often substantial 
 % deviation between sources and visible objects, and it is often not
 % trivial to identify truly silent cells, due to neuropil contamination
@@ -25,11 +22,11 @@
 
 % The ideal means of identifying sources would be to scroll through every
 % frame of an acquisition and identify neighboring pixels that light up simultaneously.
-% Since this is unreasonably labor intensive, we have approximated this
-% step by calculating covariances of neighboring pixel's timeseries with
+% Since this is unreasonably labor intensive, we have approximate this
+% step by calculating covariances of neighboring pixels' timeseries with
 % each other. We can then use a segmentation algorithm, specifically
 % normalized cuts followed by kmeans, to divide pixels into a user-defined
-% number of clusters. Each cluster is chosen to maximize the ratio of each pixels average
+% number of clusters. Each cluster is chosen to maximize the ratio of each pixel's average
 % correlation that is preserved within its cluster. We do NOT attempt to
 % determine the number of clusters automatically; determining this number is one of the
 % primary user tasks. The number of clusters corresponds to the number of
@@ -132,12 +129,12 @@ myObj.selectROIs(img,sliceNum,channelNum,smoothWindow,excludeFrames);
 % register)
 % 'f' - plots traces for all current clusters to 'Cluster Traces' (this
 %       feature can be called automatically, at the expense of some lag, by
-%       checking the 'auto load' box in the bottom left of the window
+%       checking the 'auto load' box in the bottom left of the window)
 % 't' - plots raw fluorescence traces for the currently selected ROI to
 %       'Raw Trace Overlays'. Additional ROIs can be selected and the
 %       number of cuts can be adjusted, each additional press will add the
 %       current ROI to the trace plot. This plot is reset only when a new
-%       click occurs on the overview image (or the 'c' key is pressed)
+%       click occurs on the overview image or the 'c' key is pressed.
 % 'space' - Selects the current ROI as a source, and initiates selection of
 %       a corresponding neuropil region. The user then cycles through ROIs
 %       to select a neuropil before pressing space a second time. After the
@@ -169,15 +166,15 @@ myObj.selectROIs(img,sliceNum,channelNum,smoothWindow,excludeFrames);
 % Once saved, a patch object is overlayed on the overview image
 % corresponding to the ROI, color corresponding to grouping number. 
 % This patch object persists indefinitely, and can be used to modify and/or
-% delete the object. Right clicking on the patch opens a menu allowing the
+% delete the ROI. Right clicking on the patch opens a menu allowing the
 % ROI to be deleted, the grouping number to be changed, or the neuropil-sub
 % trace and scatter plot for that ROI to be displayed (if it was saved w/ a
 % neuropil pairing)
 
 % The ROI selection tool modifies the corresponding acq2P object as it is
 % used, so the GUI can be exited at anytime by closing any one of the plot
-% windows. However the updated acq2P object needs to be saved to disk. If
-% you just want to update the file in its default directory, call:
+% windows. However the updated acq2P object needs to be saved to disk afterwards. If
+% you just want to update the file in its default directory,
 
 myObj.save,
 

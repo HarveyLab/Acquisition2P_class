@@ -15,8 +15,9 @@ function indexMovie(obj, nSlice, nChannel, writeDir)
 %this kind of indexing:
 % movRows = height_of_your_movie;
 % movCols = width_of_you_movie;
+% nFrames = number of frames in the acquisition;
 % nPix = movRows*movCols;
-% map = memmapfile(binFilePath, 'Format', {'int16', [80000, nPix], 'mov'});
+% map = memmapfile(binFilePath, 'Format', {'int16', [nFrames, nPix], 'mov'});
 % matlabPixelIndex = 12345; % Whatever pixel(s) you want to query.
 % [pixRow, pixCol] = ind2sub([movRows, movCols], matlabPixelIndex);
 % binFilePixelIndex = sub2ind([movCols, movRows], pixCol, pixRow); % Note how row/col are swapped with respect to Matlab convention.

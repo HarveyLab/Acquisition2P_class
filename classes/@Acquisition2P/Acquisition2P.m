@@ -104,7 +104,7 @@ classdef Acquisition2P < handle
         
         function movie = readCor(obj,movNum,castType,sliceNum,chanNum)
             %Reads in motion corrected data from an acquisition. Defaults
-            %to slice 1 channel 1 if non specified
+            %to slice 1 channel 1 if none specified
             %
             % movie = readCor(obj,movNum,castType,sliceNum,chanNum)
             if isempty(obj.correctedMovies)

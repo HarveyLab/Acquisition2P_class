@@ -26,7 +26,7 @@
 % 
 % For data capture within one acquisition, we almost always want to motion correct 
 % all frames for each slice with respect to each other, select appropriate ROIs, and 
-% extract corresponding raw fluorescence traces. The Acquisition2P class is designed 
+% extract corresponding fluorescence traces. The Acquisition2P class is designed 
 % to completely manage this pipeline from raw acquisitions to traces, and nothing 
 % more (i.e. no thresholding, analysis...).
 % 
@@ -45,7 +45,8 @@
 % if you want to see an eample of my typical workflow, or use newDir and matlab's copyfile
 % function to build your own. Alternately the acq2pJobProcessor is a class
 % designed to handle automated processing of acq2p objects, very useful if
-% you have masses of data to deal with.
+% you have masses of data to deal with. It has a readme file documenting
+% usage in the @acq2pJobProcessor.
 
 %% Initialize an Acquisition2P object
 
@@ -65,15 +66,9 @@
 % workspace with the name created by the automatic procedure. The function also
 % outputs the object if you prefer that syntax, but having the
 % initialization automatically assign the variable ensures that the
-% object's internal name matches its matlab variable name. If passing an
-% initialization function with multiple arguments, pass a cell array with
-% the function handle as the first element, the second argument as the
-% object or as empty to fill in the object, and additional arguments as
-% subsequenct elements. Ex. {@initFunc,[],arg1,arg2}
+% object's internal name matches its matlab variable name. 
 
 Acquisition2P([],@SC2Pinit);
-
-% Acquisition2P([],{@SC2Pinit,[],arg1,arg2});
 
 % The Acquisition2P constructer has a series of error checks to ensure that
 % necessary properties are not left blank by accident. Practically, this
@@ -97,14 +92,20 @@ Acquisition2P([],@SC2Pinit);
 % field of the object for hassle-free reading of the data later
 
 % The motion correction algorithm and write locations can be
-% flexibly modified but here we will use defaults.
+% flexibly modified but here we will use defaults. The SC2Pinit by default
+% selects a computationally intensive lucas-kanade based algorithm, which
+% intelligently incorporates knowledge of the serially-acquired structure of
+% raster-scanning data to correct for within-frame non-rigid deformations
+% in addition to standard whole-frame translations. Faster algorithms are
+% included or can be incorporated if within-frame correction is deemed
+% unnecessary
 
 % Note, I can't predict the name of your acquisition object, so instead I'm
-% going to write 'myObj', and just replace this with...the name of your acquisition obj...
+% going to write 'myObj', and just replace this with...the name of your acquisition2p obj...
 
 myObj.motionCorrect;
 
-%% Reading data to workspace
+%% Reading data into workspace
 % The Acquisition2P object now contains metainformation pertaining to both
 % corrected and raw data, and we can use the readCor and readRaw methods, 
 % respectively, to load them. These methods are the only methods without
@@ -129,7 +130,7 @@ implay(cat(2,mov,rawMov)/1e3,30),
 % the next step. We will calculate pixel-pixel correlations, and also save a
 % large file containing the total movie information in a 16-bit binary file
 % format. Note that both of these functions require re-reading the
-% corrected movies from disk into memory. You can save a lot of time by
+% corrected movies from disk into memory. You can save time by
 % rolling these steps into the motion correction function itself, before
 % the movie is written to disk and cleared from memory, but for clarity I
 % avoid that here. Note also that these functions will save very large
@@ -162,7 +163,7 @@ myObj.indexMovie(sliceNum,channelNum,writeDir);
 % acquisition2P class has a save method, with optional arguments, but
 % default behavior is to overwrite the acqName file in defaultDir 
 
-help Acquisition2P.save
+%help Acquisition2P.save
 myObj.save;
 %% ROI selection
 
@@ -190,14 +191,18 @@ img = adapthisteq(img/max(img(:)));
 actImg = myObj.roiInfo.slice(sliceNum).covFile.activityImg;
 % img = img/2 + actImg/2;
 
-% Now start the ROI selection GUI. This tool has too many features to
-% describe here, and is described in its own tutorial. Again, all arguments
-% are optional, provided here just for clarity.
+% Note that the reference image is only used for display purposes, and has no impact
+% on the segmentation algorithm itself.
+
+% Now start the ROI selection GUI. This tool is complex enough to have its
+% own tutorial, located in the same folder as this file. Again, all
+% arguments are optional, provided here just for clarity.
 smoothWindow = 15; % Gaussian window with std = smoothWin/5, for displaying traces
 excludeFrames = []; %List of frames that need to be excluded, e.g. if they contain artifacts
 myObj.selectROIs(img,sliceNum,channelNum,smoothWindow,excludeFrames);
 
-% Once you've selected ROIs, be sure to save the acquisition again
+% Take the time to read through 'Using the ROI selection tool', and then
+% select your cells. Once you've selected ROIs, be sure to save the acquisition again
 myObj.save;
 %% Extracting ROIs
 
@@ -223,7 +228,7 @@ roiGroups = [1,3];
 % possibly negative values. The recommended means of calculating is to
 % subtract the baseline of the corrected traces but divide by the baseline
 % of the uncorrected traces. This is accomplished automatically in the
-% extractROIs method, and returned as dF.
+% extractROIs method (using a call to dFcalc), and returned as dF.
 
 
 %% Pulling it all together
@@ -243,4 +248,4 @@ myObj.save,
 myObj.selectROIs([],sliceNum,channelNum);
 myObj.save,
 
-[dF,traces,rawF,roiList] = extractROIsBin(obj,roiGroups,sliceNum,channelNum);
+dF = extractROIsBin(obj,roiGroups,sliceNum,channelNum);
