@@ -1,4 +1,4 @@
-function createAcquisitionObjects(folder)
+function createAcquisitionObjects(folder,forceOverwrite)
 %createAcquisitionObjects.m Looks through folder and creates acquisition
 %objects to be processed
 %
@@ -6,6 +6,10 @@ function createAcquisitionObjects(folder)
 %folder - folder to look through
 %
 %ASM 11/14
+
+if nargin < 2 || isempty(forceOverwrite)
+    forceOverwrite = false;
+end
 
 if nargin < 1 || isempty(folder)
     folder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Ari\2P Data\ResScan';
@@ -53,7 +57,7 @@ for mouseInd = 1:nMouseDir
         inProgressPath = sprintf('%s%s%s_acq.mat',inProgressDir,filesep,acqName);
         inQueuePath = sprintf('%s%s%s_acq.mat',inQueueDir,filesep,acqName);
         
-        if exist(acqStatusPath,'file')
+        if exist(acqStatusPath,'file') && ~forceOverwrite
             
             %                 obj = load(acqPath);
             %

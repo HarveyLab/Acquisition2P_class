@@ -56,7 +56,7 @@ if exist(prevAcqFileName,'file')
 end
 
 %remove processed files
-movNames = movNames(~cellfun(@isempty,regexp(movNames,'[A-Z]{2}\d{3}_\d{3}_\d{3}.tif')));
+movNames = movNames(~cellfun(@isempty,regexp(movNames,'[A-Z]{2}\d{3}_.*\d{3}_\d{3}.tif')));
 
 %check if any movies
 if isempty(movNames)
