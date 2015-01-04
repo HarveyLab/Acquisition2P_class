@@ -1,6 +1,10 @@
 %% Using the Acuisition2P class:
 %
 %% -----Setup-------
+% All software in the acq2P package has been extensively tested on Matlab
+% 2014b. Using earlier versions may cause bugs and will certainly degrade
+% appearance.
+
 % You will need a number of functions from the harveylab helper functions
 % repository, so I suggest you add the full repository to your path.
 
@@ -158,6 +162,7 @@ myObj.indexMovie(sliceNum,channelNum,writeDir);
 % acquisition2P class has a save method, with optional arguments, but
 % default behavior is to overwrite the acqName file in defaultDir 
 
+help Acquisition2P.save
 myObj.save;
 %% ROI selection
 
