@@ -27,6 +27,15 @@ if ~isnan(manualShift)
     return
 end
 
+% Take temporal average:
+% (Originally, this function measured the shifts for every frame
+% individually and then found a consensus, but this didn't work well for
+% very dim movies. The function was thus changed to find the shift for the
+% temporal average of the entire movie, which is OK because the shift
+% typically changes very slowly.)
+movMean = mean(mov, 3);
+movMean = movMean - mean(movMean(:));
+
 % Crop image by 30%:
 hCrop = ceil(origH*0.15);
 wCrop = ceil(origW*0.15);
@@ -36,37 +45,22 @@ wCrop = ceil(origW*0.15);
 maxAbsShift = 3;
 sh          = -maxAbsShift:1:maxAbsShift;
 nSh         = numel(sh);
-movOrig     = reshape(mov(hCrop:2:end+1-hCrop, wCrop:end+1-wCrop, :), [], origZ);
-diffs       = nan(origZ, nSh);
+linesOdd    = movMean(hCrop:2:end+1-hCrop, wCrop:end+1-wCrop, :);
+corrs       = nan(1, nSh);
 shiftedInd  = nan(origW, nSh);
 for s = 1:nSh
     shiftedInd(:, s)    = circshift((1:origW)', sh(s));    
-    movShifted          = reshape(mov(hCrop+1:2:end+1-hCrop,  shiftedInd(wCrop:end+1-wCrop, s), :), [], origZ);
-    diffs(:, s)         = mean(abs(movOrig-movShifted), 1);
+    linesEvenShifted    = movMean(hCrop+1:2:end+1-hCrop,  shiftedInd(wCrop:end+1-wCrop, s), :);
+    corrs(:, s)         = corr(linesOdd(:), linesEvenShifted(:));
 end
-[bestCorr, iBestSh] = min(diffs, [], 2);
-
-% Find "consensus" shift values by mode filtering:
-% (Mode filtering is implemented by using im2col to slide a window across
-% iBestSh, and then using histc to count which shift-index is most common
-% in each window.
-windowSize = 100; % Hard-coded window size, should be adjusted for different frame rates.
-t = im2col(iBestSh, [windowSize, 1], 'sliding');
-t = histc(t,1:nSh);
-[~, iBestSh] = max(t, [], 1);
-iBestSh(end+1:end+windowSize-1) = iBestSh(end); % Fill up to full length since the sliding window in im2col doesn't pad.
-iBestSh = iBestSh(:);
+[bestCorr, iBestSh] = max(corrs, [], 2);
 
 %% Correct movie:
 % Create shiftedInd for non-cropped movie:
-[origSh, ~, iOSh]  = unique(sh(iBestSh));
-origShiftedInd = nan(origW, numel(origSh));
-for s = 1:numel(origSh)
-    origShiftedInd(:, s) = circshift((1:origW)', origSh(s));
-end
+origShiftedInd = circshift((1:origW)', sh(iBestSh));
 
 for f = 1:origZ
-    mov(2:2:end, :, f) = mov(2:2:end, origShiftedInd(:, iOSh(f)), f);
+    mov(2:2:end, :, f) = mov(2:2:end, origShiftedInd, f);
 end
 
 %% Output arguments
