@@ -1,17 +1,26 @@
-function acq = mjlmInitialization(acqId, savePath)
+function acq = mjlmInitialization(acqId, savePath, acqName)
 % acq = mjlmInitialization(acqId, savePath) - acqId (formerly fileId) is
 % some fragment of the file name of the current acquisition that is unique
 % to the current acquisition.
 
-acq = Acquisition2P(acqId, @(acq) init(acq, acqId));
-
-if ~exist('savePath', 'var')
-    savePath = improc.dir.jobsToDo;
+if nargin < 3
+    acqName = acqId;
 end
 
-save(fullfile(savePath, acq.acqName), 'acq');
+% Escape acqId because it will be used as a filename:
+acqName = regexprep(acqName, '[\\/:*?"<>|]', '_');
+acqName = regexprep(acqName, '_+', '_');
+
+% Trim trailing underscores:
+acqName = regexprep(acqName, '_$', '');
+
+acq = Acquisition2P(acqName, @(acq) init(acq, acqId));
+
+if exist('savePath', 'var')
+    save(fullfile(savePath, acq.acqName), 'acq');
+end
+
 fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, numel(acq.Movies));
-fprintf('Saved acquisition file to %s.\n', savePath);
 
 function init(acq, acqId)
 % Add remote files:
