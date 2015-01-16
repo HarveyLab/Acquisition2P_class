@@ -12,6 +12,27 @@ sel.disp.currentClustering = reshape(clusterIndex, sel.roiInfo.covFile.nh, sel.r
 set(sel.h.img.cluster, 'cdata', label2rgb(sel.disp.currentClustering));
 title(sel.h.ax.cluster, sprintf('Clustering with % 1.0f cuts', clusterNum))
 
+% Display cost of finest cut:
+distMat = sel.getCovData;
+cut = @(mask) sum(sum(distMat(mask(:), ~mask(:))));
+assoc = @(mask) sum(sum(distMat(mask, :)));
+ncut = @(mask) (cut(mask)/assoc(mask))+(cut(mask)/assoc(~mask));
+fprintf('Cost of finest ncut: corr: %1.5f', ncut(sel.disp.currentClustering==clusterNum+1));
+
+% Using cov: 
+distMat = corrcov(distMat, 1);
+cut = @(mask) sum(sum(distMat(mask(:), ~mask(:))));
+assoc = @(mask) sum(sum(distMat(mask, :)));
+ncut = @(mask) (cut(mask)/assoc(mask))+(cut(mask)/assoc(~mask));
+fprintf(' cov: %1.5f', ncut(sel.disp.currentClustering==clusterNum+1));
+
+% Average:
+avgNcut = zeros(clusterNum+1, 1);
+for i = 1:clusterNum+1
+    avgNcut(i) = ncut(sel.disp.currentClustering==i);
+end
+fprintf(' avgcut: %1.5f\n', mean(avgNcut));
+
 %Autoselect cluster at click position and display
 sel.disp.currentClustInd = sel.disp.currentClustering(round(end/2)); % Finds center pixel of square array.
 title(sel.h.ax.roi, 'ROI Selection');

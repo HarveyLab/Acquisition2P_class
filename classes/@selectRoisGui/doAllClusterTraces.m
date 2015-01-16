@@ -36,11 +36,11 @@ function doAllClusterTraces(sel)
         title(sel.h.ax.roi, 'This trace loaded');
         
         %add arrow to current cluster
-        delete(findall(sel.h.fig.trace(1), 'type', 'annotation')); % Delete old annotations.
-        [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
-            max(xFrames), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
-        annotation(sel.h.fig.trace(1), 'arrow',...
-            [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
+%         delete(findall(sel.h.fig.trace(1), 'type', 'annotation')); % Delete old annotations.
+%         [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
+%             max(xFrames), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
+%         annotation(sel.h.fig.trace(1), 'arrow',...
+%             [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
         sel.disp.indNeuropil = [];

@@ -27,7 +27,7 @@ end
 
 %% Memory mapping:
 %Memory Map Movie
-movSizes = cat(1, acq.derivedData.size);
+movSizes = acq.correctedMovies.slice(1).channel(1).size;
 h = movSizes(1, 1);
 w = movSizes(1, 2);
 nFramesTotal = sum(movSizes(:, 3));

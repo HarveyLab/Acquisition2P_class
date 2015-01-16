@@ -7,6 +7,26 @@ function cbKeypress(sel, ~, evt)
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
 % 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 switch evt.Key
+    case 'p' % Play movie of current region:
+        mov = sel.movMap.Data.mov;
+        nh = sel.roiInfo.covFile.nh;
+        nhInd = 1:nh^2;
+        movInd = sel.nh2movInd(nhInd);
+        movHere = mov(:, sel.acq.mat2binInd(movInd))';
+        movHere = reshape(movHere, nh, nh, []);
+        clear mov
+        playMov(movHere)
+        
+    case 'u' % Custom user function:
+        h = figure(3453245);
+        h.Name = 'Aligned trace';
+        h.NumberTitle = 'off';
+        stimFrames = sel.disp.excludeFrames(diff(sel.disp.excludeFrames)>1);
+        win = [500 500];
+        trAl = trace.align(sel.disp.fBody-sel.disp.fNeuropil, stimFrames, win);
+        t = (-win(1)+1:win(2))*sel.disp.framePeriod;
+        plot(t, nanmean(trAl, 1))
+        
     case 't'
         addOverlayTrace(sel),
     case 'c'

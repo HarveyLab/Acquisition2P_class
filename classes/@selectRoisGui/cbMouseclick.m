@@ -30,6 +30,7 @@ else
     initialClusterNum = initialClusterNum + sign(sel.disp.clusterNum-initialClusterNum);
     sel.disp.clusterNum = initialClusterNum;
 end
+sel.disp.clusterNum = 1; % Clamp to one for cut cost experiments.
 
 %If click is valid, define new ROIpt at click location:
 if isfield(sel.h.ui,'roiPoint')
