@@ -20,7 +20,7 @@ function selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
 %
 % smoothWindow - the length (not std!) of gaussian kernel used to smooth
 % traces for display and for fitting neuropil subtraction coefficients
-% (standard deviation of gaussian window equals smoothWindow / 5)
+% (standard deviation of gaussian window equals (smoothWindow-1) / 5)
 %
 % USAGE:
 %

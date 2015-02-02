@@ -13,7 +13,8 @@ sel.slice = sliceNum;
 if ~isfield(sel.roiInfo, 'roi') || isempty(sel.roiInfo.roi)
     % If this is acq object has not been processed before, initialize
     % fields:
-    sel.roiInfo.hasBeenViewed = zeros(size(img));
+    [h, w, ~] = size(img);
+    sel.roiInfo.hasBeenViewed = zeros(h, w);
     sel.roiInfo.roi = struct('id', [], 'group', [], 'indBody', [], ...
         'indNeuropil', [], 'subCoef', []);
 end

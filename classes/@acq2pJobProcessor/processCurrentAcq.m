@@ -60,7 +60,10 @@ end
 
 % Caclulate pixel covariance:
 %check if pixel covariance already calculated
-if isempty(ajp.currentAcq.roiInfo) || ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1) %if no roi info or if different neighborhood
+if isempty(ajp.currentAcq.roiInfo) ...
+        || (~isempty(pxCovRad) && ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1))
+    % ROI info does not exist or a different neighborhood size was
+    % requested:
     try
         ajp.log('Started pixel covariance calculation.');
         ajp.currentAcq.calcPxCov([],pxCovRad);

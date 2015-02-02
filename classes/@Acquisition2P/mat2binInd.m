@@ -1,6 +1,6 @@
 function binPixInd = mat2binInd(obj, matPixInd)
-% mat2binInd(acq, ind) converts a Matlab-conventional index into a movie
-% frame into and index that can be used with the column-major binary movie
+% mat2binInd(acq, ind) converts a Matlab-conventional index (into a movie
+% frame) into an index that can be used with the column-major binary movie
 % file.
 
 % Assume all slices and Channels have same image size
