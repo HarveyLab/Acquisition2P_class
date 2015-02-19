@@ -92,7 +92,7 @@ pixCov = pixCov / length(movNums);
 
 %% Write results to disk
 display('-----------------Saving Results-----------------')
-fileName = sprintf('%s_slice%02.0f_pixCov.bin', obj.acqName, nSlice);
+fileName = sprintf('%s_slice%02.0f_pixCov.bin', obj.acqName, sliceNum);
 covFileName = fullfile(writeDir, fileName);
 
 % Write binary file to disk:
