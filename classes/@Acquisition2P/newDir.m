@@ -26,9 +26,16 @@ if ~exist('doCov', 'var') || isempty(doCov)
 end
 
 %% Copy files
-
+if doCor == 1
 nSlices = length(obj.correctedMovies.slice);
 nChannels = length(obj.correctedMovies.slice(1).channel);
+elseif doInd == 1
+nSlices = length(obj.indexedMovie.slice);
+nChannels = length(obj.indexedMovie.slice(1).channel);
+else
+nSlices = length(obj.roiInfo.slice);
+nChannels = length(obj.roiInfo.slice(1).channel);
+end
 
 for nSlice = 1:nSlices
     fprintf('\n Copying Slice %02.0f of %02.0f\n',nSlice,nSlices)
