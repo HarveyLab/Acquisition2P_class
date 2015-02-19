@@ -63,6 +63,9 @@ classdef selectRoisGui < handle
                 warning('No indexed movie is associated with this Acquisition. Attempting to load traces will throw an error'),
             end
             
+            % Export object to base for development:
+            assignin('base', 'sel', sel);
+            
             % The constructor code is outsourced to createGui:
             sel.createGui(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames);
         end

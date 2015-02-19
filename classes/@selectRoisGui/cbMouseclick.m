@@ -5,9 +5,9 @@ function cbMouseclick(sel, objClick, ~, row, col)
 persistent initialClusterNum
 
 % Ignore if right click
-if ~strcmp(get(objClick, 'SelectionType'), 'normal') %if right click
-    return
-end
+% if ~strcmp(get(objClick, 'SelectionType'), 'normal') %if right click
+%     return
+% end
 
 % Get current click location
 if nargin < 4
@@ -30,7 +30,7 @@ else
     initialClusterNum = initialClusterNum + sign(sel.disp.clusterNum-initialClusterNum);
     sel.disp.clusterNum = initialClusterNum;
 end
-sel.disp.clusterNum = 1; % Clamp to one for cut cost experiments.
+% sel.disp.clusterNum = 1; % Clamp to one for cut cost experiments.
 
 %If click is valid, define new ROIpt at click location:
 if isfield(sel.h.ui,'roiPoint')
