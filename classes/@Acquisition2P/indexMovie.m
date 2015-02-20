@@ -51,7 +51,7 @@ fprintf('Saving file %s\n',movFileName);
 fid = fopen(movFileName, 'A');
 
 %% Write bin file in frame-major order:
-fileList = sort(obj.correctedMovies.slice(1).channel(1).fileName);
+fileList = sort(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName);
 nFiles = numel(fileList);
 
 % Create Tiff object:
