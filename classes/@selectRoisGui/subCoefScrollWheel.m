@@ -4,6 +4,8 @@ function subCoefScrollWheel(sel, ~, evt)
 
 if strcmpi(evt.Source.CurrentModifier,'control')
     gain = 0.05;
+elseif strcmpi(evt.Source.CurrentModifier,'shift')
+    gain = .5;
 else
     gain = 0.005;
 end
