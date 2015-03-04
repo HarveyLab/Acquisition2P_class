@@ -27,9 +27,8 @@ for x=1:length(xind)
 end
 nSeg = size(segPos,1);
 
-nSlices = metaMov.stackNumSlices;
-nChannels = numel(metaMov.channelsSave);
-
+nSlices = numel(movStruct.slice);
+nChannels = numel(movStruct.slice(1).channel);
 
 switch opMode
     case 'identify'
