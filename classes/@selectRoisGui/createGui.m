@@ -76,6 +76,12 @@ sel.disp.img = img;
 % Create memory map of pixCov file:
 sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
+covData = sel.covMap.Data.pixCov;
+tic,
+display('Loading Cov File')
+sel.covMap = [];
+sel.covMap = covData;
+toc,
 
 % Create memory mapped binary file of movie:
 movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;
@@ -110,8 +116,7 @@ if screenSize(3) > screenSize(4)
     sel.h.ui.sliderWhite = uicontrol('Style', 'slider', 'Units', 'Normalized',...
         'Position', [refPos(1)+0.35 refPos(2) - 0.05 .3*refPos(3) 0.02],...
         'Min', 0, 'Max', 1, 'Value', 1, 'SliderStep', [0.01 0.1],...
-        'Callback',@sel.cbSliderContrast);    
-    
+        'Callback',@sel.cbSliderContrast);
 else
     % Portrait-format screen:
     sel.h.ax.overview = subplot(6, 4, 9:24);
@@ -125,6 +130,12 @@ else
     sel.h.ax.roi = subplot(6, 4, 6);
 
 end
+
+% Create auto-cut calculation checkboxes
+sel.h.ui.autoCalcCuts = uicontrol('Style', 'checkbox','String','Estimate Cuts',...
+    'Units', 'Normalized', 'Position', [0.034 0.02 0.15 0.048]);
+sel.h.ui.autoCalcClusters = uicontrol('Style', 'checkbox','String','Estimate Clusters',...
+    'Units', 'Normalized', 'Position', [0.034 0.05 0.15 0.048]);
 
 %create traces figures
 sel.h.fig.trace(1) = figure('Name','Cluster Traces');

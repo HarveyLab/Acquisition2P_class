@@ -7,7 +7,7 @@ function doAllClusterTraces(sel)
         % Get matrix of fluorescence traces for all clusters:
         mov = sel.movMap.Data.mov;
         F = zeros(sel.disp.clusterNum+1, size(mov, 1));
-        for i = 1:sel.disp.clusterNum+1
+        for i = 1:max(sel.disp.currentClustering(:))
             nhInd = find(sel.disp.currentClustering==i);
             movInd = sel.nh2movInd(nhInd); %#ok<FNDSB>
             movInd = movInd(~isnan(movInd)); % If click was at the edge, missing values are nan.
@@ -26,7 +26,7 @@ function doAllClusterTraces(sel)
         
         % Coloring: use same hues as in the image showing the cuts:
         cla(sel.h.ax.traceClusters);
-        clut = jet(sel.disp.clusterNum+1);
+        clut = jet(max(sel.disp.currentClustering(:)));
         hold(sel.h.ax.traceClusters,'on');
         set(sel.h.ax.traceClusters, 'ColorOrder', clut, 'ColorOrderIndex', 1);
         

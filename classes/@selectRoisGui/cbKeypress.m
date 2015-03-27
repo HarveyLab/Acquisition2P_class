@@ -39,15 +39,16 @@ switch evt.Key
             %Get indices of current ROI as cell body + update title state
             sel.disp.indBody = find(sel.disp.roiMask);
             title(sel.h.ax.roi, 'Select neuropil pairing');
+            [~,sel.disp.currentClustInd] = min(sel.disp.centroidNorm);
             
             % For upcoming neuropil selection, switch to largest cut,
             % because that's probably the neuropil:
-            clustStats = regionprops(sel.disp.currentClustering, 'BoundingBox');
-            boundingBoxCoords = reshape([clustStats.BoundingBox], 2, 2, []);
-            boundingBoxSize = abs(diff(boundingBoxCoords, [], 2));
-            boundingBoxArea = squeeze(prod(boundingBoxSize, 1));
-            boundingBoxArea(sel.disp.currentClustering(sel.disp.indBody(1))) = 0; % Exclude the cluster that was just selected as ROI body.
-            [~, sel.disp.currentClustInd] = max(boundingBoxArea);
+%             clustStats = regionprops(sel.disp.currentClustering, 'BoundingBox');
+%             boundingBoxCoords = reshape([clustStats.BoundingBox], 2, 2, []);
+%             boundingBoxSize = abs(diff(boundingBoxCoords, [], 2));
+%             boundingBoxArea = squeeze(prod(boundingBoxSize, 1));
+%             boundingBoxArea(sel.disp.currentClustering(sel.disp.indBody(1))) = 0; % Exclude the cluster that was just selected as ROI body.
+%             [~, sel.disp.currentClustInd] = max(boundingBoxArea);
             
             %Update ROI display
             sel.displayRoi;

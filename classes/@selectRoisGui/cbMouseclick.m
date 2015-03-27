@@ -30,6 +30,7 @@ else
     initialClusterNum = initialClusterNum + sign(sel.disp.clusterNum-initialClusterNum);
     sel.disp.clusterNum = initialClusterNum;
 end
+sel.disp.clusterMod = 0;
 
 %If click is valid, define new ROIpt at click location:
 if isfield(sel.h.ui,'roiPoint')
@@ -55,10 +56,19 @@ sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 %Construct matrices for normCut algorithm using correlation coefficients
 W = double(corrcov(covMat, 1)); % Flag = Don't check for correctness of covMat.
 D = diag(sum(W));
-nEigs = 13;
+nEigs = 21;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
 [~,eigOrder] = sort(diag(eVal));
-sel.disp.cutVecs = eVec(:, eigOrder(2:nEigs));
+eigOrder = eigOrder(2:end);
+for nEig = 1:nEigs-1
+    nOrd = eigOrder(nEig);
+    sel.disp.cutVals(nEig) = eVal(nOrd,nOrd);
+    sel.disp.cutVecs(:,nEig) = eVec(:,nOrd)./sel.disp.cutVals(nEig);
+end
+
+% Calculate #cuts and #clusters
+sel.calcClusterProps;
+
 
 %Update cut display axes
 nh = sel.roiInfo.covFile.nh;
@@ -71,7 +81,7 @@ for ii = 1:numel(sel.h.img.eig);
     eVecImg(:,:,1) = eVecImg(:,:,1) .* existingRoiMask;
     eVecImg(:,:,3) = eVecImg(:,:,3) .* existingRoiMask;
     set(sel.h.img.eig(ii), 'cdata', eVecImg);
-    title(sel.h.ax.eig(ii), sprintf('Cut %d', ii))
+    title(sel.h.ax.eig(ii), sprintf('Cut %d: %0.3f', ii, sel.disp.cutVals(ii)))
 end
 
 %Display new ROI
