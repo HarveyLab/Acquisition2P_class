@@ -52,12 +52,14 @@ edgeCols = find(mean(obj.meanRef>threshold)<0.01);
 % Extract edge signal:
 edgeSignal = zeros(h, nFramesTotal);
 nCols = numel(edgeCols);
+fprintf('Extracting edge signal...');
 for ii = 1:nCols
-    ii
+    fprintf('.');
     colInd = sub2ind([h, w], 1:h, repmat(edgeCols(ii), 1, h));
     colIndMov = obj.mat2binInd(colInd);
     edgeSignal = edgeSignal + double(mov(:, colIndMov)'/nCols);
 end
+fprintf('\n');
 
 %% ROI Extraction
 %Find relevant ROIs

@@ -30,7 +30,6 @@ else
     initialClusterNum = initialClusterNum + sign(sel.disp.clusterNum-initialClusterNum);
     sel.disp.clusterNum = initialClusterNum;
 end
-% sel.disp.clusterNum = 1; % Clamp to one for cut cost experiments.
 
 %If click is valid, define new ROIpt at click location:
 if isfield(sel.h.ui,'roiPoint')
@@ -61,7 +60,7 @@ nEigs = 13;
 [~,eigOrder] = sort(diag(eVal));
 sel.disp.cutVecs = eVec(:, eigOrder(2:nEigs));
 
-%Update cut display axes
+%Update evec display:
 nh = sel.roiInfo.covFile.nh;
 existingRoiMask = double(~reshape(sel.disp.roiLabels(pxNeighbors), nh, nh));
 existingRoiMask(existingRoiMask==0) = 0.9;
@@ -75,15 +74,45 @@ for ii = 1:numel(sel.h.img.eig);
     title(sel.h.ax.eig(ii), sprintf('Cut %d', ii))
 end
 
+% Find a good guess for the number of cuts:
+x = sel.estimateNumberOfCuts(W);
+
+% For debugging:
+sel.disp.corrMat = W;
+
 %Display new ROI
 sel.calcRoi;
 sel.updateOverviewDisplay(false);
+
+% For debugging:
+figure(991)
+clf
+ax = axes;
+hold(ax, 'on');
+clut = jet(sel.disp.clusterNum+1);
+for i = unique(sel.disp.currentClustering)'
+    this = sel.disp.currentClustering==i;
+    plot(ax, x(this, 1), x(this, 2), '.', 'color', clut(i, :));
+end
+hold(ax, 'off');
+set(ax, 'Color', [0.3 0.3 0.3])
+legend(ax, 'show');
+figure(1)
 
 % Load traces if requested
 if get(sel.h.ui.autoLoadTraces,'Value') == 1 && strcmp(sel.h.timers.loadTraces.Running, 'off')
     start(sel.h.timers.loadTraces);
 else
     stop(sel.h.timers.loadTraces);
+end
+
+% Auto-select center ROI + estimated neuropil if requested:
+if get(sel.h.ui.autoSelectRoi,'Value') == 1
+    evt.Key = 'space';
+    drawnow; % To update figure titles, which are used to determine which mode we're in.
+    cbKeypress(sel, [], evt);
+    drawnow; % To update figure titles, which are used to determine which mode we're in.
+    cbKeypress(sel, [], evt);
 end
 
 end
