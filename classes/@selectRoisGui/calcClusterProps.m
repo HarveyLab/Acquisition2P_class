@@ -9,7 +9,9 @@ if doCuts
     [B,stats] = robustfit(X,cutVals,'bisquare',2);
     Y = X*B(2)+B(1)-stats.s*2;
     nCutsAuto = find(cutVals<Y,1,'last');
-    sel.disp.clusterNum = nCutsAuto;
+    if ~isempty(nCutsAuto)
+        sel.disp.clusterNum = nCutsAuto;
+    end
     % plot(cutVals,'.','markerSize',15),
     % plot(X(nCutsAuto),cutVals(nCutsAuto),'.','markerSize',15),
     % figure(6),clf,hold on
