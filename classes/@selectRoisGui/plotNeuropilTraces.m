@@ -26,8 +26,8 @@ sel.disp.fNeuropil(sel.disp.excludeFrames) = [];
 % Remove bleaching:
 % sel.disp.fBody = deBleach(sel.disp.fBody, 'runningAvg',9001);
 % sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'runningAvg',9001);
-sel.disp.fBody = deBleach(sel.disp.fBody, 'linear');
-sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'linear');
+sel.disp.fBody = deBleach(sel.disp.fBody, 'exp_linear');
+sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'exp_linear');
 sel.disp.f0Body = prctile(sel.disp.fBody,10);
 
 % Smooth traces:
