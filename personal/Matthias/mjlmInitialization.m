@@ -24,7 +24,7 @@ fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, nu
 
 function init(acq, acqId)
 % Add remote files:
-acq.Movies = improc.findFiles(acqId, 0, 0);
+acq.Movies = improc.findFiles(acqId, '\\User1-PC\D\data\Matthias', 0);
 
 % Set default dir to local "processed" dir:
 [~, host] = system('hostname');
