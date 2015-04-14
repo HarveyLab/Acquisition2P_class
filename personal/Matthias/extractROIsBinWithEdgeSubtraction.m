@@ -1,11 +1,11 @@
-function [traces, rawF, roiList, roiGroup, traceNeuropil] = ...
-    extractROIsBinWithEdgeSubtraction(acq,roiGroups,sliceNum,channelNum)
+function [traces, rawF, roi, traceNeuropil] = ...
+    extractROIsBinWithEdgeSubtraction(obj,roiGroups,sliceNum,channelNum)
 % Function for extracting ROIs from movies using grouping assigned by
 % selectROIs. This function uses a memorymapped binary file of the entire
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
 % from tiff files instead
 %
-% [traces,rawF,roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
+% [traces, rawF, roiList] = extractROIs(obj,roiGroups,sliceNum,channelNum)
 %
 % roiGroups is a scalar or vector of desired groupings to extract ROIs for, defaults to all grouping (1:9)
 % traces - matrix of n_cells x n_frames fluorescence values, using neuropil correction for ROIs with a matched neuropil ROI
@@ -25,52 +25,57 @@ if ~exist('roiGroups','var') || isempty(roiGroups)
     roiGroups = 1:9;
 end
 
+% Update roi information to new structure:
+if isfield(obj.roiInfo.slice(sliceNum), 'roiList')
+    removeRoiList(obj);
+end
+
 %% Memory mapping:
 %Memory Map Movie
-movSizes = cat(1, acq.derivedData.size);
+movSizes = obj.correctedMovies.slice(1).channel(1).size;
 h = movSizes(1, 1);
 w = movSizes(1, 2);
 nFramesTotal = sum(movSizes(:, 3));
 
-movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
+movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
     'Format', {'int16', [nFramesTotal, h*w], 'mov'});
 mov = movMap.Data.mov;
 
 %% Get mean edge signal:
-colBrightness = nanmedian(acq.meanRef);
+% Find edge regions:
+colBrightness = nanmedian(obj.meanRef);
 colBrightnessSort = sort(colBrightness);
 [~, ind] = max(diff(colBrightnessSort));
 threshold = colBrightnessSort(ind);
-edgeCols = find(mean(acq.meanRef>threshold)<0.01);
+edgeCols = find(mean(obj.meanRef>threshold)<0.01);
 
+% Extract edge signal:
 edgeSignal = zeros(h, nFramesTotal);
 nCols = numel(edgeCols);
-
+fprintf('Extracting edge signal...');
 for ii = 1:nCols
-    ii
+    fprintf('.');
     colInd = sub2ind([h, w], 1:h, repmat(edgeCols(ii), 1, h));
-    colIndMov = acq.mat2binInd(colInd);
+    colIndMov = obj.mat2binInd(colInd);
     edgeSignal = edgeSignal + double(mov(:, colIndMov)'/nCols);
 end
+fprintf('\n');
 
-%% Roi extraction:
+%% ROI Extraction
 %Find relevant ROIs
-roiGroup = acq.roiInfo.slice(sliceNum).grouping;
-roiList = find(ismember(roiGroup,roiGroups));
-roiGroup = roiGroup(roiList);
-nRois = numel(roiList);
+isRoiSelected = ismember([obj.roiInfo.slice(sliceNum).roi.group], roiGroups);
+roi = obj.roiInfo.slice(sliceNum).roi(isRoiSelected);
 
-%Loop over each ROI,
-traces = nan(nRois, nFramesTotal);
-rawF = nan(nRois, nFramesTotal);
-traceNeuropil = nan(nRois, nFramesTotal);
+% Loop over each ROI to be extracted:
+nRoi = numel(roi);
+traces = nan(nRoi, nFramesTotal);
+rawF = nan(nRoi, nFramesTotal);
+traceNeuropil = nan(nRoi, nFramesTotal);
 
-for nROI = 1:nRois
-    fprintf('Extracting ROI %03.0f of %03.0f\n',nROI,length(roiList));
+for r = 1:nRoi
+    fprintf('Extracting ROI %03.0f of %03.0f\n', r, nRoi);
     
-    thisRoi = acq.roiInfo.slice(sliceNum).roi(roiList(nROI));
-    
-    indCell = acq.mat2binInd(thisRoi.indBody);
+    indCell = obj.mat2binInd(roi(r).indBody);
     
     % Find which part of the edge trace we have to subtract: (This
     % automatically takes into account how many pixels the ROI has on each
@@ -79,11 +84,11 @@ for nROI = 1:nRois
     thisEdge = mean(edgeSignal(rCell, :), 1);
     
     traceCell = mean(mov(:, indCell), 2)';
-    rawF(nROI,:) = traceCell-thisEdge;    
+    rawF(r,:) = traceCell-thisEdge;    
     
-    if isfield(thisRoi,'indNeuropil') && ~isempty(thisRoi.indNeuropil)
-        subCoef = thisRoi.subCoef;
-        indNeuropil = acq.mat2binInd(thisRoi.indNeuropil);
+    if isfield(roi(r),'indNeuropil') && ~isempty(roi(r).indNeuropil)
+        subCoef = roi(r).subCoef;
+        indNeuropil = obj.mat2binInd(roi(r).indNeuropil);
         
         % Find which part of the edge trace we have to subtract: (This
         % automatically takes into account how many pixels the ROI has on each
@@ -91,12 +96,10 @@ for nROI = 1:nRois
         [rCell, ~] = ind2sub([h, w], indNeuropil);
         thisEdge = mean(edgeSignal(rCell, :), 1);
         
-        
-        traceNeuropil(nROI,:) = mean(mov(:, indNeuropil), 2)' - thisEdge;
-        
-        traces(nROI,:) = traceCell - traceNeuropil(nROI,:)*subCoef;
+        traceNeuropil(r,:) = mean(mov(:, indNeuropil), 2)' - thisEdge;
+        traces(r,:) = rawF(r,:) - traceNeuropil(r,:)*subCoef;
     else
-        traces(nROI,:) = rawF(nROI,:);
+        traces(r,:) = rawF(r,:);
     end
 end
 
