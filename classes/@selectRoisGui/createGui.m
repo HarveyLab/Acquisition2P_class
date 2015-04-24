@@ -74,6 +74,9 @@ end
 sel.disp.img = img;
 
 % Create memory map of pixCov file:
+if ~exist(sel.roiInfo.covFile.fileName, 'file')
+    error('Cannot find covFile at path specified in acq2p object.');
+end
 sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
 covData = sel.covMap.Data.pixCov;
@@ -86,6 +89,9 @@ toc,
 % Create memory mapped binary file of movie:
 movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;
 movLengths = movSizes(:, 3);
+if ~exist(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName, 'file')
+    error('Cannot find binary movie file at path specified in acq2p object.');
+end
 sel.movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
     'Format', {'int16', [sum(movLengths), movSizes(1,1)*movSizes(1,2)], 'mov'});
 
