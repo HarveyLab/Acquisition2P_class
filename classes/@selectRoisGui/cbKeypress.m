@@ -7,6 +7,16 @@ function cbKeypress(sel, ~, evt)
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
 % 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 switch evt.Key
+    case 'p' % Play movie of current region:
+        mov = sel.movMap.Data.mov;
+        nh = sel.roiInfo.covFile.nh;
+        nhInd = 1:nh^2;
+        movInd = sel.nh2movInd(nhInd);
+        movHere = mov(:, sel.acq.mat2binInd(movInd))';
+        movHere = reshape(movHere, nh, nh, []);
+        clear mov
+        playMov(movHere)
+    
     case 't'
         addOverlayTrace(sel),
     case 'c'

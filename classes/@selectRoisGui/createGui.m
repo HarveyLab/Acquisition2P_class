@@ -2,6 +2,9 @@ function createGui(sel, acq, img, sliceNum, channelNum, smoothWindow, excludeFra
 % Constructor method for the selectRoisGui class. See selectROIs.m for
 % usage.
 
+%% For debugging:
+assignin('base', 'sel', sel);
+
 %% Create GUI data structure:
 % Initialize properties:
 sel.acq = acq;

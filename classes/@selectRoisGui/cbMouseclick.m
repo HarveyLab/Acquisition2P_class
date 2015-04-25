@@ -47,7 +47,32 @@ sel.disp.roiInd = [];
 cla(sel.h.ax.traceOverlay),
 
 %Get data from cov file and calculate cuts
-[covMat, pxNeighbors] = sel.getCovData;
+isCustomNhEnabled = isfield(sel.disp, 'nhTemp');
+
+if isCustomNhEnabled && ~isnan(sel.disp.nhTemp.custom) % This allows user to change NH size on the fly
+    % Get movie data:
+    nh = sel.disp.nhTemp.custom;
+    sel.roiInfo.covFile.nh = nh; % To fool other code that reads nh from roiInfo.
+    nhInd = 1:nh^2;
+    pxNeighbors = sel.nh2movInd(nhInd, sel.disp.currentPos, nh);
+    movHere = double(sel.movMap.Data.mov(:, sel.acq.mat2binInd(pxNeighbors))');
+    covMat = corr(movHere');
+else
+    if isCustomNhEnabled
+        % If we are using the custom nh function, we have to clean up any
+        % changes that we may have made to make the temporary nh work
+        % (above):
+        sel.roiInfo.covFile.nh = sel.disp.nhTemp.original; % In case it has been changed above.
+    end
+    [covMat, pxNeighbors] = sel.getCovData;
+    nh = sel.roiInfo.covFile.nh;
+end
+
+if isCustomNhEnabled
+    % Draw images at correct sizes:
+    sel.h.img.cluster = imshow(zeros(sel.roiInfo.covFile.nh), 'Parent', sel.h.ax.cluster);
+    sel.h.img.roi = imshow(zeros(sel.roiInfo.covFile.nh), 'Parent', sel.h.ax.roi);
+end
 
 % Store which pixels have been visited to help the user track their
 % progress:
@@ -60,6 +85,7 @@ nEigs = 21;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
 [~,eigOrder] = sort(diag(eVal));
 eigOrder = eigOrder(2:end);
+sel.disp.cutVecs = zeros(size(eVec, 1), nEigs);
 for nEig = 1:nEigs-1
     nOrd = eigOrder(nEig);
     sel.disp.cutVals(nEig) = eVal(nOrd,nOrd);
@@ -71,7 +97,6 @@ sel.calcClusterProps;
 
 
 %Update cut display axes
-nh = sel.roiInfo.covFile.nh;
 existingRoiMask = double(~reshape(sel.disp.roiLabels(pxNeighbors), nh, nh));
 existingRoiMask(existingRoiMask==0) = 0.9;
 for ii = 1:numel(sel.h.img.eig);
