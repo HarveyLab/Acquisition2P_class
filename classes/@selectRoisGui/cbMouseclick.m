@@ -80,6 +80,15 @@ sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 
 %Construct matrices for normCut algorithm using correlation coefficients
 W = double(corrcov(covMat, 1)); % Flag = Don't check for correctness of covMat.
+
+% Add weight to neighboring pixels (first off-diagonal) to penalize cuts
+% with long borders:
+m = size(W, 1);
+% offDiags = diag2full(ones(m, 8), [-nh-1 -nh -nh+1 -1 1 nh-1 nh nh+1], m, m); % 8-connected
+offDiags = diag2full(ones(m, 4), [-nh -1 1 nh], m, m); % 4-connected
+nhWeight = 3;
+W = W + nhWeight*offDiags;
+
 D = diag(sum(W));
 nEigs = 21;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
