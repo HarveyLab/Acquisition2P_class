@@ -79,7 +79,7 @@ end
 sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 
 %Construct matrices for normCut algorithm using correlation coefficients
-W = double(corrcov(covMat, 1)); % Flag = Don't check for correctness of covMat.
+W = double(corrcov(covMat, 0)); % Flag = Don't check for correctness of covMat.
 
 % Add weight to neighboring pixels (first off-diagonal) to penalize cuts
 % with long borders:
