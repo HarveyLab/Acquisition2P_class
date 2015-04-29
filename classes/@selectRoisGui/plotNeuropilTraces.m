@@ -36,10 +36,31 @@ sel.disp.fBody = conv(sel.disp.fBody, smoothWin, 'valid');
 sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'valid');
 
 %Extract subtractive coefficient btw cell + neuropil and plot
-traceSubSelection = sel.disp.fBody < median(sel.disp.fBody)+mad(sel.disp.fBody)*2;
-sel.disp.neuropilCoef = robustfit(sel.disp.fNeuropil(:)-median(sel.disp.fNeuropil),...
-    sel.disp.fBody(:)-median(sel.disp.fBody),...
+a = 1/(60*27);
+fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
+fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
+
+df = smooth(abs(diff(fBodyHighpass)), 2*27);
+isFChanging = df>2*mode(round(df*100)/100);
+mean(isFChanging)
+
+traceSubSelection = ~isFChanging;
+% traceSubSelection = traceSubSelection<inf;
+
+sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection)-median(fNeuropilHighpass(traceSubSelection)),...
+    fBodyHighpass(traceSubSelection)-median(fBodyHighpass(traceSubSelection)),...
     'bisquare',4);
+
+
+% sel.disp.neuropilCoef = robustfit(fNeuropilHighpass-median(fNeuropilHighpass),...
+%     fBodyHighpass-median(fBodyHighpass),...
+%     'bisquare',4);
+% 
+% figure(12)
+% clf
+% hold on
+% plot(fBodyHighpass)
+% plot(fNeuropilHighpass)
 
 % Plot neuropil subtraction info:
 plot(sel.disp.fNeuropil-median(sel.disp.fNeuropil), sel.disp.fBody-median(sel.disp.fBody),...
