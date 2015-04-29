@@ -28,9 +28,7 @@ if doClusters
 
     for nMod = 1:length(clusterMods)    
         nClusters = clusterMods(nMod);
-        clusterIdx = ...
-            kmeans(corrSpace,nClusters,...
-            'Distance','cityblock','Replicates', 5, 'MaxIter', 1e2);
+        clusterIdx = getClusters(sel, nCuts, nClusters);
         s(nMod) = mean(silhouette(corrSpace,clusterIdx,'cityblock'));
     end
 
