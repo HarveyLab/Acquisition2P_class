@@ -54,7 +54,7 @@ cla(sel.h.ax.traceOverlay),
 sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 
 %Construct matrices for normCut algorithm using correlation coefficients
-W = double(corrcov(covMat, 1)); % Flag = Don't check for correctness of covMat.
+W = double(corrcov(covMat, 0)); % Flag = Don't check for correctness of covMat.
 D = diag(sum(W));
 nEigs = 21;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
