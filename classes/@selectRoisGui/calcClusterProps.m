@@ -12,12 +12,14 @@ if doCuts
     if ~isempty(nCutsAuto)
         sel.disp.clusterNum = nCutsAuto;
     end
-    % plot(cutVals,'.','markerSize',15),
-    % plot(X(nCutsAuto),cutVals(nCutsAuto),'.','markerSize',15),
-    % figure(6),clf,hold on
-    % plot(X,X*B(2)+B(1));
-    % plot(X,Y);
-    % figure(1),
+    
+    clf
+    hold on
+    plot(cutVals,'.','markerSize',15),
+    plot(X(nCutsAuto),cutVals(nCutsAuto),'.','markerSize',15),
+    plot(X,X*B(2)+B(1));
+    plot(X,Y);
+    figure(1),
 end
 
 if doClusters
