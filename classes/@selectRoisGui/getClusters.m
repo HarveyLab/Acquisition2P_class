@@ -13,11 +13,6 @@ mostSalientPix = abs(bsxfun(@minus, cutVecs, median(cutVecs)));
 startInd = unique(startInd,'stable');
 nCentroids = length(startInd);
 
-% for i=1:nCuts
-%     startCent(nCuts) = cutVecs(startInd(i),i);
-% end
-% startCent = diag(startCent);
-
 startCent = cutVecs(startInd, :);
 
 % Use random points for any additional clusters:

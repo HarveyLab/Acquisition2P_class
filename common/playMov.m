@@ -1,4 +1,11 @@
 function playMov(mov)
+% playMov(mov) displays a H-by-W-by-nFrames array as a movie, similar to
+% ImageJ. Clicking any spot in the image jumps to the frame at which the
+% clicked point is brightest. 
+%
+% To do:
+% - Implement play button
+% - align activity trace to slider.
 
 mov = downsampleWithAvg(mov, 10);
 
@@ -18,7 +25,6 @@ hFig.UserData = mov;
 hAxTrace = axes;
 imagesc(mean(reshape(mov, [], z)));
 colormap(hAxTrace, parula);
-
 
 % Format layout:
 hFig.MenuBar = 'none';
@@ -58,10 +64,8 @@ hButtonPlay = uicontrol('style','pushbutton', ...
 
 % Create main window mouse click callback
 % (Click jumps to brightest spot)
-% movBlurred = imgGaussBlur(mov, 1.5);
-movBlurred = mov;
-movBlurred = bsxfun(@rdivide, movBlurred, mean(mean(movBlurred, 1), 2));
-set(hFig, 'WindowButtonDownFcn', {@cbMouseclick, hAxMain, hSlider, movBlurred});
+mov = bsxfun(@rdivide, mov, mean(mean(mov, 1), 2));
+set(hFig, 'WindowButtonDownFcn', {@cbMouseclick, hAxMain, hSlider, mov});
 
 
 function cbSlider(src, evt, hFig, hImg)
@@ -83,5 +87,22 @@ jScrollBar = findjobj(hSlider);
 movPos = maxInd/size(mov, 3);
 jScrollBar.setValue(movPos*jScrollBar.Maximum+jScrollBar.Minimum);
 
+function mov = downsampleWithAvg(mov, fDown)
+% downsampleWithAvg reduces the number of frames in movie MOV by the factor
+% FDOWN, by averaging blocks of successive frames.
 
+if fDown < 0 || fDown - round(fDown) ~= 0 || fDown > size(mov,3)
+	error('Downsampling factor must be a positive integer between 1 and the number of frames in mov.');
+end
 
+% Truncate movie such that the number of frames is evenly divisible by
+% fDown
+mov = mov(:,:,1:end-mod(size(mov,3),fDown));
+
+[h, w, z] = size(mov);
+
+% Reshape movie for averaging:
+mov = reshape(mov, h, w, fDown, z/fDown);
+
+% Average along fourth dimension
+mov = squeeze(mean(mov, 3));
