@@ -7,7 +7,7 @@ if doCuts
     cutVals = sel.disp.cutVals;
     X = 1:length(cutVals);
     [B,stats] = robustfit(X,cutVals,'bisquare',2);
-    Y = X*B(2)+B(1)-stats.robust_s*5;
+    Y = X*B(2)+B(1)-stats.robust_s*10;
     nCutsAuto = find(cutVals<Y,1,'last');
     if ~isempty(nCutsAuto)
         sel.disp.clusterNum = nCutsAuto;
