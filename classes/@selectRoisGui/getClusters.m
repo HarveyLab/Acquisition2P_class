@@ -10,20 +10,28 @@ nPix = size(cutVecs, 1);
 % cuts:
 mostSalientPix = abs(bsxfun(@minus, cutVecs, median(cutVecs)));
 [~, startInd] = max(mostSalientPix);
-start = cutVecs(startInd, :);
+startInd = unique(startInd,'stable');
+nCentroids = length(startInd);
+
+% for i=1:nCuts
+%     startCent(nCuts) = cutVecs(startInd(i),i);
+% end
+% startCent = diag(startCent);
+
+startCent = cutVecs(startInd, :);
 
 % Use random points for any additional clusters:
-if nCuts>nClusters
-    start = start(1:nClusters, :);
-elseif nCuts<nClusters
+if nCentroids>nClusters
+    startCent = startCent(1:nClusters, :);
+elseif nCentroids<nClusters
     nReps = 10;
-    randInd = randi(nPix, (nClusters-nCuts)*nReps, 1);
+    randInd = randi(nPix, (nClusters-nCentroids)*nReps, 1);
     randStartPoints = cutVecs(randInd, :);
-    randStartPoints = reshape(randStartPoints', [], (nClusters-nCuts), nReps);
+    randStartPoints = reshape(randStartPoints', [], (nClusters-nCentroids), nReps);
     randStartPoints = permute(randStartPoints, [2, 1, 3]);
-    start = cat(1, repmat(start, 1, 1, nReps), randStartPoints);
+    startCent = cat(1, repmat(startCent, 1, 1, nReps), randStartPoints);
 end
 
 [clusterIndex, clusterCentroid] = ...
     kmeans(cutVecs, nClusters, 'Distance', 'cityblock', 'MaxIter', 1e2, ...
-    'start', start);
+    'start', startCent);
