@@ -37,6 +37,7 @@ if isfield(sel.h.ui,'roiPoint')
     delete(sel.h.ui.roiPoint)
 end
 sel.h.ui.roiPoint = impoint(sel.h.ax.overview, [col row]);
+setColor(sel.h.ui.roiPoint, 'w');
 
 % Reset cell / cluster status:
 sel.disp.indBody = [];
