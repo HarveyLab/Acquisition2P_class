@@ -5,10 +5,6 @@ function calcRoi(sel)
 nCuts = sel.disp.clusterNum;
 clusterMod = sel.disp.clusterMod;
 
-%Perform kmeans clustering on n smallest cuts
-% [clusterIndex, clusterCentroid] = kmeans(sel.disp.cutVecs(:,1:clusterNum), clusterMod+clusterNum+1,...
-%     'Distance','cityblock','Replicates', 10, 'maxIter', 1e2);
-
 [clusterIndex, clusterCentroid] = getClusters(sel, nCuts, nCuts+1+clusterMod);
 
 clusterQual = mean(silhouette(sel.disp.cutVecs(:,1:nCuts),clusterIndex,'cityblock'));

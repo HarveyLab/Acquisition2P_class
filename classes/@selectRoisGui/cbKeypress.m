@@ -7,6 +7,10 @@ function cbKeypress(sel, ~, evt)
 % 'backspace' - (delete key) Deletes most recently selected ROI or pairing
 % 'm' - Initiates manual ROI selection, via drawing a polygon over the main reference image. This manual ROI is then stored as a new 'cluster'
 switch evt.Key
+    case 'z' % Merge Current Cluster
+        mergeCurrentROI(sel),
+    case 'x' % Split Current Cluster
+        splitCurrentROI(sel),
     case 'p' % Play movie of current region:
         mov = sel.movMap.Data.mov;
         nh = sel.roiInfo.covFile.nh;
@@ -16,7 +20,6 @@ switch evt.Key
         movHere = reshape(movHere, nh, nh, []);
         clear mov
         playMov(movHere)
-    
     case 't'
         addOverlayTrace(sel),
     case 'c'
@@ -32,13 +35,8 @@ switch evt.Key
         lastRoiId = sel.roiInfo.roi(end).id;
         sel.cbDeleteRoi([], [], lastRoiId)
         
-    case {'1', '2', '3', '4', '5', '6', '7', '8', '9'}
-        % cRoi is the unique number that the current ROI will get. It is
-        % not stored globally but always determined locally from the
-        % roiInfo structure such that it's always up to date:
-        
+    case {'1', '2', '3', '4', '5', '6', '7', '8', '9'}       
         saveNewROI(sel,evt);
-        
     case 'f'
         doAllClusterTraces(sel),        
     case 'space'
@@ -50,15 +48,6 @@ switch evt.Key
             sel.disp.indBody = find(sel.disp.roiMask);
             title(sel.h.ax.roi, 'Select neuropil pairing');
             [~,sel.disp.currentClustInd] = min(sel.disp.centroidNorm);
-            
-            % For upcoming neuropil selection, switch to largest cut,
-            % because that's probably the neuropil:
-%             clustStats = regionprops(sel.disp.currentClustering, 'BoundingBox');
-%             boundingBoxCoords = reshape([clustStats.BoundingBox], 2, 2, []);
-%             boundingBoxSize = abs(diff(boundingBoxCoords, [], 2));
-%             boundingBoxArea = squeeze(prod(boundingBoxSize, 1));
-%             boundingBoxArea(sel.disp.currentClustering(sel.disp.indBody(1))) = 0; % Exclude the cluster that was just selected as ROI body.
-%             [~, sel.disp.currentClustInd] = max(boundingBoxArea);
             
             %Update ROI display
             sel.displayRoi;
