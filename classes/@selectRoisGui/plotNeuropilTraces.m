@@ -36,30 +36,27 @@ sel.disp.fBody = conv(sel.disp.fBody, smoothWin, 'valid');
 sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'valid');
 
 %Extract subtractive coefficient btw cell + neuropil and plot
-cutoffFreq = 60; %Cutoff frequence in seconds
+cutoffFreq = 60; %Cutoff frequency in seconds
 a = sel.disp.framePeriod / cutoffFreq;
 fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
 fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
-
-%figure,plot(fBodyHighpass)
 
 df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
 isFChanging = df>2*mode(round(df*100)/100);
 
 traceSubSelection = ~isFChanging;
-% traceSubSelection = traceSubSelection<inf;
 
 sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
     fBodyHighpass(traceSubSelection),...
     'bisquare',4);
 
-%figure,plot(sel.disp.fNeuropil,sel.disp.fBody,'.','markersize',3)
-%figure,plot(fNeuropilHighpass,fBodyHighpass,'.','markersize',3)
-%figure,plot(fNeuropilHighpass(~isFChanging),fBodyHighpass(~isFChanging),'.','markersize',3)
-
 % Plot neuropil subtraction info:
+plot(fNeuropilHighpass(~traceSubSelection), fBodyHighpass(~traceSubSelection),...
+    '.', 'markersize', 3, 'Parent', sel.h.ax.subSlope),
+hold(sel.h.ax.subSlope,'on'),
 plot(fNeuropilHighpass(traceSubSelection), fBodyHighpass(traceSubSelection),...
-    '.', 'markersize', 3, 'Parent', sel.h.ax.subSlope)
+    '.', 'markersize', 3, 'Parent', sel.h.ax.subSlope),
+hold(sel.h.ax.subSlope,'off'),
 plotSubScatterFit(sel)
 title(sel.h.ax.subSlope, sprintf('Fitted subtractive coefficient is: %0.3f      (%.2f excluded)',...
     sel.disp.neuropilCoef(2), mean(isFChanging))),
