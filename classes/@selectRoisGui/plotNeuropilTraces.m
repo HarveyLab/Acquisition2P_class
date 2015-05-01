@@ -51,6 +51,7 @@ sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
     'bisquare',4);
 
 % Plot neuropil subtraction info:
+cla(sel.h.ax.subSlope);
 plot(fNeuropilHighpass(~traceSubSelection), fBodyHighpass(~traceSubSelection),...
     '.', 'markersize', 3, 'Parent', sel.h.ax.subSlope),
 hold(sel.h.ax.subSlope,'on'),
