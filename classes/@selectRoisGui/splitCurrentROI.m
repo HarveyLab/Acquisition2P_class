@@ -2,7 +2,7 @@ function splitCurrentROI(sel)
 
 % Get Covariance Data for normCuts
 [covMat, pxNeighbors] = sel.getCovData;
-corrMat = corrcov(covMat);
+corrMat = corrcov(covMat, 1);
 m = size(corrMat, 1);
 offDiags = diag2full(ones(m, 4), [-sqrt(m) -1 1 sqrt(m)], m, m); % 4-connected
 nhWeight = 0;
