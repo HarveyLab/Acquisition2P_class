@@ -67,7 +67,7 @@ end
 % exactly those elements that do not need to be drawn:
 isExistingRoi = ishandle(sel.h.ui.roiPatches);
 for roiId = 1:nPatches
-    
+
     % Don't re-draw existing patches:
     if isExistingRoi(roiId)
         continue
@@ -80,7 +80,7 @@ for roiId = 1:nPatches
     
     % Get mask for ROI to be drawn:
     currRoiMask = sel.disp.roiLabels == roiId;
-    
+
     %find edges of current roi
     [rowInd,colInd] = sel.findEdges(currRoiMask);
     
