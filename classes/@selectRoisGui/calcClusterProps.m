@@ -20,7 +20,7 @@ if doCuts
 %     plot(X(nCutsAuto),cutVals(nCutsAuto),'.','markerSize',15),
 %     plot(X,X*B(2)+B(1));
 %     plot(X,Y);
-    figure(1),
+%    figure(1),
 end
 
 if doClusters
