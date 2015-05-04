@@ -91,7 +91,7 @@ nhWeight = 3;
 W = corrMat + nhWeight*offDiags;
 
 D = diag(sum(W));
-nEigs = 21;
+nEigs = 15;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
 [~,eigOrder] = sort(diag(eVal));
 eigOrder = eigOrder(2:end);
@@ -110,7 +110,7 @@ existingRoiMask = double(~reshape(sel.disp.roiLabels(pxNeighbors), nh, nh));
 existingRoiMask(existingRoiMask==0) = 0.9;
 for ii = 1:numel(sel.h.img.eig);
     eVecImg = reshape(sel.disp.cutVecs(:,ii), nh, nh);
-    eVecImg = mat2gray(eVecImg);
+    eVecImg = mat2gray(real(eVecImg)); % Real prevents error in cases when eVecs are imaginary.
     eVecImg = repmat(eVecImg, 1, 1, 3);
     eVecImg(:,:,1) = eVecImg(:,:,1) .* existingRoiMask;
     eVecImg(:,:,3) = eVecImg(:,:,3) .* existingRoiMask;
