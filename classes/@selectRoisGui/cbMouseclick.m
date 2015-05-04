@@ -100,7 +100,7 @@ W(:, nanCols) = 0;
 W(nanRows, nanCols) = max(W(:));
 
 D = diag(sum(W));
-nEigs = 15;
+nEigs = 21;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
 [~,eigOrder] = sort(diag(eVal));
 eigOrder = eigOrder(2:end);
