@@ -90,6 +90,15 @@ offDiags = diag2full(ones(m, 4), [-nh -1 1 nh], m, m); % 4-connected
 nhWeight = 3;
 W = corrMat + nhWeight*offDiags;
 
+% Deal with nan rows/cols:
+% (Set weights between nan pixels high and between them and other pixels
+% low, so that they are thrown into the same cut.)
+nanRows = all(isnan(W), 2);
+nanCols = all(isnan(W), 1);
+W(nanRows, :) = 0;
+W(:, nanCols) = 0;
+W(nanRows, nanCols) = max(W(:));
+
 D = diag(sum(W));
 nEigs = 15;
 [eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
