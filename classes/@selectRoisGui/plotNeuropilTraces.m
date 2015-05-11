@@ -36,7 +36,7 @@ sel.disp.fBody = conv(sel.disp.fBody, smoothWin, 'same');
 sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'same');
 
 %Extract subtractive coefficient btw cell + neuropil and plot
-cutoffFreq = 60; %Cutoff frequency in seconds
+cutoffFreq = 10; %Cutoff frequency in seconds
 a = sel.disp.framePeriod / cutoffFreq;
 fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
 fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
