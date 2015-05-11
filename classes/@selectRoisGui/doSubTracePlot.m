@@ -28,7 +28,11 @@ hold(sel.h.ax.traceSub,'off')
 title(sel.h.ax.traceSub, 'Trace after neuropil subtraction')
 
 function trComplete = addExcludedFrames(tr)
+    % Correct for removal of frames during 'valid' convolution for
+    % smoothing:
+    trPad = zeros(1, numel(tr)+sel.disp.smoothWindow-1);
+    trPad(floor(sel.disp.smoothWindow/2)+(1:numel(tr))) = tr;
     trComplete = nan(1, nFramesComplete);
-    trComplete(includeFrames) = tr;
+    trComplete(includeFrames) = trPad;
 end
 end
