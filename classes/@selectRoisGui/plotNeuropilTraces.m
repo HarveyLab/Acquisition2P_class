@@ -32,8 +32,8 @@ sel.disp.f0Body = prctile(sel.disp.fBody,10);
 
 % Smooth traces:
 smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
-sel.disp.fBody = conv(sel.disp.fBody, smoothWin, 'same');
-sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'same');
+sel.disp.fBody = conv(sel.disp.fBody, smoothWin, 'valid');
+sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'valid');
 
 %Extract subtractive coefficient btw cell + neuropil and plot
 cutoffFreq = 60; %Cutoff frequency in seconds
