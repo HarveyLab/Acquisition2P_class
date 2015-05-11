@@ -26,7 +26,9 @@ function ref = meanRef(obj,movNums,sliceNum,channelNum)
     
     ref = zeros(h, w, nMovies);
     for ii = 1:numel(movNums)
-        ref(:, :, ii) = obj.derivedData(movNums(ii)).meanRef.slice(sliceNum).channel(channelNum).img;
+        if ~isempty(obj.derivedData(movNums(ii)).meanRef)
+            ref(:, :, ii) = obj.derivedData(movNums(ii)).meanRef.slice(sliceNum).channel(channelNum).img;
+        end
     end
     
     ref = nanmean(ref, 3);
