@@ -20,6 +20,9 @@ if ~exist('varName','var') || isempty(varName)
     varName = obj.acqName;
 end
 
+% Make sure that varName is an allowed variable name:
+varName = matlab.lang.makeValidName(varName);
+
 eval([varName ' = obj;']),
 save(fullfile(writeDir,writeName),varName)
 
