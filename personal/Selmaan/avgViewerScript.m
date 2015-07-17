@@ -7,7 +7,8 @@ for nNeur = unique(tV.nTarg)
         targOn(nNeur,f) = tV.stimFrames{repF(f)}(1);
     end
 end
-frameWin = -15:84;
+%frameWin = -15:84;
+frameWin = -6:43;
 mMov = nan(512,512,length(frameWin)*size(targOn,1),'single');
 for t = 1:size(targOn,1)
     keyFrames = targOn(t,:);t,
