@@ -62,7 +62,7 @@ traces = nan(nROIs, nFramesTotal);
 rawF = nan(nROIs, nFramesTotal);
 for nMovie = movNums
     fprintf('Loading movie %03.0f of %03.0f\n',find(nMovie==movNums),length(movNums)),
-    mov = readCor(obj,nMovie,'double');
+    mov = readCor(obj,nMovie,'double',sliceNum,channelNum);
     mov = reshape(mov,h*w,movSizes(nMovie,3));
     firstInd = nFramesThisMov(nMovie)-movSizes(nMovie,3)+1;
     lastInd = nFramesThisMov(nMovie);

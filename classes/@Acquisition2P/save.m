@@ -21,7 +21,11 @@ if ~exist('varName','var') || isempty(varName)
 end
 
 % Make sure that varName is an allowed variable name:
-varName = matlab.lang.makeValidName(varName);
+try
+    varName = matlab.lang.makeValidName(varName);
+catch
+    warning('Could Not Verify varName Validity'),
+end
 
 eval([varName ' = obj;']),
 save(fullfile(writeDir,writeName),varName)

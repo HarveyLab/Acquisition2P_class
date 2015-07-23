@@ -31,7 +31,7 @@ end
 %Automatically fill in fields for motion correction
 obj.motionRefMovNum = floor(length(movNames)/2);
 obj.motionRefChannel = 1;
-obj.binFactor = 1;
+obj.binFactor = 2;
 obj.motionCorrectionFunction = @withinFile_segmentConsensus;
 
 %Assign acquisition object to acquisition name variable in workspace

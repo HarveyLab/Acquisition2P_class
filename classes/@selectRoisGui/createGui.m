@@ -64,6 +64,8 @@ if isfield(sel.acq.metaDataSI,'SI4')
     sel.disp.framePeriod = sel.acq.metaDataSI.SI4.scanFramePeriod;
 elseif isfield(sel.acq.metaDataSI,'SI5')
     sel.disp.framePeriod = sel.acq.metaDataSI.SI5.scanFramePeriod;
+elseif isfield(sel.acq.metaDataSI,'SI')
+    sel.disp.framePeriod = sel.acq.metaDataSI.SI.hRoiManager.scanFramePeriod;
 else
     warning('Unable to Automatically determine scanFramePeriod')
     sel.disp.framePeriod = input('Input scanFramePeriod: ');
