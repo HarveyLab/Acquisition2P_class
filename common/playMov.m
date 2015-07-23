@@ -16,7 +16,7 @@ clf
 set(hFig, 'name', sprintf('1/%d; %dx%d pixels', z, h, w));
 hAxMain = axes;
 
-mov = mov.^0.25;
+mov = max(mov, 0).^0.25;
 scale = quantile(mov(:), [0.05, 0.99995]);
 hImg = imagesc(mov(:,:,1), [scale(1), scale(2)]);
 colormap(hAxMain, gray);
