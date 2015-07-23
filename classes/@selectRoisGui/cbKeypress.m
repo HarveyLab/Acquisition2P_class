@@ -47,9 +47,14 @@ switch evt.Key
             %Get indices of current ROI as cell body + update title state
             sel.disp.indBody = find(sel.disp.roiMask);
             title(sel.h.ax.roi, 'Select neuropil pairing');
-            centroidNorm = sel.disp.centroidNorm;
-            centroidNorm(sel.disp.currentClustInd) = inf; % Make sure that the chosen cluster is not the same as the cell body cluster.
-            [~,sel.disp.currentClustInd] = min(centroidNorm);
+            
+            % Advance to next cluster (but only if we're not using the
+            % mouse to choose clusters):
+            if ~sel.disp.isMouseOnRoiAx
+                centroidNorm = sel.disp.centroidNorm;
+                centroidNorm(sel.disp.currentClustInd) = inf; % Make sure that the chosen cluster is not the same as the cell body cluster.
+                [~,sel.disp.currentClustInd] = min(centroidNorm);
+            end
             
             %Update ROI display
             sel.displayRoi;
