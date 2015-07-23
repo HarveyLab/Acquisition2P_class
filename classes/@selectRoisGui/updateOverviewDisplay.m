@@ -78,6 +78,12 @@ for roiId = 1:nPatches
         continue
     end
     
+    % Don't draw patches for ROIs that have no pixels in them (that
+    % sometimes happens for some reason...maybe investigate):
+    if isempty(sel.roiInfo.roi([sel.roiInfo.roi.id]==roiId).indBody)
+        continue
+    end
+    
     % Get mask for ROI to be drawn:
     currRoiMask = sel.disp.roiLabels == roiId;
 
