@@ -21,10 +21,10 @@ if ~exist('varName','var') || isempty(varName)
 end
 
 % Make sure that varName is an allowed variable name:
-try
+if verLessThan('matlab', '8.3')
+    varName = genvarname(varName); %#ok<DEPGENAM>
+else
     varName = matlab.lang.makeValidName(varName);
-catch
-    warning('Could Not Verify varName Validity'),
 end
 
 eval([varName ' = obj;']),
