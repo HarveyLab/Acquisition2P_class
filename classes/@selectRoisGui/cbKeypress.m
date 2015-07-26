@@ -86,9 +86,7 @@ switch evt.Key
         
         %Update ROI display
         sel.displayRoi
-%         figure(sel.h.fig.main)
-        setfocus(sel.h.ax.roi);
-        
+        setfocus(sel.h.ax.overview);
     case {'add', 'equal'}
         %zoom in
         zoom(sel.h.ax.overview, 1.5);
