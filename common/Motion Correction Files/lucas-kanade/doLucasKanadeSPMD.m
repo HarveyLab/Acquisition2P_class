@@ -1,5 +1,5 @@
 function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
-
+isGpu = false; % temp fix
 % If not set explicitly, then use GPU if available:
 if ~exist('isGpu', 'var')
     isGpu = gpuDeviceCount > 0;

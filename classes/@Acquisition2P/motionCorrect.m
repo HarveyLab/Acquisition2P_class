@@ -70,6 +70,20 @@ movieOrder([1 obj.motionRefMovNum]) = [obj.motionRefMovNum 1];
 %Load movies one at a time in order, apply correction, and save as
 %split files (slice and channel)
 for movNum = movieOrder
+    % Check if movie has already been corrected (e.g. because we're
+    % resuming a processing job that was interrupted):
+    % WARNING: THIS IS HARD-CODED IN A DIRTY WAY, CLEAN UP BEFORE
+    % COMMITTING!!!
+    movFileName = feval(namingFunction,obj.acqName, 1, 1, movNum);
+    movFileNameFull = fullfile(writeDir, movFileName);
+    if exist(movFileNameFull, 'file') && movNum~=obj.motionRefMovNum % Must re-calc ref mov to get ref img.
+        fprintf('Skipping Movie #%03.0f of #%03.0f (already calculated).\n',movNum,nMovies),
+        obj.correctedMovies.slice(1).channel(1).fileName{movNum} = fullfile(writeDir,movFileName);
+        obj.correctedMovies.slice(1).channel(1).size(movNum,:) = ...
+            obj.correctedMovies.slice(1).channel(1).size(obj.motionRefMovNum,:);  
+        continue
+    end
+    
     fprintf('\nLoading Movie #%03.0f of #%03.0f\n',movNum,nMovies),
     [mov, scanImageMetadata] = obj.readRaw(movNum,'single');
     if obj.binFactor > 1
