@@ -1,26 +1,29 @@
 %% Make avg movie
 
-tV = vecTrials(stimExpt);
-for nNeur = unique(tV.nTarg)
+%tV = vecTrials(stimExpt);
+movNeur = unique(tV.nTarg);
+targOn = [];
+for iNeur = 1:length(movNeur)
+    nNeur = movNeur(iNeur);
     repF = find(tV.nTarg == nNeur);
     for f = 1:length(repF)
-        targOn(nNeur,f) = tV.stimFrames{repF(f)}(1);
+        targOn(iNeur,f) = tV.stimFrames{repF(f)}(1);
     end
 end
-%frameWin = -15:84;
-frameWin = -6:43;
+frameWin = -15:84;
+%frameWin = -6:43;
 mMov = nan(512,512,length(frameWin)*size(targOn,1),'single');
 for t = 1:size(targOn,1)
     keyFrames = targOn(t,:);t,
     fInd = (t-1)*length(frameWin)+1 : t*length(frameWin);
-    mMov(:,:,fInd) = avgMov(rFOV1,keyFrames,frameWin);
+    mMov(:,:,fInd) = avgMov(expt1,keyFrames,frameWin);
 end
 
 %% Register Pathways
 nPoints = 4;
 
 stim = imNorm(stimExpt.StimROIs.imData(:,:,1));
-res = imNorm(meanRef(rFOV1));
+res = imNorm(meanRef(expt1));
 stim2 = imresize(stim,1/1.4);
 
 sFig = figure;
