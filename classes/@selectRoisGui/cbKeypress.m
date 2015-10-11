@@ -44,8 +44,21 @@ switch evt.Key
         isNeuropilSelection = strcmp('Select neuropil pairing', get(get(sel.h.ax.roi, 'Title'), 'string'));
         
         if ~isNeuropilSelection
-            %Get indices of current ROI as cell body + update title state
             sel.disp.indBody = find(sel.disp.roiMask);
+            
+            % Check if the new ROI would completely swallow an existing
+            % ROI (This creates problems with the roiLabels matrix. If we
+            % need to allow one ROI overlapping another completely, then we
+            % need to replace roiLabels with a more complex solution):
+            roiIdsInLocationOfNewRoi = unique(sel.disp.roiLabels(sel.disp.indBody));
+            roiIdsOutsideLocOfNewRoi = unique(sel.disp.roiLabels(setdiff(1:numel(sel.disp.roiLabels), sel.disp.indBody)));
+            roiIdsInsideThatAreNotOutside = setdiff(roiIdsInLocationOfNewRoi, roiIdsOutsideLocOfNewRoi);
+            if ~isempty(roiIdsInsideThatAreNotOutside)
+                title(sel.h.ax.roi, 'NEW ROI COMPLETELY OVERLAPS EXISTING ONE. REVISE SELECTION.');
+                return
+            end
+                
+            % Update title state
             title(sel.h.ax.roi, 'Select neuropil pairing');
             
             % Advance to next cluster (but only if we're not using the
