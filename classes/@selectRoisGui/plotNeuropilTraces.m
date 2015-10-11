@@ -26,8 +26,9 @@ sel.disp.fNeuropil(sel.disp.excludeFrames) = [];
 % Remove bleaching:
 % sel.disp.fBody = deBleach(sel.disp.fBody, 'runningAvg',9001);
 % sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'runningAvg',9001);
-sel.disp.fBody = deBleach(sel.disp.fBody, 'exp_linear');
-sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'exp_linear');
+[sel.disp.fBody, baselineStats] = deBleach(sel.disp.fBody, 'custom_wfun');
+sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'custom_wfun');
+% sel.disp.f0Body = prctile(sel.disp.fBody,10);
 sel.disp.f0Body = prctile(sel.disp.fBody,10);
 
 % Smooth traces:
@@ -41,14 +42,17 @@ a = sel.disp.framePeriod / cutoffFreq;
 fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
 fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
 
-df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
-isFChanging = df>2*mode(round(df*100)/100);
+% df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
+% isFChanging = df>2*mode(round(df*100)/100);
 
-traceSubSelection = ~isFChanging;
+% traceSubSelection = ~isFChanging;
+
+nSmooth = numel(smoothWin);
+traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
 
 sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
     fBodyHighpass(traceSubSelection),...
-    'bisquare',4);
+    'talwar',1);
 
 % Plot neuropil subtraction info:
 cla(sel.h.ax.subSlope);
@@ -60,7 +64,7 @@ plot(fNeuropilHighpass(traceSubSelection), fBodyHighpass(traceSubSelection),...
 hold(sel.h.ax.subSlope,'off'),
 plotSubScatterFit(sel)
 title(sel.h.ax.subSlope, sprintf('Fitted subtractive coefficient is: %0.3f      (%.2f excluded)',...
-    sel.disp.neuropilCoef(2), mean(isFChanging))),
+    sel.disp.neuropilCoef(2), mean(~traceSubSelection))),
 
 % Plot subtracted Trace
 doSubTracePlot(sel),
