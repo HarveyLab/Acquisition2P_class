@@ -9,6 +9,22 @@ if ajp.debug
     return
 end
 
+%figure out pixel neighborhood
+neighborhoodConstant = 1.5;
+if isprop(ajp.currentAcq,'derivedData') && ~isempty(ajp.currentAcq.derivedData)...
+        && isfield(ajp.currentAcq.derivedData(1),'SIData')
+    if isfield(ajp.currentAcq.derivedData(1).SIData,'SI4')
+        objectiveMag = 25;
+        zoomFac = ajp.currentAcq.derivedData(1).SIData.SI4.scanZoomFactor;
+    elseif isfield(ajp.currentAcq.derivedData(1).SIData,'SI5')
+        objectiveMag = 16;
+        zoomFac = ajp.currentAcq.derivedData(1).SIData.SI5.zoomFactor;
+    end
+    pxCovRad = round(objectiveMag*zoomFac/neighborhoodConstant);
+else
+    pxCovRad = [];
+end
+
 % Motion correction:
 %check if motion correction already applied
 if isempty(ajp.currentAcq.shifts)
@@ -43,19 +59,7 @@ else
 end
 
 % Caclulate pixel covariance:
-
-%...figure out pixel neighborhood
-neighborhoodConstant = 1.5;
-if strncmp(ajp.currentAcq.acqName, 'MM', 2)
-    % This is Matthias-specific and should be made more general ASAP:
-    zoomFac = ajp.currentAcq.metaDataSI.SI4.scanZoomFactor;
-    objectiveMag = 16; % Assumed
-    pxCovRad = round(objectiveMag*zoomFac/neighborhoodConstant);
-else
-    pxCovRad = [];
-end
-
-%...check if pixel covariance already calculated
+%check if pixel covariance already calculated
 if isempty(ajp.currentAcq.roiInfo) ...
         || (~isempty(pxCovRad) && ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1))
     % ROI info does not exist or a different neighborhood size was
