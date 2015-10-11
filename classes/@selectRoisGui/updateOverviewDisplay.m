@@ -86,9 +86,20 @@ for roiId = 1:nPatches
     
     % Get mask for ROI to be drawn:
     currRoiMask = sel.disp.roiLabels == roiId;
+    
+    % Don't draw patches for ROIs that have no pixels:
+    if nnz(currRoiMask)==0
+        continue
+    end
 
     %find edges of current roi
     [rowInd,colInd] = sel.findEdges(currRoiMask);
+    
+    % Write roiId:
+    [rowIndAll, colIndAll] = find(currRoiMask); % Use all points to find more natural center, downweighting fine processes.
+    text(mean(colIndAll), mean(rowIndAll), num2str(roiId), ...
+        'verticalalignment', 'middle', 'horizontalalignment', 'center', ...
+        'color', 'w', 'fontsize', 8, 'parent', sel.h.ax.overview)
     
     %create patch object
     roiGroup = sel.roiInfo.roi([sel.roiInfo.roi.id]==roiId).group;
