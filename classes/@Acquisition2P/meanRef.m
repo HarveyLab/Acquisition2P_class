@@ -1,4 +1,4 @@
-function ref = meanRef(obj,movNums,sliceNum,channelNum)
+function ref = meanRef(obj,movNums,sliceNum,channelNum,isAvg)
     % Constructs a mean reference image of an acquisition after motion 
     % correction using the derived data structure, without requiring
     % loading movie files
@@ -19,6 +19,9 @@ function ref = meanRef(obj,movNums,sliceNum,channelNum)
     if ~exist('channelNum','var') || isempty(channelNum)
         channelNum = 1;
     end
+    if ~exist('isAvg','var') || isempty(isAvg)
+        isAvg = true;
+    end
     
     %Initialize zero matrix, sum in loop over movies and normalize by number of movies summed
     [h, w] = size(obj.derivedData(1).meanRef.slice(sliceNum).channel(channelNum).img);
@@ -31,5 +34,7 @@ function ref = meanRef(obj,movNums,sliceNum,channelNum)
         end
     end
     
-    ref = nanmean(ref, 3);
+    if isAvg
+        ref = nanmean(ref, 3);
+    end
 end

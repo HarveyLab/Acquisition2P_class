@@ -33,7 +33,11 @@ switch host
 %     case 'Matthias-X230'
 %         acq.defaultDir = improc.dir.getDir(acqId, 1, 1);
     otherwise
-        acq.defaultDir = improc.dir.getDir(acqId, 0, 1);
+%         acq.defaultDir = improc.dir.getDir(acqId, 0, 1);
+        localScopeRigFolder = fullfile('\\User1-PC\D\data\Matthias\processed', acqId);
+        mkdir(localScopeRigFolder);
+        fprintf('Created new folder: %s\n', localScopeRigFolder);
+        acq.defaultDir = localScopeRigFolder;
 end
 
 % Motion correction parameters:

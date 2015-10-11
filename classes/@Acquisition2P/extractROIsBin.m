@@ -30,21 +30,20 @@ if isfield(obj.roiInfo.slice(sliceNum), 'roiList')
     removeRoiList(obj);
 end
 
+%% Memory Map Movie
+movSizes = obj.correctedMovies.slice(sliceNum).channel(channelNum).size;
+h = movSizes(1, 1);
+w = movSizes(1, 2);
+nFramesTotal = sum(movSizes(:, 3));
+movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
+    'Format', {'int16', [nFramesTotal, h*w], 'mov'});
+mov = movMap.Data.mov;
+
 %% ROI Extraction
 
 %Find relevant ROIs
 isRoiSelected = ismember([obj.roiInfo.slice(sliceNum).roi.group], roiGroups);
 roi = obj.roiInfo.slice(sliceNum).roi(isRoiSelected);
-
-%Memory Map Movie
-movSizes = obj.correctedMovies.slice(sliceNum).channel(channelNum).size;
-h = movSizes(1, 1);
-w = movSizes(1, 2);
-nFramesTotal = sum(movSizes(:, 3));
-
-movMap = memmapfile(obj.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
-    'Format', {'int16', [nFramesTotal, h*w], 'mov'});
-mov = movMap.Data.mov;
 
 % Loop over each ROI to be extracted:
 nRoi = numel(roi);
