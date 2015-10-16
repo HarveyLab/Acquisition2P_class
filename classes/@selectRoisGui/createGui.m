@@ -85,12 +85,12 @@ if ~exist(sel.roiInfo.covFile.fileName, 'file')
 end
 sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
-covData = sel.covMap.Data.pixCov;
-tic,
-display('Loading Cov File')
-sel.covMap = [];
-sel.covMap = covData;
-toc,
+% covData = sel.covMap.Data.pixCov;
+% tic,
+% display('Loading Cov File')
+% sel.covMap = [];
+% sel.covMap = covData;
+% toc,
 
 % Create memory mapped binary file of movie:
 movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;
