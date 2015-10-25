@@ -33,9 +33,8 @@ classdef selectRoisGui < handle
                 img = acq.meanRef([],sliceNum);
                 img(img<0) = 0;
                 img(isnan(img)) = 0;
-                img = img./max(img(:));
-%                 img = sqrt(img);
-%                 img = adapthisteq(img/max(img(:)));
+                img = sqrt(img);
+                img = adapthisteq(img/max(img(:)));
             end
             if ~exist('sliceNum','var') || isempty(sliceNum)
                 sliceNum = 1;
