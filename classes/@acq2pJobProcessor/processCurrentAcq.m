@@ -99,7 +99,9 @@ if ~isempty(strfind(ajp.currentAcq.Movies{1}, 'research.files.med.harvard.edu'))
     % & - run command in background.
     % r - number of retries.
     % s - copy subdirectories
-    copyCommand = 'robocopy %s %s /s /R:0 /Z /NP /log:%s & exit &';
+    % /move - move files and directories, and delete them from the source
+    % after they are copied.
+    copyCommand = 'robocopy %s %s /s /R:0 /Z /NP /move /log:%s & exit &';
 
     % Copy local to server:
     source = ajp.currentAcq.defaultDir;
