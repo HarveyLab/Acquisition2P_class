@@ -42,17 +42,21 @@ a = sel.disp.framePeriod / cutoffFreq;
 fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
 fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
 
-% df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
-% isFChanging = df>2*mode(round(df*100)/100);
+df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
+isFChanging = df>2*mode(round(df*100)/100);
 
-% traceSubSelection = ~isFChanging;
+traceSubSelection = ~isFChanging;
 
-nSmooth = numel(smoothWin);
-traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
+%nSmooth = numel(smoothWin);
+%traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
 
 sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
     fBodyHighpass(traceSubSelection),...
-    'talwar',1);
+    'bisquare',2);
+
+% sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
+%     fBodyHighpass(traceSubSelection),...
+%     'talwar',1);
 
 % Plot neuropil subtraction info:
 cla(sel.h.ax.subSlope);
