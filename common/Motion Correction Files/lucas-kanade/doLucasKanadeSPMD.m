@@ -61,7 +61,7 @@ for i = 1:nWorkers
 end
 
 % Parameters:
-nBasis = 4;
+nBasis = 8;
 
 % Precalculate constants:
 [h, w, z] = size(stackFull);
@@ -176,7 +176,7 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
         Dx = repmat((B*dpx), 1, w);
         Dy = repmat((B*dpy), 1, w);
         
-        Id = interp2(I, xi+Dx, yi+Dy, 'nearest', 0);
+        Id = interp2(I, xi+Dx, yi+Dy, 'linear', 0);
                 
         %gradient
         [dTx, dTy] = imgradientxy(Id, 'centraldifference');
