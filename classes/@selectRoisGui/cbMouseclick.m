@@ -119,7 +119,7 @@ sel.disp.cutVecs = zeros(size(eVec, 1), nEigs);
 for nEig = 1:nEigs-1
     nOrd = eigOrder(nEig);
     sel.disp.cutVals(nEig) = eVal(nOrd,nOrd);
-    sel.disp.cutVecs(:,nEig) = eVec(:,nOrd)./sel.disp.cutVals(nEig);
+    sel.disp.cutVecs(:,nEig) = eVec(:,nOrd)./(sel.disp.cutVals(nEig)+1e-2);
 end
 
 % Calculate #cuts and #clusters
