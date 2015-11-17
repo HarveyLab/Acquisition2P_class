@@ -82,6 +82,17 @@ sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 %Construct matrices for normCut algorithm using correlation coefficients
 corrMat = double(corrcov(covMat, 0)); % Flag = Don't check for correctness of covMat.
 
+% custom corr mods
+%corrBound = prctile(corrMat(:),10);
+%corrMat(corrMat<=corrBound) = corrBound;
+
+%corrMat(corrMat<=mean(corrMat(:))) = mean(corrMat(:));
+%corrMat = exp(-(1-corrMat)/(1/2*(1-median(corrMat(:)))));
+
+invC = 1-corrMat;
+pilC = median(invC(:));
+corrMat = exp(-1/(1*pilC^2) * invC.^2);
+
 % Add weight to neighboring pixels (first off-diagonal) to penalize cuts
 % with long borders:
 m = size(corrMat, 1);
