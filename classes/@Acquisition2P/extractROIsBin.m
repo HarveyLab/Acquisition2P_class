@@ -68,5 +68,5 @@ for r = 1:nRoi
     end
 end
 
-dF = dFcalc(traces,rawF,'exp_linear');
+dF = dFcalc(traces,rawF,'custom_wfun');
 clear mov
