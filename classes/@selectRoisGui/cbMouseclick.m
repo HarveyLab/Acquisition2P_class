@@ -82,45 +82,95 @@ sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 %Construct matrices for normCut algorithm using correlation coefficients
 corrMat = double(corrcov(covMat, 0)); % Flag = Don't check for correctness of covMat.
 
-% custom corr mods
-%corrBound = prctile(corrMat(:),10);
-%corrMat(corrMat<=corrBound) = corrBound;
-
-%corrMat(corrMat<=mean(corrMat(:))) = mean(corrMat(:));
-%corrMat = exp(-(1-corrMat)/(1/2*(1-median(corrMat(:)))));
-
 invC = 1-corrMat;
 pilC = median(invC(~isnan(invC(:))));
 corrMat = exp(-1/(1*pilC^2) * invC.^2);
 
-% Add weight to neighboring pixels (first off-diagonal) to penalize cuts
-% with long borders:
-m = size(corrMat, 1);
-% offDiags = diag2full(ones(m, 8), [-nh-1 -nh -nh+1 -1 1 nh-1 nh nh+1], m, m); % 8-connected
-offDiags = diag2full(ones(m, 4), [-nh -1 1 nh], m, m); % 4-connected
-nhWeight = 3;
-W = corrMat + nhWeight*offDiags;
-
 % Deal with nan rows/cols:
 % (Set weights between nan pixels high and between them and other pixels
 % low, so that they are thrown into the same cut.)
-nanRows = all(isnan(W), 2);
-nanCols = all(isnan(W), 1);
-W(nanRows, :) = 0;
-W(:, nanCols) = 0;
-W(nanRows, nanCols) = max(W(:));
+% nanRows = all(isnan(W), 2);
+% nanCols = all(isnan(W), 1);
+% W(nanRows, :) = 0;
+% W(:, nanCols) = 0;
+% W(nanRows, nanCols) = max(W(:));
 
-D = diag(sum(W));
-nEigs = 21;
-[eVec,eVal] = eigs((D-W),D,nEigs,-1e-10);
-[~,eigOrder] = sort(diag(eVal));
-eigOrder = eigOrder(2:end);
-sel.disp.cutVecs = zeros(size(eVec, 1), nEigs);
-for nEig = 1:nEigs-1
-    nOrd = eigOrder(nEig);
-    sel.disp.cutVals(nEig) = eVal(nOrd,nOrd);
-    sel.disp.cutVecs(:,nEig) = eVec(:,nOrd)./(sel.disp.cutVals(nEig)+1e-2);
+%% Initialize Factors
+fprintf('Initializing Factors \n'),
+nFactors = 30;
+w = initFactors(corrMat,nFactors);
+nFactors = size(w,2);
+w = [w,rand(size(w,1),6)];
+
+%% Refine Factors
+fprintf('Loading Movie \n'),
+mov = sel.movMap.Data.mov;
+nh = sel.roiInfo.covFile.nh;
+nhInd = 1:nh^2;
+movInd = sel.nh2movInd(nhInd);
+oMov = mov(:, sel.acq.mat2binInd(movInd))';
+clear mov
+nFrames = size(oMov,2);
+oMov = squeeze(sum(reshape(oMov(:,1:end-mod(nFrames,10)),nh^2,10,[]),2));
+%oMov = sqrt(oMov);
+
+fprintf('Refining Factors \n'),
+t = pinv(w)*oMov;
+its = 0;
+converged = 0;
+convThresh = 1e-4;
+wBaseline = 1;
+while ~converged
+    its = its+1;
+    w0 = w;
+    [w,t] = updateSimNMF(oMov,t,nFactors,wBaseline);
+    converged = mean(abs(w0(:)-w(:)))<convThresh;mean(w0(:)-w(:));
 end
+fprintf('Refinement took %d iterations \n',its),
+
+figure(4693),clf,
+for nFactor = 1:size(w,2)
+    subplot(4,4,nFactor),
+    imshow(imNorm(reshape(w(:,nFactor),nh,nh))),
+end
+
+its = 0;
+converged = 0;
+convThresh = 1e-5;
+wBaseline = 80;
+while ~converged
+    its = its+1;
+    w0 = w;
+    [w,t] = updateSimNMF(oMov,t,nFactors,wBaseline);
+    converged = mean(abs(w0(:)-w(:)))<convThresh;mean(w0(:)-w(:));
+end
+fprintf('Sparsification took %d iterations \n',its),
+
+
+% [~,sortOrder] = sort(sqrt(sum(t(1:nFactors-2,:).^2,2)),1,'descend');
+% [~,sortOrder] = sort(median(t(1:nFactors-2,:),2),1,'descend');
+% sortOrder = [sortOrder;nFactors-1;nFactors];
+% [~,sortOrder] = sort(skewness(w(:,1:nFactors-2)),2,'ascend');
+% sortOrder = [sortOrder,nFactors-1,nFactors];
+% w=w(:,sortOrder);
+% t=t(sortOrder,:);    
+
+figure(4694),clf,
+for nFactor = 1:size(w,2)
+    subplot(4,4,nFactor),
+    imshow(imNorm(reshape(w(:,nFactor),nh,nh))),
+end
+
+%tF = pinv(w)*oMov.^2;
+tF = pinv(w)*oMov;
+% figure(9874),plot(tF(nFactors-1,:))
+% figure(9875),plot(tF(nFactors,:))
+assignin('base','guiT',tF),
+
+%% Display
+
+sel.disp.cutVecs = w;
+sel.disp.cutVals = sqrt(sum(t.^2,2));
 
 % Calculate #cuts and #clusters
 sel.calcClusterProps;
