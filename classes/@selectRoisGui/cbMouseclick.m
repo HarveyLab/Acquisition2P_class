@@ -98,7 +98,7 @@ corrMat = exp(-1/(1*pilC^2) * invC.^2);
 m = size(corrMat, 1);
 % offDiags = diag2full(ones(m, 8), [-nh-1 -nh -nh+1 -1 1 nh-1 nh nh+1], m, m); % 8-connected
 offDiags = diag2full(ones(m, 4), [-nh -1 1 nh], m, m); % 4-connected
-nhWeight = 3;
+nhWeight = 1;
 W = corrMat + nhWeight*offDiags;
 
 % Deal with nan rows/cols:
