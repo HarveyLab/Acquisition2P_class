@@ -37,8 +37,13 @@ movMean = mean(mov, 3);
 movMean = movMean - mean(movMean(:));
 
 % Crop image by 30%:
-hCrop = ceil(origH*0.15);
-wCrop = ceil(origW*0.15);
+% We need to make sure that the cropping removes an even number of lines so
+% that odd/even lines in the full image are still odd/even in the
+% cropped image! So hCrop and wCrop, which are the index of the first
+% included pixel, should both be odd.
+makeOdd = @(a) a+(mod(a, 2)==0);
+hCrop = makeOdd(ceil(origH*0.15));
+wCrop = makeOdd(ceil(origW*0.15));
 
 % Find optimal shift by calculating difference between unshifted odd lines
 % and shifted even lines for different shift values:
