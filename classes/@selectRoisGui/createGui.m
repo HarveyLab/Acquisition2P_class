@@ -3,7 +3,7 @@ function createGui(sel, acq, img, sliceNum, channelNum, smoothWindow, excludeFra
 % usage.
 
 %% For debugging:
-assignin('base', 'selGUI', sel);
+assignin('base', 'sel', sel);
 
 %% Create GUI data structure:
 % Initialize properties:
@@ -20,6 +20,11 @@ if ~isfield(sel.roiInfo, 'roi') || isempty(sel.roiInfo.roi)
     sel.roiInfo.hasBeenViewed = zeros(h, w);
     sel.roiInfo.roi = struct('id', [], 'group', [], 'indBody', [], ...
         'indNeuropil', [], 'subCoef', []);
+end
+
+% Update roi information to new structure:
+if isfield(sel.roiInfo, 'roiList')
+    removeRoiList(sel.acq);
 end
 
 % Create roiLabels:
@@ -66,6 +71,12 @@ else
     sel.disp.framePeriod = input('Input scanFramePeriod: ');
 end
 
+
+% Create overview image:
+if size(img, 3) == 1
+    % Img is a grayscale image:
+    img = imadjust(img);
+end
 sel.disp.img = img;
 
 % Create memory map of pixCov file:
@@ -74,6 +85,12 @@ if ~exist(sel.roiInfo.covFile.fileName, 'file')
 end
 sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
+covData = sel.covMap.Data.pixCov;
+tic,
+display('Loading Cov File')
+sel.covMap = [];
+sel.covMap = covData;
+toc,
 
 % Create memory mapped binary file of movie:
 movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;

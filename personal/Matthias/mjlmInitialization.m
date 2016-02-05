@@ -33,6 +33,16 @@ if ~isempty(strfind(savePath, 'jobsToDoScopeRig'))
 elseif ~isempty(strfind(savePath, 'jobsToDoKristenPc'))
     acq.Movies = improc.findFiles(acqId, '\\user-pc\C\data\Matthias\imaging\raw', 0);
     host = 'kristenPc';
+elseif ~isempty(strfind(savePath, 'jobsToDoTarynPc'))
+    % On taryn's pc, pull raw files from server (but then save in local
+    % default dir):
+    acq.Movies = improc.findFiles(acqId, '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw', 0);
+    host = 'tarynPc';
+end
+
+% Abort if no movies were found:
+if isempty(acq.Movies)
+    error('No movies were found.')
 end
 
 % Set default dir to local "processed" dir:
@@ -43,15 +53,19 @@ switch host
         localScopeRigFolder = fullfile('\\User1-PC\D\data\Matthias\processed', acqId);
     case 'kristenPc'
         localScopeRigFolder = fullfile('\\user-pc\C\data\Matthias\imaging\processed', acqId);
+    case 'tarynPc'
+        localScopeRigFolder = fullfile('\\taryn-pc\C\DATA\Matthias\imaging\processed', acqId);
 end
 
 % Create local "processed" dir:
-mkdir(localScopeRigFolder);
-fprintf('Created new folder: %s\n', localScopeRigFolder);
+if ~exist(localScopeRigFolder, 'dir')
+    mkdir(localScopeRigFolder);
+    fprintf('Created new folder: %s\n', localScopeRigFolder);
+end
 acq.defaultDir = localScopeRigFolder;
 
 % Motion correction parameters:
 acq.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
-acq.motionRefMovNum = floor(length(acq.Movies)/2);
+acq.motionRefMovNum = max(floor(length(acq.Movies)/2), 1);
 acq.motionRefChannel = 1;
 acq.binFactor = 1;

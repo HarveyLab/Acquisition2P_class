@@ -24,7 +24,7 @@ if size(sel.disp.img, 3) == 3
     beenViewedTransp = 0.35;
     set(sel.h.img.hasBeenViewed, 'AlphaData', bwperim(beenViewedTransp*sel.roiInfo.hasBeenViewed));
 else
-    beenViewedTransp = 0.2;
+    beenViewedTransp = 0.0;
     set(sel.h.img.hasBeenViewed, 'AlphaData', beenViewedTransp*sel.roiInfo.hasBeenViewed);
 end
     

@@ -34,7 +34,7 @@ nSlices = length(obj.indexedMovie.slice);
 nChannels = length(obj.indexedMovie.slice(1).channel);
 else
 nSlices = length(obj.roiInfo.slice);
-nChannels = 1;
+nChannels = length(obj.roiInfo.slice(1).channel);
 end
 
 for nSlice = 1:nSlices

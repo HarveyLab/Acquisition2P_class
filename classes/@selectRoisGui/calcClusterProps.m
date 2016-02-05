@@ -37,6 +37,7 @@ if doClusters
 
     [~,maxMod] = max(s);
     clusterMod = clusterMods(maxMod) - 1 - nCuts;
+    clusterMod = max(clusterMod, 0); % Don't allow nCluster to be <= nCuts, because that's rarely a good guess.
     sel.disp.clusterMod = clusterMod;   
 end
 
