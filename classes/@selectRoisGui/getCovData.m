@@ -42,9 +42,8 @@ queryRows = pxNeighbors(:);
 
 % Get covMat:
 % 1. Get rows:
-%pixCov = sel.covMap.Data.pixCov;
-%covMatRows = pixCov(queryRows,:);
-covMatRows = sel.covMap(queryRows,:);
+pixCov = sel.covMap.Data.pixCov;
+covMatRows = pixCov(queryRows,:);
 
 % 2. Get cols using strange index matrix:
 covMatDiags = nan(nh^2);

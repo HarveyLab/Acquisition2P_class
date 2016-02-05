@@ -45,7 +45,6 @@ roiImg = max(0.1, roiImg); % Make dark areas brighter so that colors are more ea
 % Overlay mask and image
 % (Existing ROIs = green, potential new ROI = yellow, overlap = red.
 old = roiLabels;
-old(:) = 0; % Temporarily not displaying old ROIs so as not to obscure view for selecting nice examples for cell selection paper.
 old(isnan(old)) = 0;
 new = sel.disp.roiMask;
 new(isnan(new)) = 0;

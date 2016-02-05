@@ -12,16 +12,15 @@ switch mode
         meanImg(isnan(meanImg)) = 0;
         meanImg = sqrt(meanImg);
         meanImg = adapthisteq(meanImg/max(meanImg(:)));
+        meanImg = repmat(meanImg, 1, 1, 3);
         
     case 'high contrast'
         meanImg = mat2gray(max(acq.meanRef([],[],[],0), [], 3), [0 500]);
-        meanImg = adapthisteq(meanImg, 'clipLimit', 0.001, 'numTiles', [30 30]);
-%         meanImg = meanImg*0.7;
+        meanImg = adapthisteq(meanImg, 'clipLimit', 0.005, 'numTiles', [20 20]);
 end
 
-meanImg = repmat(meanImg, 1, 1, 3);
 %% Get activity img:
 actImg = imadjust(mat2gray(acq.roiInfo.slice(1).covFile.activityImg));
 
-img = meanImg;
+
 img(:,:,1) = 0.7*meanImg(:,:,2)+0.3*actImg;

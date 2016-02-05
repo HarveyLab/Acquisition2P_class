@@ -54,18 +54,19 @@ fid = fopen(movFileName, 'A');
 fileList = sort(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName);
 nFiles = numel(fileList);
 
+% Create Tiff object:
+t = Tiff.empty;
+for f = fileList(:)' % Deal with both column and row cell arrays.
+    t(end+1) = Tiff(f{:});
+end
+
 % Get file info:
 movSizes = obj.correctedMovies.slice(nSlice).channel(nChannel).size;
 h = movSizes(1, 1);
 w = movSizes(1, 2);
 nFrames = movSizes(:, 3);
 nFramesTotal = sum(nFrames);
-
-% Get number of strips from first movie (note: this does not work on Linux/Orchestra):
-t = Tiff(fileList{1});
 nStrips = t(1).numberOfStrips;
-t.close;
-
 stripHeight = h/nStrips;
 thisStrip = zeros(stripHeight, w, nFramesTotal, 'int16');
 
@@ -75,14 +76,12 @@ for iStrip = 1:nStrips
     % Read current strip from all files:
     for iFile = 1:nFiles
         tFile = tic;
-        t = Tiff(fileList{iFile});
+        
         for iFrame = 1:nFrames(iFile)
             iFrameGlobal = sum(nFrames(1:iFile-1)) + iFrame;
-            t.setDirectory(iFrame);
-            tmpImg = t.read;
-            thisStrip(:, :, iFrameGlobal) = tmpImg((1:8)+8*(iStrip-1), :);
+            t(iFile).setDirectory(iFrame);
+            thisStrip(:, :, iFrameGlobal) = readEncodedStrip(t(iFile), iStrip);
         end
-        t.close;
         
         if iFile==1 || ~mod(iFile, 10)
             fprintf('Reading strip %d of file %d: %1.3f\n', iStrip, iFile, toc(tFile));

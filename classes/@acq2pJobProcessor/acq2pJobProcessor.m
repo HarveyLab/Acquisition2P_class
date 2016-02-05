@@ -15,14 +15,14 @@ classdef acq2pJobProcessor < handle
     
     methods
         % Constructor:
-        function ajp = acq2pJobProcessor(jobDir, debug, isExitAfterOneJob, nameFunc)
+        function ajp = acq2pJobProcessor(jobDir, debug, shouldContinue, nameFunc)
             if ~exist('nameFunc','var')
                 ajp.nameFunc = [];
             else
                 ajp.nameFunc = nameFunc;
             end
-            if ~exist('shouldContinue','var') || isempty(isExitAfterOneJob)
-                isExitAfterOneJob = false;
+            if ~exist('shouldContinue','var') || isempty(shouldContinue)
+                shouldContinue = true;
             end
             if nargin==2
                 ajp.debug = debug;
@@ -36,7 +36,7 @@ classdef acq2pJobProcessor < handle
             
             ajp.logFileName = fullfile(jobDir, 'acqJobLog.txt');
             
-            ajp.run(isExitAfterOneJob);            
+            ajp.run(shouldContinue);            
         end
     end
 end

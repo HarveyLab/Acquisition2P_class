@@ -68,7 +68,5 @@ for r = 1:nRoi
     end
 end
 
-% dF = dFcalc(traces,rawF,'exp_linear');
-dF = []; % Should we include dF calculation here? Update baselining?
-
+dF = dFcalc(traces,rawF,'custom_wfun');
 clear mov

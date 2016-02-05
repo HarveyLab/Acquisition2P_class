@@ -28,8 +28,8 @@ sel.disp.fNeuropil(sel.disp.excludeFrames) = [];
 % sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'runningAvg',9001);
 [sel.disp.fBody, baselineStats] = deBleach(sel.disp.fBody, 'custom_wfun');
 sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'custom_wfun');
-% sel.disp.f0Body = prctile(sel.disp.fBody,10);
 sel.disp.f0Body = prctile(sel.disp.fBody,10);
+sel.disp.f0Neuropil = prctile(sel.disp.fNeuropil,10);
 
 % Smooth traces:
 smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
@@ -37,22 +37,27 @@ sel.disp.fBody = conv(sel.disp.fBody, smoothWin, 'valid');
 sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'valid');
 
 %Extract subtractive coefficient btw cell + neuropil and plot
-cutoffFreq = 10; %Cutoff frequency in seconds
-a = sel.disp.framePeriod / cutoffFreq;
-fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
-fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
+% cutoffFreq = 1; %Cutoff frequency in seconds
+% a = sel.disp.framePeriod / cutoffFreq;
+% fBodyHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fBody);
+% fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
+fBodyHighpass = sel.disp.fBody-sel.disp.f0Body;
+fNeuropilHighpass = sel.disp.fNeuropil-sel.disp.f0Neuropil;
+df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
+isFChanging = df>2*mode(round(df*100)/100);
 
-% df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
-% isFChanging = df>2*mode(round(df*100)/100);
+traceSubSelection = ~isFChanging;
 
-% traceSubSelection = ~isFChanging;
-
-nSmooth = numel(smoothWin);
-traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
+%nSmooth = numel(smoothWin);
+%traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
 
 sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
     fBodyHighpass(traceSubSelection),...
-    'talwar',1);
+    'bisquare',2);
+
+% sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
+%     fBodyHighpass(traceSubSelection),...
+%     'talwar',1);
 
 % Plot neuropil subtraction info:
 cla(sel.h.ax.subSlope);

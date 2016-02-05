@@ -1,24 +1,22 @@
-function run(ajp, isExitAfterOneJob)
+function run(ajp, shouldContinue)
 % Runs a loop that loads acquisition objects and processes them.
 
-if ~exist('shouldContinue', 'var') || isempty(isExitAfterOneJob)
-    isExitAfterOneJob = true;
+if ~exist('shouldContinue', 'var') || isempty(shouldContinue)
+    shouldContinue = true;
 end
 
-nJobsDone = 0;
 while ~ajp.flagStop
     success = ajp.loadNextAcq;
     
-    if ~success && ~isExitAfterOneJob
+    if ~success && shouldContinue
         fprintf('%s: There are no unprocessed acquisitions. Waiting...\n', ...
             datestr(now, 'yymmdd HH:MM:SS'));
         pause(60);
         continue
-    elseif success && (~isExitAfterOneJob || nJobsDone==0)
-        ajp.processCurrentAcq;
-        nJobsDone = nJobsDone + 1;
-    else
+    elseif ~success && ~shouldContinue
         ajp.stop
         break
     end
+    
+    ajp.processCurrentAcq;
 end
