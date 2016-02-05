@@ -54,23 +54,20 @@ fid = fopen(movFileName, 'A');
 fileList = sort(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName);
 nFiles = numel(fileList);
 
-% Create Tiff object:
-% t = Tiff.empty;
-% for f = fileList(:)' % Deal with both column and row cell arrays.
-%     t(end+1) = Tiff(f{:});
-% end
-
 % Get file info:
 movSizes = obj.correctedMovies.slice(nSlice).channel(nChannel).size;
 h = movSizes(1, 1);
 w = movSizes(1, 2);
 nFrames = movSizes(:, 3);
 nFramesTotal = sum(nFrames);
-nStrips = 64;
-warning('Hard-coded nStrips to fix linux/windows bug. improve this')
+
+% Get number of strips from first movie (note: this does not work on Linux/Orchestra):
+t = Tiff(fileList{1});
+nStrips = t(1).numberOfStrips;
+t.close;
+
 stripHeight = h/nStrips;
 thisStrip = zeros(stripHeight, w, nFramesTotal, 'int16');
-
 
 tTotal = tic;
 for iStrip = 1:nStrips
