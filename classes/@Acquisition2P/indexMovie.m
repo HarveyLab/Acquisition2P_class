@@ -61,10 +61,20 @@ w = movSizes(1, 2);
 nFrames = movSizes(:, 3);
 nFramesTotal = sum(nFrames);
 
-% Get number of strips from first movie (note: this does not work on Linux/Orchestra):
-t = Tiff(fileList{1});
-nStrips = t(1).numberOfStrips;
-t.close;
+if ~isunix
+    % Get number of strips from first movie (note: this does not work on Linux/Orchestra):
+    t = Tiff(fileList{1});
+    nStrips = t(1).numberOfStrips;
+    t.close;
+    readInStrips = 1;
+elseif h==512 && w==512
+    nStrips = 64; %Hard code for default movie size
+    readInStrips = 0;
+else
+    nStrips = 1;
+    warning('User needs to specify strip sizes on unix computers'),
+    readInStrips = 0;
+end
 
 stripHeight = h/nStrips;
 thisStrip = zeros(stripHeight, w, nFramesTotal, 'int16');
@@ -78,9 +88,17 @@ for iStrip = 1:nStrips
         t = Tiff(fileList{iFile});
         for iFrame = 1:nFrames(iFile)
             iFrameGlobal = sum(nFrames(1:iFile-1)) + iFrame;
-            t.setDirectory(iFrame);
-            tmpImg = t.read;
-            thisStrip(:, :, iFrameGlobal) = tmpImg((1:8)+8*(iStrip-1), :);
+%             t.setDirectory(iFrame);
+            if readInStrips
+                thisStrip(:,:,iFrameGlobal) = readEncodedStrip(t,iStrip);
+            else
+                tmpImg = t.read;
+                thisStrip(:, :, iFrameGlobal) = tmpImg((1:8)+8*(iStrip-1), :);
+            end
+            
+            if iFrame < nFrames(iFile)
+                t.nextDirectory,
+            end
         end
         t.close;
         
