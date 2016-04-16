@@ -1,5 +1,13 @@
 function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
 
+% Parts of the Lucas Kanade motion correction code were obtained from 
+% https://xcorr.net/2014/08/02/non-rigid-deformation-for-calcium-imaging-frame-alignment/
+% and/or are originally based on the method published in:
+% Greenberg, David S., and Jason N.D. Kerr. “Automated Correction of Fast
+% Motion Artifacts for Two-Photon Imaging of Awake Animals.” Journal of
+% Neuroscience Methods 176, no. 1 (January 15, 2009): 1–15.
+% doi:10.1016/j.jneumeth.2008.08.020.
+
 % If not set explicitly, then use GPU if available:
 if ~exist('isGpu', 'var')
     isGpu = gpuDeviceCount > 0;
