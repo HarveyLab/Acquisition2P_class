@@ -1,4 +1,4 @@
-function mov = getRoiMovie(acq, roiNum)
+function mov = getRoiMovie(acq, roiNum, winSize)
 % mov = getRoiMovie(acq, roiNum) returns a 3D mov stack of the image data
 % in acq surrounding the roi roiNum.
 
@@ -14,7 +14,7 @@ cr = round(mean(r));
 cc = round(mean(c));
 
 % Get list of pixels in neighborhood:
-nh = 20;
+nh = winSize;
 [nhC, nhR] = meshgrid(cc-nh:cc+nh, cr-nh:cr+nh);
 nhC = min(max(nhC, 1), w);
 nhR = min(max(nhR, 1), w);
