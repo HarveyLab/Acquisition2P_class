@@ -1,4 +1,4 @@
-function mov = alignFullframe(mov, xShift, yShift)
+function mov = alignFullframeCircshift(mov, xShift, yShift)
 
 z = size(mov, 3);
 for f = 1:z

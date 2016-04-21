@@ -13,7 +13,7 @@ if isGpu
     wait(gpu)
     memAvailable = gpu.AvailableMemory;
 end
-isEqualizeLuminace = true;
+isEqualizeLuminace = false;
 
 switch opMode
     case 'identify'
@@ -22,68 +22,79 @@ switch opMode
         for iSl = 1:nSlice
             [h, w, z] = size(double(movStruct.slice(iSl).channel(refCh).mov));
             
+            % It is important to exclude the black bars that are
+            % present in older Scanimage files because they don't
+            % translate and will bias the results. We simply cut off
+            % 10 % on either side:
+            isEdge = (1:w) < 0.1*w | (1:w) > 0.9*w;
+            movTemp = movStruct.slice(iSl).channel(refCh).mov(:, ~isEdge, :);
+            
             % Perform luminance equalization (this may be helpful for
             % movies with very uneven brightness, e.g. one highly
             % overexpressing region besides a healthy region of interest):
             if isEqualizeLuminace
-                localLuminance = imgaussfilt(movStruct.slice(iSl).channel(refCh).mov, round(h/12));
-                movStruct.slice(iSl).channel(refCh).mov = ...
-                    bsxfun(@rdivide, movStruct.slice(iSl).channel(refCh).mov, localLuminance);
+                localLuminance = imgaussfilt(movTemp, round(h/12));
+                movTemp = ...
+                    bsxfun(@rdivide, movTemp, localLuminance);
             end
             
             % Perform whole-frame translation correction (this is fast and
             % improves the quality of the reference used for the Lucas
             % Kanade step):
-            isEdge = (1:w) < 0.1*w | (1:w) > 0.9*w; % Exclude black bars!
-            r = detectFullframeRecursive(movStruct.slice(iSl).channel(refCh).mov(:, ~isEdge, :), 1:z);
-            movStruct.slice(iSl).channel(refCh).mov = ...
-                alignFullframe(movStruct.slice(iSl).channel(refCh).mov, r.T(:, 2), r.T(:, 1));
+            % Use the old wholeframe code rather than the recursive
+            % function that builds up a mean image, because the recursive
+            % function can fail catastrophically if individual frames are
+            % very low SNR:
+            [xTrans, yTrans] = track_subpixel_wholeframe_motion_fft_forloop(...
+                movTemp, mean(movTemp, 3));
+            movTemp = translateAcq(movTemp, xTrans, yTrans, 0);
             
             % Calculate reference on full-frame-corrected movie:
-            ref = mean(movStruct.slice(iSl).channel(refCh).mov, 3);
+            ref = mean(movTemp, 3);
             ref = single(ref);
             
             % Find within-frame displacements:
             [movTemp, dpx, dpy, basisFunctions] = ...
-                doLucasKanadeSPMD(single(movStruct.slice(iSl).channel(refCh).mov), ref);
+                doLucasKanadeSPMD(single(movTemp), ref);
             
             % Combine full-frame and within-frame displacements:
-            dpx = bsxfun(@minus, dpx, r.T(:, 2)');
-            dpy = bsxfun(@minus, dpy, r.T(:, 1)');
+            dpx = bsxfun(@minus, dpx, xTrans);
+            dpy = bsxfun(@minus, dpy, yTrans);
                         
             % Find global displacement with respect to global reference
             % image:
             if movNum == refMov
+                % Apply shifts to get reference image (we can't just use
+                % movTemp because we cut off its edges earlier):
                 tformGlobal = affine2d;
-                obj.motionRefImage.slice(iSl).img = nanmedian(movTemp, 3);
-            else
-                refHere = nanmedian(movTemp, 3);
-                refGlobal = obj.motionRefImage.slice(iSl).img;
-                
-                % It is important to exclude the black bars that are
-                % present in older Scanimage files because they don't
-                % translate and will bias the results. We simply cut off
-                % 10 % on either side:
-                isEdge = (1:w) < 0.1*w | (1:w) > 0.9*w;
+                obj.shifts(movNum).slice(iSl).x = createDispFieldFunctionX(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
+                obj.shifts(movNum).slice(iSl).y = createDispFieldFunctionY(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
+                movStructForRef = withinFile_withinFrame_lucasKanade(...
+                    obj, movStruct, scanImageMetadata, movNum, 'apply');
+                obj.motionRefImage.slice(iSl).img = ...
+                    nanmedian(movStructForRef.slice(iSl).channel(refCh).mov, 3);
+            else                
+                refGlobal = obj.motionRefImage.slice(iSl).img(:, ~isEdge);
+                refHere = nanmedian(movTemp, 3); % movTemp already had its edges cut off above.
                 
                 % First, we find translation only. The subsequent affine
                 % step only works robustly if the translation has already
                 % been removed:
                 [xTrans, yTrans] = track_subpixel_wholeframe_motion_fft_forloop(...
-                    refHere(:, ~isEdge), refGlobal(:, ~isEdge));
-                refHereTransl = alignFullframe(refHere, xTrans, yTrans);
+                    refHere, refGlobal);
+                Tinit = affine2d;
+                Tinit.T = [1 0 0; 0 1 0; xTrans yTrans 1];
                 
                 % Find affine transformation using mutual information
                 % metric:
                 opt = imregconfig('Monomodal');
+                opt.MaximumIterations = 300;
+                opt.RelaxationFactor = 0.9;
                 met = registration.metric.MattesMutualInformation;
                 RA = imref2d([h, sum(~isEdge)]);      
-                tformGlobal = imregtform(refHereTransl(:, ~isEdge), RA, refGlobal(:, ~isEdge), RA, ...
+                tformGlobal = imregtform(refHere, RA, refGlobal, RA, ...
                     'affine', opt, met, ...
-                    'InitialTransformation', affine2d, 'PyramidLevels', 1);
-                
-                % Combine translation and affine transformation:
-                tformGlobal.T = tformGlobal.T * [1 0 0; 0 1 0; xTrans yTrans 1];
+                    'InitialTransformation', Tinit, 'PyramidLevels', 1);
             end
             
             % The motion correction algorithm calculates a rigid shift for
@@ -129,10 +140,10 @@ switch opMode
                             movStruct.slice(iSl).channel(iCh).mov(:,:,f), ...
                             Dx(:,:,f), ...
                             Dy(:,:,f), ...
-                            'linear');
+                            'linear', nan);
                 end
-            obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
-                nanmean(movStruct.slice(iSl).channel(iCh).mov,3);
+                obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
+                    nanmean(movStruct.slice(iSl).channel(iCh).mov, 3);
             end
         end
 end
