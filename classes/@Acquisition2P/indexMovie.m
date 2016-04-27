@@ -123,6 +123,9 @@ end
 fprintf('Done saving binary movie. Total time per TIFF file: %1.3f\n', toc(tTotal)/iFile);
 
 fclose(fid);
+for i = 1:length(t)
+    t(i).close,
+end
 
 % Add info to acq2p object last in case an error happens in the function:
 obj.indexedMovie.slice(nSlice).channel(nChannel).fileName = movFileName;
