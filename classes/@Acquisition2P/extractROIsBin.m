@@ -1,5 +1,5 @@
 function [dF, traces, rawF, roi, traceNeuropil] = ...
-    extractROIsBin(obj,roiGroups,sliceNum,channelNum)
+    extractROIsBin(obj,roiGroups,sliceNum,channelNum, isGetDF)
 % Function for extracting ROIs from movies using grouping assigned by
 % selectROIs. This function uses a memorymapped binary file of the entire
 % movie, as output by indexMovie. See extractROIsTIFF to extract ROIs
@@ -23,6 +23,9 @@ if ~exist('channelNum','var') || isempty(channelNum)
 end
 if ~exist('roiGroups','var') || isempty(roiGroups)
     roiGroups = 1:9;
+end
+if ~exist('isGetDF','var') || isempty(isGetDF)
+    isGetDF = true;
 end
 
 % Update roi information to new structure:
@@ -55,12 +58,14 @@ for r = 1:nRoi
     fprintf('Extracting ROI %03.0f of %03.0f\n', r, nRoi);
     
     indCell = obj.mat2binInd(roi(r).indBody);
+    indCell(isnan(indCell)) = [];
     traceCell = mean(mov(:, indCell), 2)';
     rawF(r,:) = traceCell;
     
     if isfield(roi(r),'indNeuropil') && ~isempty(roi(r).indNeuropil)
         subCoef = roi(r).subCoef;
         indNeuropil = obj.mat2binInd(roi(r).indNeuropil);
+        indNeuropil(isnan(indNeuropil)) = [];
         traceNeuropil(r,:) = mean(mov(:, indNeuropil), 2)';
         traces(r,:) = traceCell - traceNeuropil(r,:)*subCoef;
     else
@@ -68,5 +73,10 @@ for r = 1:nRoi
     end
 end
 
-dF = dFcalc(traces,rawF,'custom_wfun');
+if isGetDF
+    dF = dFcalc(traces,rawF,'custom_wfun');
+else
+    df = [];
+end
+
 clear mov
