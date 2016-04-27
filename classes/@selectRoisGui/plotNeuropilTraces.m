@@ -14,8 +14,8 @@ else
     movIndNeuropil = neuropilInd;
 end
 
-sel.disp.fBody = mean(mov(:, sel.acq.mat2binInd(movIndBody)), 2)';
-sel.disp.fNeuropil = mean(mov(:, sel.acq.mat2binInd(movIndNeuropil)), 2)';
+sel.disp.fBody = mean(mov(:, sel.acq.mat2binInd(movIndBody(~isnan(movIndBody)))), 2)';
+sel.disp.fNeuropil = mean(mov(:, sel.acq.mat2binInd(movIndNeuropil(~isnan(movIndNeuropil)))), 2)';
 
 % Remove excluded frames (removing them seems to be the most
 % acceptable solution, since many functions below don't deal well
@@ -29,7 +29,6 @@ sel.disp.fNeuropil(sel.disp.excludeFrames) = [];
 [sel.disp.fBody, baselineStats] = deBleach(sel.disp.fBody, 'custom_wfun');
 sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'custom_wfun');
 sel.disp.f0Body = prctile(sel.disp.fBody,10);
-sel.disp.f0Neuropil = prctile(sel.disp.fNeuropil,10);
 
 % Smooth traces:
 smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
