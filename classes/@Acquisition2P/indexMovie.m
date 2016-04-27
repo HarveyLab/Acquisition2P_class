@@ -51,8 +51,14 @@ fprintf('Saving file %s\n',movFileName);
 fid = fopen(movFileName, 'A');
 
 %% Write bin file in frame-major order:
-fileList = sort(obj.correctedMovies.slice(nSlice).channel(nChannel).fileName);
+fileList = obj.correctedMovies.slice(nSlice).channel(nChannel).fileName;
 nFiles = numel(fileList);
+
+% Create Tiff Object
+t = Tiff.empty;
+for f = fileList(:)'
+    t(end+1) = Tiff(f{:});
+end
 
 % Get file info:
 movSizes = obj.correctedMovies.slice(nSlice).channel(nChannel).size;
@@ -63,9 +69,7 @@ nFramesTotal = sum(nFrames);
 
 if ~isunix
     % Get number of strips from first movie (note: this does not work on Linux/Orchestra):
-    t = Tiff(fileList{1});
     nStrips = t(1).numberOfStrips;
-    t.close;
     readInStrips = 1;
 elseif h==512 && w==512
     nStrips = 64; %Hard code for default movie size
@@ -85,22 +89,17 @@ for iStrip = 1:nStrips
     % Read current strip from all files:
     for iFile = 1:nFiles
         tFile = tic;
-        t = Tiff(fileList{iFile});
         for iFrame = 1:nFrames(iFile)
             iFrameGlobal = sum(nFrames(1:iFile-1)) + iFrame;
-%             t.setDirectory(iFrame);
+            t(iFile).setDirectory(iFrame);
+            
             if readInStrips
-                thisStrip(:,:,iFrameGlobal) = readEncodedStrip(t,iStrip);
+                thisStrip(:,:,iFrameGlobal) = readEncodedStrip(t(iFile),iStrip);
             else
                 tmpImg = t.read;
                 thisStrip(:, :, iFrameGlobal) = tmpImg((1:8)+8*(iStrip-1), :);
             end
-            
-            if iFrame < nFrames(iFile)
-                t.nextDirectory,
-            end
         end
-        t.close;
         
         if iFile==1 || ~mod(iFile, 10)
             fprintf('Reading strip %d of file %d: %1.3f\n', iStrip, iFile, toc(tFile));
