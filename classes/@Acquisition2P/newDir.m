@@ -10,7 +10,7 @@ function newDir(obj,destDir,doCor,doInd,doCov)
 %   indexed movie files, and covariance files, respectively. newDir always
 %   checks to see whether files are present before copying, so all 'do' variables can be set
 %   to one without throwing an error
-    
+
 %% Input handling
 
 if ~exist('doCor', 'var') || isempty(doCor)
@@ -27,14 +27,14 @@ end
 
 %% Copy files
 if doCor == 1
-nSlices = length(obj.correctedMovies.slice);
-nChannels = length(obj.correctedMovies.slice(1).channel);
+    nSlices = length(obj.correctedMovies.slice);
+    nChannels = length(obj.correctedMovies.slice(1).channel);
 elseif doInd == 1
-nSlices = length(obj.indexedMovie.slice);
-nChannels = length(obj.indexedMovie.slice(1).channel);
+    nSlices = length(obj.indexedMovie.slice);
+    nChannels = length(obj.indexedMovie.slice(1).channel);
 else
-nSlices = length(obj.roiInfo.slice);
-nChannels = 1;
+    nSlices = length(obj.roiInfo.slice);
+    nChannels = length(obj.roiInfo.slice(1).channel);
 end
 
 for nSlice = 1:nSlices
@@ -67,10 +67,10 @@ for nSlice = 1:nSlices
             copyfile(fullfile(covPath,covName),newCovName);
             obj.roiInfo.slice(nSlice).covFile.fileName = newCovName;
         end
-            
+        
     end
 end
-    
+
 obj.defaultDir = destDir;
 eval([obj.acqName '= obj;']);
 save(fullfile(destDir,obj.acqName),obj.acqName);
