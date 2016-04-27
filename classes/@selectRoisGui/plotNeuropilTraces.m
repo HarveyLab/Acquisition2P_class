@@ -29,6 +29,7 @@ sel.disp.fNeuropil(sel.disp.excludeFrames) = [];
 [sel.disp.fBody, baselineStats] = deBleach(sel.disp.fBody, 'custom_wfun');
 sel.disp.fNeuropil = deBleach(sel.disp.fNeuropil, 'custom_wfun');
 sel.disp.f0Body = prctile(sel.disp.fBody,10);
+sel.disp.f0Neuropil = prctile(sel.disp.fNeuropil,10);
 
 % Smooth traces:
 smoothWin = gausswin(sel.disp.smoothWindow)/sum(gausswin(sel.disp.smoothWindow));
