@@ -20,6 +20,14 @@ if strcmpi(evt.Source.CurrentModifier,'control')
                 return
             end
     end
+elseif strcmpi(evt.Source.CurrentModifier, 'shift')
+    switch sign(evt.VerticalScrollCount)
+        case -1
+            sel.disp.cutMod_nTopToExclude = min(sel.disp.cutMod_nTopToExclude+1, sel.disp.clusterNum-1);
+            sel.disp.clusterMod = sel.disp.clusterMod-1;
+        case 1
+            sel.disp.cutMod_nTopToExclude = max(sel.disp.cutMod_nTopToExclude-1, 0);
+    end
 else
     switch sign(evt.VerticalScrollCount)
         case -1 % Scrolling up

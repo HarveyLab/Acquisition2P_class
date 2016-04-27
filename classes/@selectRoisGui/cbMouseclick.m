@@ -31,6 +31,7 @@ else
     sel.disp.clusterNum = initialClusterNum;
 end
 sel.disp.clusterMod = 0;
+sel.disp.cutMod_nTopToExclude = 0;
 
 %If click is valid, define new ROIpt at click location:
 if isfield(sel.h.ui,'roiPoint')
@@ -82,13 +83,8 @@ sel.roiInfo.hasBeenViewed(pxNeighbors) = 1;
 %Construct matrices for normCut algorithm using correlation coefficients
 corrMat = double(corrcov(covMat, 0)); % Flag = Don't check for correctness of covMat.
 
-% custom corr mods
-%corrBound = prctile(corrMat(:),10);
-%corrMat(corrMat<=corrBound) = corrBound;
-
-%corrMat(corrMat<=mean(corrMat(:))) = mean(corrMat(:));
-%corrMat = exp(-(1-corrMat)/(1/2*(1-median(corrMat(:)))));
-
+% Apply modification to the correlation matrix to maximize difference
+% between neuropil and cells:
 invC = 1-corrMat;
 pilC = median(invC(~isnan(invC(:))));
 corrMat = exp(-1/(1*pilC^2) * invC.^2);

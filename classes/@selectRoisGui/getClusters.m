@@ -3,7 +3,7 @@ function [clusterIndex, clusterCentroid] = getClusters(sel, nCuts, nClusters)
 % normcuts data. This function should be used wherever clustering is done,
 % rather than using kmeans() separately in different places.
 
-cutVecs = sel.disp.cutVecs(:,1:nCuts);
+cutVecs = sel.disp.cutVecs(:,(1+sel.disp.cutMod_nTopToExclude):nCuts);
 nPix = size(cutVecs, 1);
 
 % Choose starting points for clustering based on salient features in the
@@ -28,5 +28,5 @@ elseif nCentroids<nClusters
 end
 
 [clusterIndex, clusterCentroid] = ...
-    kmeans(cutVecs, nClusters, 'Distance', 'cityblock', 'MaxIter', 1e2, ...
+    kmeans(real(cutVecs), nClusters, 'Distance', 'cityblock', 'MaxIter', 1e2, ...
     'start', startCent);
