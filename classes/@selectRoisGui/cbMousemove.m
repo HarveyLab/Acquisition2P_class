@@ -1,5 +1,17 @@
 function cbMousemove(sel, ~, ~)
 
+% Give the figure focus when the mouse moves onto it:
+if ~isequal(gcf, sel.h.fig.main)
+    figure(sel.h.fig.main)
+end
+
+% Do not change clusters based on mouse movement when a cell/neuropil pair
+% has been selected (to prevent that the loaded pair is unloaded by
+% accidentally moving across another cut):
+if strcmp('This pairing loaded', get(get(sel.h.ax.roi, 'Title'), 'string'));
+    return
+end
+
 % Find mouse coordinates in ROI axis:
 axRoiBottomLeft = round(sel.h.ax.roi.Position(1:2).*sel.h.fig.main.Position(3:4));
 currentPosInAx = sel.h.fig.main.CurrentPoint-axRoiBottomLeft;
