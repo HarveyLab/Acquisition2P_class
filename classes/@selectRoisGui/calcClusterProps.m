@@ -6,7 +6,9 @@ doClusters = get(sel.h.ui.autoCalcClusters,'Value');
 if doCuts
     cutVals = sel.disp.cutVals;
     X = 1:length(cutVals);
+    warnState = warning('off', 'stats:statrobustfit:IterationLimit');
     [B,stats] = robustfit(X,cutVals,'bisquare',2);
+    warning(warnState);
     Y = X*B(2)+B(1)-stats.robust_s*10;
     nCutsAuto = find(cutVals<Y,1,'last');
     if ~isempty(nCutsAuto)
@@ -37,6 +39,7 @@ if doClusters
 
     [~,maxMod] = max(s);
     clusterMod = clusterMods(maxMod) - 1 - nCuts;
+    clusterMod = max(clusterMod, 0); % Don't allow nCluster to be <= nCuts, because that's rarely a good guess.
     sel.disp.clusterMod = clusterMod;   
 end
 
