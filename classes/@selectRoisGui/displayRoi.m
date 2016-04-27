@@ -17,7 +17,7 @@ end
 
 %Get mask corresponding to currently selected cluster, and optionally
 %enforce that only the largest connected component of cluster is selected
-roiMask = sel.disp.currentClustering == sel.disp.currentClustInd;
+roiMask = sel.disp.currentClustering == min(sel.disp.currentClustInd, max(sel.disp.currentClustering(:)));
 if enforceContinuity == 1
     CC = bwconncomp(roiMask);
     numPix = cellfun(@numel, CC.PixelIdxList);
