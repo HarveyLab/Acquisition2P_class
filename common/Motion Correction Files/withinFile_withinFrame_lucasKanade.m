@@ -36,6 +36,7 @@ switch opMode
                 localLuminance = imgaussfilt(movTemp, round(h/12));
                 movTemp = ...
                     bsxfun(@rdivide, movTemp, localLuminance);
+				movTemp(~isfinite(movTemp)) = 0;
             end
             
             % Perform whole-frame translation correction (this is fast and
@@ -75,6 +76,12 @@ switch opMode
                     nanmedian(movStructForRef.slice(iSl).channel(refCh).mov, 3);
             else                
                 refGlobal = obj.motionRefImage.slice(iSl).img(:, ~isEdge);
+				if isEqualizeLuminace
+					localLuminance = imgaussfilt(refGlobal, round(h/12));
+					refGlobal = refGlobal./localLuminance;
+					refGlobal(~isfinite(refGlobal)) = 0;
+				end
+				
                 refHere = nanmedian(movTemp, 3); % movTemp already had its edges cut off above.
                 
                 % First, we find translation only. The subsequent affine
