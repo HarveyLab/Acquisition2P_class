@@ -35,11 +35,29 @@ switch evt.Key
         lastRoiId = sel.roiInfo.roi(end).id;
         sel.cbDeleteRoi([], [], lastRoiId)
         
-    case {'1', '2', '3', '4', '5', '6', '7', '8', '9'}       
+    case 'escape'
+        title(sel.h.ax.roi, 'ROI selection');
+        
+    case {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'r'}
+        % Make button for group 9 that is easier to reach than the "9" key
+        % (R = "rubbish"):
+        if evt.Key == 'r'
+            clear evt
+            evt.Key = '9';
+        end
         saveNewROI(sel,evt);
+        
     case 'f'
-        doAllClusterTraces(sel),        
+        doAllClusterTraces(sel)
+        
     case 'space'
+        % If we have a pairing loaded, then space shouldn't do anything.
+        % Only selecting the ROI, clicking in a new spot, pressing tab or
+        % pressing escape should abort this pairing.
+        if strcmp('This pairing loaded', get(get(sel.h.ax.roi, 'Title'), 'string'));
+            return
+        end
+        
         %Determine if selection is new cell body or paired neuropil
         isNeuropilSelection = strcmp('Select neuropil pairing', get(get(sel.h.ax.roi, 'Title'), 'string'));
         
