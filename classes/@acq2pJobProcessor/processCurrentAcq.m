@@ -29,9 +29,27 @@ end
 %check if motion correction already applied
 if isempty(ajp.currentAcq.shifts)
     try
+	
+        % If we're on Orchestra, start parallel pool with correct
+        % settings:
+        if isunix && ~isempty(gcp('nocreate'))
+            ClusterInfo.setWallTime('20:00'); % 20 hour
+            ClusterInfo.setMemUsage('4000')
+            ClusterInfo.setQueueName('mpi')
+            parpool(12)
+        end
+	
         ajp.log('Started motion correction.');
         ajp.currentAcq.motionCorrect([],[],ajp.nameFunc);
         ajp.saveCurrentAcq;
+        
+        % If we're on Orchestra, we should close the parallel pool to
+        % reduce memory usage:
+        if isunix
+            poolobj = gcp('nocreate');
+            delete(poolobj);
+        end
+        
     catch err
         msg = sprintf('Motion correction aborted with error: %s', err.message);
         ajp.log(msg);
@@ -66,8 +84,25 @@ if isempty(ajp.currentAcq.roiInfo) ...
     % requested:
     try
         ajp.log('Started pixel covariance calculation.');
+        
+        % If we're on Orchestra, start parallel pool with correct
+        % settings:
+        if isunix && ~isempty(gcp('nocreate'))
+            ClusterInfo.setWallTime('20:00'); % 20 hour
+            ClusterInfo.setMemUsage('4000')
+            ClusterInfo.setQueueName('mpi')
+            parpool(12)
+        end
+        
         ajp.currentAcq.calcPxCov([],pxCovRad);
         ajp.saveCurrentAcq;
+        
+        % If we're on Orchestra, we should close the parallel pool to
+        % reduce memory usage:
+        if isunix
+            poolobj = gcp('nocreate');
+            delete(poolobj);
+        end
     catch err
         msg = sprintf('Pixel covariance calculation aborted with error: %s', err.message);
         ajp.log(msg);
