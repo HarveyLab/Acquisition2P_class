@@ -30,7 +30,8 @@ for frame = 1:length(allFrames)
         if thisFile ~=0
             t.close
         end
-        thisFile = fileFrameIDs(frame),
+        thisFile = fileFrameIDs(frame);
+        fprintf('\n file %d up to %d',thisFile,max(fileFrameIDs)),
         t = Tiff(obj.correctedMovies.slice(1).channel(1).fileName{thisFile});
     end
     
