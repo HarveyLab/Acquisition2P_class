@@ -43,13 +43,14 @@ sel.disp.fNeuropil = conv(sel.disp.fNeuropil, smoothWin, 'valid');
 % fNeuropilHighpass = filtfilt([1-a a-1],[1 a-1], sel.disp.fNeuropil);
 fBodyHighpass = sel.disp.fBody-sel.disp.f0Body;
 fNeuropilHighpass = sel.disp.fNeuropil-sel.disp.f0Neuropil;
-df = smooth(abs(diff(fBodyHighpass)), round(2/sel.disp.framePeriod));
-isFChanging = df>2*mode(round(df*100)/100);
-
+df = smooth(abs(diff(fBodyHighpass-fNeuropilHighpass)), round(2/sel.disp.framePeriod));
+isFChanging = df>mode(round(df*100)/100);
 traceSubSelection = ~isFChanging;
 
-%nSmooth = numel(smoothWin);
-%traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
+% nSmooth = numel(smoothWin);
+% traceSubSelection = baselineStats.w(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2)))==1;
+% traceSubSelection = baselineStats.resid(floor(nSmooth/2):end-1-(nSmooth-floor(nSmooth/2))) ...
+%     < baselineStats.robust_s*5;
 
 sel.disp.neuropilCoef = robustfit(fNeuropilHighpass(traceSubSelection),...
     fBodyHighpass(traceSubSelection),...
