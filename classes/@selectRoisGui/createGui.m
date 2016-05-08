@@ -25,7 +25,7 @@ end
 % Create roiLabels:
 sel.disp.roiLabels = zeros(size(img, 1), size(img, 2));
 for roi = sel.roiInfo.roi(:)'
-    sel.disp.roiLabels(roi.indBody) = roi.id;
+    sel.disp.roiLabels(roi.indBody(isfinite(roi.indBody))) = roi.id;
 end
 
 % Set the current ROI to be 1 greater than last selected
@@ -92,6 +92,12 @@ sel.movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fil
     'Format', {'int16', [sum(movLengths), movSizes(1,1)*movSizes(1,2)], 'mov'});
 
 %% Create GUI layout:
+% Check if a GUI exists from a previous session and close it to prevent
+% errors:
+openFigs = findall(0, 'type', 'figure');
+if ~isempty(openFigs)
+    close(openFigs(ismember(get(openFigs, 'name'), 'ROI Selection')));
+end
 
 % Create main GUI figure:
 sel.h.fig.main = figure('Name','ROI Selection');
