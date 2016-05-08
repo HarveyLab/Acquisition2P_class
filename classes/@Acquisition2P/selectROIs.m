@@ -1,4 +1,4 @@
-function selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
+function sel = selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
 % selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
 % All inputs except acquisition object are optional.
 %
@@ -63,4 +63,4 @@ if ~exist('excludeFrames','var')
 end
 
 % All the code for the GUI is in the class selectRoisGui:
-selectRoisGui(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames);
+sel = selectRoisGui(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames);

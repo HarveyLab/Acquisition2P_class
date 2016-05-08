@@ -3,7 +3,7 @@ function createGui(sel, acq, img, sliceNum, channelNum, smoothWindow, excludeFra
 % usage.
 
 %% For debugging:
-assignin('base', 'sel', sel);
+% assignin('base', 'sel', sel);
 
 %% Create GUI data structure:
 % Initialize properties:
@@ -92,10 +92,6 @@ sel.movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fil
     'Format', {'int16', [sum(movLengths), movSizes(1,1)*movSizes(1,2)], 'mov'});
 
 %% Create GUI layout:
-% Check if a GUI exists from a previous session and close it to prevent
-% errors:
-openFigs = findall(0, 'type', 'figure');
-close(openFigs(ismember({openFigs.Name}, 'ROI Selection')));
 
 % Create main GUI figure:
 sel.h.fig.main = figure('Name','ROI Selection');
