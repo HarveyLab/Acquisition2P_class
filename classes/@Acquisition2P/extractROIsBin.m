@@ -76,7 +76,7 @@ end
 if isGetDF
     dF = dFcalc(traces,rawF,'custom_wfun');
 else
-    df = [];
+    dF = [];
 end
 
 clear mov
