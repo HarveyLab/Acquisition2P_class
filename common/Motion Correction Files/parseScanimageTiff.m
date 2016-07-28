@@ -11,9 +11,11 @@ if isfield(siStruct, 'SI4')
 elseif isfield(siStruct, 'SI') % scanimage 2015 file
     fZ              = siStruct.SI.hFastZ.enable;
     nChannels       = length(siStruct.SI.hChannels.channelSave);
-    nSlices = siStruct.SI.hFastZ.numVolumes + (fZ*siStruct.SI.hFastZ.discardFlybackFrames); 
-    if nSlices ~=1
-        warning('MultiSlice reading of SI-2015 files has not been bug checked!'),
+    if fZ
+        nSlices = siStruct.SI.hFastZ.numFramesPerVolume;
+        siStruct.fastZDiscardFlybackFrames = siStruct.SI.hFastZ.discardFlybackFrames;
+    else
+        nSlices = 1;
     end
 elseif isfield(siStruct,'SI5')
      siStruct = siStruct.SI5;
