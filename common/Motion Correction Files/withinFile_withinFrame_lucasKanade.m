@@ -70,10 +70,26 @@ switch opMode
                 tformGlobal = affine2d;
                 obj.shifts(movNum).slice(iSl).x = createDispFieldFunctionX(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
                 obj.shifts(movNum).slice(iSl).y = createDispFieldFunctionY(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
-                movStructForRef = withinFile_withinFrame_lucasKanade(...
-                    obj, movStruct, scanImageMetadata, movNum, 'apply');
+                
+                Dx = obj.shifts(movNum).slice(iSl).x();
+                Dy = obj.shifts(movNum).slice(iSl).y();
+                
+                for iCh = 1:nChannel
+                    for f = 1:z
+                        movStruct.slice(iSl).channel(iCh).mov(:,:,f) = ...
+                            interp2(...
+                                movStruct.slice(iSl).channel(iCh).mov(:,:,f), ...
+                                Dx(:,:,f), ...
+                                Dy(:,:,f), ...
+                                'linear', nan);
+                    end
+                    obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
+                        nanmean(movStruct.slice(iSl).channel(iCh).mov, 3);
+                end
+              
                 obj.motionRefImage.slice(iSl).img = ...
-                    nanmedian(movStructForRef.slice(iSl).channel(refCh).mov, 3);
+                    nanmean(movStruct.slice(iSl).channel(refCh).mov, 3);
+                
             else                
                 refGlobal = obj.motionRefImage.slice(iSl).img(:, ~isEdge);
 				if isEqualizeLuminace
@@ -136,7 +152,7 @@ switch opMode
             % Get full displacement fields:
             Dx = obj.shifts(movNum).slice(iSl).x();
             Dy = obj.shifts(movNum).slice(iSl).y();
-            
+
             for iCh = 1:nChannel
                 % This for-loop is faster than using interpn without a
                 % loop, both on the CPU and the GPU. Re-evaluate this if we
@@ -153,7 +169,7 @@ switch opMode
                     nanmean(movStruct.slice(iSl).channel(iCh).mov, 3);
             end
         end
-end
+    end
 end
 
 % The following two functions create and return the function handles that
