@@ -1,4 +1,4 @@
-function sel = selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
+function selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
 % selectROIs(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
 % All inputs except acquisition object are optional.
 %
