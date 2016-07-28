@@ -4,24 +4,13 @@ function [avgMov, dFmov] = eventTriggeredMovie(obj,avgMovFrames)
 % in the average movie, and each cell contains the (data) frame numbers to
 % be averaged together for each triggered movie frame
 
-% sel = tV.nTarg==1;
-% sel = [tV.stimFrames{sel}];
-% sel = sel(1,:);
-% stimFrameOffset = -30:90;
-% 
-% avgMovFrames = cell(1,length(stimFrameOffset));
-% for i=1:length(stimFrameOffset)
-%     avgMovFrames{i} = stimFrameOffset(i) + sel;
-% end
-
-
-allFrames = sort([avgMovFrames{:}]);
+allFrames = sort(unique([avgMovFrames{:}]));
 fileFrames = cumsum(obj.correctedMovies.slice.channel.size(:,3));
 fileFrameIDs = nan(size(allFrames));
 for i=1:length(fileFrameIDs)
     fileFrameIDs(i) = find(allFrames(i)<=fileFrames,1,'first');
 end
-filesToLoad = unique(fileFrameIDs);
+% filesToLoad = unique(fileFrameIDs);
 
 avgMov = zeros(512,512,length(avgMovFrames));
 thisFile = 0;
