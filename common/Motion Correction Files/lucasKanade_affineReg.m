@@ -43,8 +43,8 @@ switch opMode
             if movNum == refMov
                 % reference movie does not need global alignment
                 tformGlobal = affine2d;
-                obj.shifts(movNum).slice(iSl).x = createDispFieldFunctionX(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
-                obj.shifts(movNum).slice(iSl).y = createDispFieldFunctionY(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
+%                 obj.shifts(movNum).slice(iSl).x = createDispFieldFunctionX(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
+%                 obj.shifts(movNum).slice(iSl).y = createDispFieldFunctionY(h, w, z, basisFunctions, dpx, dpy, tformGlobal);
                 thisRef = nanmean(movTemp,3);
                 
 %                 Dx = obj.shifts(movNum).slice(iSl).x();
