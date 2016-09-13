@@ -97,7 +97,7 @@ classdef Acquisition2P < handle
             %
             % [movie, metaMovie] = readRaw(obj,movNum,castType)
             if ~exist('castType', 'var') || isempty(castType)
-                castType = 'uint16';
+                castType = 'int16';
             end
             [movie, metaMovie] = tiffRead(obj.Movies{movNum},castType);
         end
@@ -111,7 +111,7 @@ classdef Acquisition2P < handle
                 error('This Acquisition Object is not Associated with Motion Corrected Data')
             end
             if ~exist('castType', 'var') || isempty(castType)
-                castType = 'uint16';
+                castType = 'int16';
             end
             if ~exist('sliceNum', 'var') || isempty(sliceNum)
                 sliceNum = 1;
