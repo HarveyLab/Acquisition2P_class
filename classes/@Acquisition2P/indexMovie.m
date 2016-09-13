@@ -54,11 +54,11 @@ fid = fopen(movFileName, 'A');
 fileList = obj.correctedMovies.slice(nSlice).channel(nChannel).fileName;
 nFiles = numel(fileList);
 
-% Create Tiff Object
-t = Tiff.empty;
-for f = fileList(:)'
-    t(end+1) = Tiff(f{:});
-end
+% % Create Tiff Object
+t = Tiff(fileList{1});
+% for f = fileList(:)'
+%     t(end+1) = Tiff(f{:});
+% end
 
 % Get file info:
 movSizes = obj.correctedMovies.slice(nSlice).channel(nChannel).size;
@@ -86,6 +86,11 @@ thisStrip = zeros(stripHeight, w, nFramesTotal, 'int16');
 tTotal = tic;
 for iStrip = 1:nStrips
     
+    % Create Tiff Object
+    t = Tiff.empty;
+    for f = fileList(:)'
+        t(end+1) = Tiff(f{:});
+    end
     % Read current strip from all files:
     for iFile = 1:nFiles
         tFile = tic;
@@ -119,6 +124,10 @@ for iStrip = 1:nStrips
     tWrite = tic;
     fwrite(fid, thisStripBinShape, 'int16');
     fprintf('Writing strip %d: %1.3f\n', iStrip, toc(tWrite));
+    
+    for i = 1:length(t)
+        t(i).close,
+    end
 end
 fprintf('Done saving binary movie. Total time per TIFF file: %1.3f\n', toc(tTotal)/iFile);
 
