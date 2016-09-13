@@ -33,8 +33,8 @@ elseif doInd == 1
     nSlices = length(obj.indexedMovie.slice);
     nChannels = length(obj.indexedMovie.slice(1).channel);
 else
-    nSlices = length(obj.roiInfo.slice);
-    nChannels = length(obj.roiInfo.slice(1).channel);
+    nSlices = length(obj.correctedMovies.slice);
+    nChannels = length(obj.correctedMovies.slice(1).channel);
 end
 
 for nSlice = 1:nSlices
