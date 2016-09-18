@@ -1,13 +1,19 @@
-function [corrected, xshift, yshift] = correct_translation_singleframe(moving, ref)
+function [corrected, xshift, yshift] = correct_translation_singleframe(moving, ref, isRefPrecalcd)
 % Translate a single frame to match a reference, using subpixel FFT
 % registration.
 
 % Find shifts:
-ref_ftt = fft2(ref);
-ref_fftshift = fftshift(ref_ftt);
-ref_conj = conj(ref_ftt);
+if nargin<3 || ~isRefPrecalcd
+    ref_fft = zeros(size(ref, 1), size(ref, 2), 3);
+    ref_fft(:,:,1) = fft2(ref);
+    ref_fft(:,:,2) = fftshift(ref_fft(:,:,1));
+    ref_fft(:,:,3) = conj(ref_fft(:,:,1));
+else
+    ref_fft = ref;
+end
+
 upsamplingFac = 50;
-output = dftregistration(fft2(moving), ref_ftt, ref_fftshift, ref_conj, upsamplingFac);
+output = dftregistration(fft2(moving), ref_fft(:,:,1), ref_fft(:,:,2), ref_fft(:,:,3), upsamplingFac);
 xshift = output(4);
 yshift = output(3);
 
