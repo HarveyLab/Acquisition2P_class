@@ -1,4 +1,4 @@
-function newDir(obj,destDir,doCor,doInd,doCov)
+function newDir(obj,destDir,doCor,doInd,doCov,doNMF)
 %Copies an acquisition and the associated motion corrected files from
 %the original location to a new one, and creates a new acquisition
 %object associated with the new location.
@@ -23,6 +23,10 @@ end
 
 if ~exist('doCov', 'var') || isempty(doCov)
     doCov = 1;
+end
+
+if ~exist('doNMF', 'var') || isempty(doNMF)
+    doNMF = 1;
 end
 
 %% Copy files
@@ -66,6 +70,14 @@ for nSlice = 1:nSlices
             newCovName = fullfile(destDir,covName);
             copyfile(fullfile(covPath,covName),newCovName);
             obj.roiInfo.slice(nSlice).covFile.fileName = newCovName;
+        end
+        if doCov && ~isempty(obj.roiInfo) && isfield(obj.roiInfo.slice(nSlice),'NMF')
+            fprintf('\n Copying NMF Source Extraction File\n'),
+            [nmfPath,nmfName,nmfExt] = fileparts(obj.roiInfo.slice(nSlice).NMF.filename);
+            nmfName = [nmfName nmfExt];
+            newNMFName = fullfile(destDir,nmfName);
+            copyfile(fullfile(nmfPath,nmfName),newNMFName);
+            obj.roiInfo.NMF.slice(nSlice).filename = newNMFName;
         end
         
     end
