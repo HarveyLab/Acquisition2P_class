@@ -1,4 +1,4 @@
-function [corrected, xshift, yshift] = correct_translation_singleframe(moving, ref, isRefPrecalcd)
+function [corrected, xshift, yshift] = correct_translation_singleframe(moving, ref, isRefPrecalcd, movingFullSize)
 % Translate a single frame to match a reference, using subpixel FFT
 % registration.
 
@@ -12,7 +12,7 @@ else
     ref_fft = ref;
 end
 
-upsamplingFac = 50;
+upsamplingFac = 10;
 output = dftregistration(fft2(moving), ref_fft(:,:,1), ref_fft(:,:,2), ref_fft(:,:,3), upsamplingFac);
 xshift = output(4);
 yshift = output(3);
@@ -23,8 +23,8 @@ tformMat(3, 1) = xshift;
 tformMat(3, 2) = yshift;
 tform = affine2d(tformMat);
 
-corrected = imwarp(moving, tform, ...
-    'OutputView', imref2d(size(ref)), 'FillValues', 0); 
+corrected = imwarp(movingFullSize, tform, ...
+    'OutputView', imref2d(size(movingFullSize)), 'FillValues', 0); 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
