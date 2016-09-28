@@ -1,7 +1,7 @@
-folder = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw\MM085\MM085_151128';
+folder = '\\harvey-rotScope-scanimage\C\data\Matthias\MM102\MM102_160730';
 
-oldStr = 'MM085_151128_VESSEL_002';
-newStr = 'MM085_151128_MAIN_001';
+oldStr = 'MM102_160730_depthstart_00002';
+newStr = 'MM102_160730_main_00001';
 
 lst = dir(fullfile(folder, '*.tif'));
 
