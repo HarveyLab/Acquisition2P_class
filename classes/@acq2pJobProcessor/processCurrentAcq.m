@@ -65,7 +65,9 @@ end
 if isempty(ajp.currentAcq.indexedMovie)
     try
         ajp.log('Started creation of binary movie file.');
-        ajp.currentAcq.indexMovie;
+        for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+            ajp.currentAcq.indexMovie(nSlice);
+        end
         ajp.saveCurrentAcq;
     catch err
         msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
@@ -78,39 +80,39 @@ end
 
 % Caclulate pixel covariance:
 %check if pixel covariance already calculated
-if isempty(ajp.currentAcq.roiInfo) ...
-        || (~isempty(pxCovRad) && ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1))
-    % ROI info does not exist or a different neighborhood size was
-    % requested:
-    try
-        ajp.log('Started pixel covariance calculation.');
-        
-        % If we're on Orchestra, start parallel pool with correct
-        % settings:
-        if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('20:00'); % 20 hour
-            ClusterInfo.setMemUsage('4000')
-            ClusterInfo.setQueueName('mpi')
-            parpool(12)
-        end
-        
-        ajp.currentAcq.calcPxCov([],pxCovRad);
-        ajp.saveCurrentAcq;
-        
-        % If we're on Orchestra, we should close the parallel pool to
-        % reduce memory usage:
-        if isunix
-            poolobj = gcp('nocreate');
-            delete(poolobj);
-        end
-    catch err
-        msg = sprintf('Pixel covariance calculation aborted with error: %s', err.message);
-        ajp.log(msg);
-        printStack(ajp, err.stack);
-    end
-else
-    ajp.log('Covariance already calculated. Skipping...');
-end
+% if isempty(ajp.currentAcq.roiInfo) ...
+%         || (~isempty(pxCovRad) && ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1))
+%     % ROI info does not exist or a different neighborhood size was
+%     % requested:
+%     try
+%         ajp.log('Started pixel covariance calculation.');
+%         
+%         % If we're on Orchestra, start parallel pool with correct
+%         % settings:
+%         if isunix && ~isempty(gcp('nocreate'))
+%             ClusterInfo.setWallTime('20:00'); % 20 hour
+%             ClusterInfo.setMemUsage('4000')
+%             ClusterInfo.setQueueName('mpi')
+%             parpool(12)
+%         end
+%         
+%         ajp.currentAcq.calcPxCov([],pxCovRad);
+%         ajp.saveCurrentAcq;
+%         
+%         % If we're on Orchestra, we should close the parallel pool to
+%         % reduce memory usage:
+%         if isunix
+%             poolobj = gcp('nocreate');
+%             delete(poolobj);
+%         end
+%     catch err
+%         msg = sprintf('Pixel covariance calculation aborted with error: %s', err.message);
+%         ajp.log(msg);
+%         printStack(ajp, err.stack);
+%     end
+% else
+%     ajp.log('Covariance already calculated. Skipping...');
+% end
 
 % Move acqFile to done folder:
 if ~exist(ajp.dir.done, 'dir');
