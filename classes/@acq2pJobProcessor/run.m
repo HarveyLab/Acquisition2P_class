@@ -1,7 +1,7 @@
 function run(ajp, isExitAfterOneJob)
 % Runs a loop that loads acquisition objects and processes them.
 
-if ~exist('shouldContinue', 'var') || isempty(isExitAfterOneJob)
+if ~exist('isExitAfterOneJob', 'var') || isempty(isExitAfterOneJob)
     isExitAfterOneJob = true;
 end
 
