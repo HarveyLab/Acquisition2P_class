@@ -78,6 +78,24 @@ else
     ajp.log('Binary movie already created. Skipping...');
 end
 
+% Save NMF source extraction:
+if isempty(ajp.currentAcq.roiInfo)
+    try
+        ajp.log('Started NMF Source Extraction');
+        for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+            ajp.currentAcq.extractSources(nSlice);
+        end
+        ajp.saveCurrentAcq;
+    catch err
+        msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
+        ajp.log(msg);
+        printStack(ajp, err.stack);
+    end
+else
+    ajp.log('NMF Source Extraction already completed. Skipping...');
+end
+    
+    
 % Caclulate pixel covariance:
 %check if pixel covariance already calculated
 % if isempty(ajp.currentAcq.roiInfo) ...
