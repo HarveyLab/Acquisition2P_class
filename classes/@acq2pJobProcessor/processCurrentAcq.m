@@ -73,6 +73,7 @@ if isempty(ajp.currentAcq.indexedMovie)
         msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
         ajp.log(msg);
         printStack(ajp, err.stack);
+        return
     end
 else
     ajp.log('Binary movie already created. Skipping...');
@@ -90,6 +91,7 @@ if isempty(ajp.currentAcq.roiInfo)
         msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
         ajp.log(msg);
         printStack(ajp, err.stack);
+        return
     end
 else
     ajp.log('NMF Source Extraction already completed. Skipping...');
