@@ -23,6 +23,6 @@ while ~ajp.flagStop
     end
     
     if isExitAfterOneJob && nJobsDone>0
-		break
-	end
+        break
+    end
 end
