@@ -62,7 +62,7 @@ end
 
 % Save binary movie file:
 %check if binary movie file created already
-if isempty(ajp.currentAcq.indexedMovie)
+if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_mov.bin')))
     try
         ajp.log('Started creation of binary movie file.');
         for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
