@@ -131,10 +131,6 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
             parpool(12)
         end
         
-        [dF,dF_denoised,dF_deconv,traceBs,...
-            traceGs,traceSNs,traceSnScales,A,b,f] = deconv_NMF(FOV1);
-        save('cellData_0921','dF','dF_denoised','dF_deconv',...
-            'traceBs','traceGs','traceSNs','traceSnScales','A','b','f'),
         ajp.currentAcq.deconvNmf;
         ajp.saveCurrentAcq;
         
