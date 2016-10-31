@@ -62,41 +62,42 @@ end
 
 % Save binary movie file:
 %check if binary movie file created already
-if isempty(ajp.currentAcq.indexedMovie)
-    try
-        ajp.log('Started creation of binary movie file.');
-        for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+    if isempty(ajp.currentAcq.indexedMovie)...
+            || nSlice > length(ajp.currentAcq.indexedMovie.slice)
+        try
+            ajp.log('Started creation of binary movie file.');
             ajp.currentAcq.indexMovie(nSlice);
+            ajp.saveCurrentAcq;
+        catch err
+            msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
+            ajp.log(msg);
+            printStack(ajp, err.stack);
+            return
         end
-        ajp.saveCurrentAcq;
-    catch err
-        msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
-        ajp.log(msg);
-        printStack(ajp, err.stack);
-        return
+    else
+        ajp.log('Binary movie already created. Skipping...');
     end
-else
-    ajp.log('Binary movie already created. Skipping...');
 end
 
 % Save NMF source extraction:
-if isempty(ajp.currentAcq.roiInfo)
-    try
-        ajp.log('Started NMF Source Extraction');
-        for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+    if isempty(ajp.currentAcq.roiInfo) ...
+            || nSlice > length(ajp.currentAcq.roiInfo.slice)
+        try
+            ajp.log('Started NMF Source Extraction');
             ajp.currentAcq.extractSources(nSlice);
+            ajp.saveCurrentAcq;
+        catch err
+            msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
+            ajp.log(msg);
+            printStack(ajp, err.stack);
+            return
         end
-        ajp.saveCurrentAcq;
-    catch err
-        msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
-        ajp.log(msg);
-        printStack(ajp, err.stack);
-        return
+    else
+        ajp.log('NMF Source Extraction already completed. Skipping...');
     end
-else
-    ajp.log('NMF Source Extraction already completed. Skipping...');
 end
-    
     
 % Caclulate pixel covariance:
 %check if pixel covariance already calculated
