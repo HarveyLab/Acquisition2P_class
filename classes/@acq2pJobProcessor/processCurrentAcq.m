@@ -62,59 +62,63 @@ end
 
 % Save binary movie file:
 %check if binary movie file created already
-if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_mov.bin')))
-    try
-        ajp.log('Started creation of binary movie file.');
-        for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+
+for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+    if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_mov.bin'))) || ...
+            isempty(ajp.currentAcq.indexedMovie) || ...
+            nSlice > length(ajp.currentAcq.indexedMovie.slice)
+        try
+            ajp.log('Started creation of binary movie file.');
             ajp.currentAcq.indexMovie(nSlice);
+            ajp.saveCurrentAcq;
+        catch err
+            msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
+            ajp.log(msg);
+            printStack(ajp, err.stack);
+            return
         end
-        ajp.saveCurrentAcq;
-    catch err
-        msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
-        ajp.log(msg);
-        printStack(ajp, err.stack);
-        return
+    else
+        ajp.log('Binary movie already created. Skipping...');
     end
-else
-    ajp.log('Binary movie already created. Skipping...');
 end
 
 % Perform NMF-based source extraction:
-if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_patchResults_v0913.mat')))
-    % ROI info does not exist:
-    try
-        ajp.log('Started NMF-based source extraction.');
-        
-        % If we're on Orchestra, start parallel pool with correct
-        % settings:
-        if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('10:00');
-            ClusterInfo.setMemUsage('12000')
-            ClusterInfo.setQueueName('mpi')
-            parpool(12)
-        end
-        
-        for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+    if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_patchResults*.mat'))) ||...
+            isempty(ajp.currentAcq.roiInfo) || ...
+            nSlice > length(ajp.currentAcq.roiInfo.slice)
+        try
+            ajp.log('Started NMF Source Extraction');
+            
+            % If we're on Orchestra, start parallel pool with correct
+            % settings:
+            if isunix && ~isempty(gcp('nocreate'))
+                ClusterInfo.setWallTime('10:00');
+                ClusterInfo.setMemUsage('12000')
+                ClusterInfo.setQueueName('mpi')
+                parpool(12)
+            end
+            
             ajp.currentAcq.extractSources(nSlice);
+            ajp.saveCurrentAcq;
+            
+            % If we're on Orchestra, we should close the parallel pool to
+            % reduce memory usage:
+            if isunix
+                poolobj = gcp('nocreate');
+                delete(poolobj);
+            end
+            
+        catch err
+            msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
+            ajp.log(msg);
+            printStack(ajp, err.stack);
+            return
         end
-        
-        ajp.saveCurrentAcq;
-        
-        % If we're on Orchestra, we should close the parallel pool to
-        % reduce memory usage:
-        if isunix
-            poolobj = gcp('nocreate');
-            delete(poolobj);
-        end
-    catch err
-        msg = sprintf('NMF-based source extraction aborted with error: %s', err.message);
-        ajp.log(msg);
-        printStack(ajp, err.stack);
+    else
+        ajp.log('NMF Source Extraction already completed. Skipping...');
     end
-else
-    ajp.log('NMF-based source extraction already calculated. Skipping...');
 end
-
 
 % Perform NMF-source deconvolution:
 if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
@@ -147,7 +151,6 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
 else
     ajp.log('NMF-source deconvolution already calculated. Skipping...');
 end
-    
     
 % Caclulate pixel covariance:
 %check if pixel covariance already calculated
