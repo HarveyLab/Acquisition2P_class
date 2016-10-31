@@ -86,8 +86,26 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
             || nSlice > length(ajp.currentAcq.roiInfo.slice)
         try
             ajp.log('Started NMF Source Extraction');
+            
+            % If we're on Orchestra, start parallel pool with correct
+            % settings:
+            if isunix && ~isempty(gcp('nocreate'))
+                ClusterInfo.setWallTime('10:00');
+                ClusterInfo.setMemUsage('12000')
+                ClusterInfo.setQueueName('mpi')
+                parpool(12)
+            end
+            
             ajp.currentAcq.extractSources(nSlice);
             ajp.saveCurrentAcq;
+            
+            % If we're on Orchestra, we should close the parallel pool to
+            % reduce memory usage:
+            if isunix
+                poolobj = gcp('nocreate');
+                delete(poolobj);
+            end
+            
         catch err
             msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
             ajp.log(msg);
@@ -97,6 +115,42 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
     else
         ajp.log('NMF Source Extraction already completed. Skipping...');
     end
+end
+
+% Perform NMF-source deconvolution:
+if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
+    try
+        ajp.log('Started NMF-source deconvolution.');
+        
+        % If we're on Orchestra, start parallel pool with correct
+        % settings:
+        if isunix && ~isempty(gcp('nocreate'))
+            ClusterInfo.setWallTime('10:00');
+            ClusterInfo.setMemUsage('12000')
+            ClusterInfo.setQueueName('mpi')
+            parpool(12)
+        end
+        
+        [dF,dF_denoised,dF_deconv,traceBs,...
+            traceGs,traceSNs,traceSnScales,A,b,f] = deconv_NMF(FOV1);
+        save('cellData_0921','dF','dF_denoised','dF_deconv',...
+            'traceBs','traceGs','traceSNs','traceSnScales','A','b','f'),
+        ajp.currentAcq.deconvNmf;
+        ajp.saveCurrentAcq;
+        
+        % If we're on Orchestra, we should close the parallel pool to
+        % reduce memory usage:
+        if isunix
+            poolobj = gcp('nocreate');
+            delete(poolobj);
+        end
+    catch err
+        msg = sprintf('NMF-source deconvolution aborted with error: %s', err.message);
+        ajp.log(msg);
+        printStack(ajp, err.stack);
+    end
+else
+    ajp.log('NMF-source deconvolution already calculated. Skipping...');
 end
     
 % Caclulate pixel covariance:

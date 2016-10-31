@@ -21,4 +21,8 @@ while ~ajp.flagStop
         ajp.stop
         break
     end
+    
+    if isExitAfterOneJob && nJobsDone>0
+        break
+    end
 end

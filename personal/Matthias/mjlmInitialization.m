@@ -23,7 +23,7 @@ acqName = regexprep(acqName, '_$', '');
 
 acq = Acquisition2P(acqName, @(acq) init(acq, acqId, rawFileLocation));
 
-if exist('savePath', 'var')
+if exist('rawFileLocation', 'var')
     save(fullfile(rawFileLocation, acq.acqName), 'acq');
 end
 
@@ -32,9 +32,15 @@ fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, nu
 function init(acq, acqId, rawFileLocation)
 % Add remote files:
 
+if ~isempty(strfind(rawFileLocation, 'jobsToDoOrchestra'))
+    mode = 'jobsToDoOrchestra';
+else
+    mode = rawFileLocation;
+end
+
 % Check which rig this acq will be processed on, by looking at the path
 % where the job file will be saved:
-switch rawFileLocation
+switch mode
     case 'jobsToDoScopeRig'
         acq.Movies = improc.findFiles(acqId, '\\User1-PC\D\data\Matthias', 0, [], 1);
         host = 'scopeRig';
