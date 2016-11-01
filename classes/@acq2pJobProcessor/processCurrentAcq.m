@@ -62,9 +62,11 @@ end
 
 % Save binary movie file:
 %check if binary movie file created already
+
 for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
-    if isempty(ajp.currentAcq.indexedMovie)...
-            || nSlice > length(ajp.currentAcq.indexedMovie.slice)
+    if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_mov.bin'))) || ...
+            isempty(ajp.currentAcq.indexedMovie) || ...
+            nSlice > length(ajp.currentAcq.indexedMovie.slice)
         try
             ajp.log('Started creation of binary movie file.');
             ajp.currentAcq.indexMovie(nSlice);
@@ -80,10 +82,11 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
     end
 end
 
-% Save NMF source extraction:
+% Perform NMF-based source extraction:
 for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
-    if isempty(ajp.currentAcq.roiInfo) ...
-            || nSlice > length(ajp.currentAcq.roiInfo.slice)
+    if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_patchResults*.mat'))) ||...
+            isempty(ajp.currentAcq.roiInfo) || ...
+            nSlice > length(ajp.currentAcq.roiInfo.slice)
         try
             ajp.log('Started NMF Source Extraction');
             
