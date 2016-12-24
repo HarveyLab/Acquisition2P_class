@@ -6,7 +6,9 @@ h = acq.correctedMovies.slice(1).channel(1).size(1,1);
 w = acq.correctedMovies.slice(1).channel(1).size(1,2);
 nFramesTotal = sum(acq.correctedMovies.slice(1).channel(1).size(:,3));
 
-roiInd = acq.roiInfo.slice(1).roi(roiNum).indBody;
+% roiInd = acq.roiInfo.slice(1).roi(roiNum).indBody;
+load(acq.roiInfo.slice.NMF.filename,'A')
+roiInd = find(A(:,roiNum)>1e-10);
 
 % Get centroid:
 [r, c] = ind2sub([h, w], roiInd);
