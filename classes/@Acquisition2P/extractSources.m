@@ -28,8 +28,7 @@ end
 if isempty(acq.syncInfo) || ~isfield(acq.syncInfo, 'sliceFrames')
     % Create minimal syncInfo:
     nSlices = length(acq.correctedMovies.slice);
-    movList = cell2mat(acq.Movies');
-    acqInd = str2num(movList(:,end-14:end-10));
+    acqInd = cellfun(@(s) str2double(s(end-14:end-10)), acq.Movies);
     iAcq = unique(acqInd)';
     nBlocks = length(iAcq);
     for nBlock = 1:nBlocks
