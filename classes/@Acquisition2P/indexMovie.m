@@ -80,9 +80,6 @@ else
     readInStrips = 0;
 end
 
-stripHeight = h/nStrips;
-thisStrip = zeros(stripHeight, w, nFramesTotal, 'int16');
-
 tTotal = tic;
 for iStrip = 1:nStrips
     
@@ -91,6 +88,10 @@ for iStrip = 1:nStrips
     for f = fileList(:)'
         t(end+1) = Tiff(f{:});
     end
+
+    stripHeight = size(readEncodedStrip(t(1), iStrip),1);
+    thisStrip = zeros(stripHeight, w, nFramesTotal, 'int16');
+    
     % Read current strip from all files:
     for iFile = 1:nFiles
         tFile = tic;
