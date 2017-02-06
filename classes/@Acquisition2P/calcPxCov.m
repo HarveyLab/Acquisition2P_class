@@ -42,7 +42,7 @@ for nMovie = movNums
     fprintf('Processing movie %03.0f of %03.0f.\n',find(movNums==nMovie),length(movNums));
     loopTime = tic;
     %Read movie, bin temporally using reshape and sum, and center data
-    mov = readCor(obj,nMovie,'single');
+    mov = readCor(obj,nMovie,'single',sliceNum);
     mov = mov(:,:,1:end-rem(end, temporalBin)); % Deal with movies that are not evenly divisible.
     movSize = size(mov);
     [h, w, z] = size(mov);
@@ -92,7 +92,8 @@ pixCov = pixCov / length(movNums);
 
 %% Write results to disk
 display('-----------------Saving Results-----------------')
-covFileName = fullfile(writeDir,[obj.acqName '_pixCovFile.bin']);
+fileName = sprintf('%s_slice%02.0f_pixCov.bin', obj.acqName, sliceNum);
+covFileName = fullfile(writeDir, fileName);
 
 % Write binary file to disk:
 fileID = fopen(covFileName,'w');

@@ -3,15 +3,20 @@ function saveCurrentAcq(ajp)
 
 try
     % Rename acq object before saving:
-    eval(sprintf('%s=ajp.currentAcq;', ajp.currentAcq.acqName));
+    if verLessThan('matlab', 'R2014a')
+        acqVarName = genvarname(ajp.currentAcq.acqName);
+    else
+        acqVarName = matlab.lang.makeValidName(ajp.currentAcq.acqName);
+    end
+    eval(sprintf('%s=ajp.currentAcq;', acqVarName));
     
     % Save in acq's default dir:
     save(fullfile(ajp.currentAcq.defaultDir, [ajp.currentAcq.acqName, '_acq.mat']), ...
-        ajp.currentAcq.acqName);
+        acqVarName);
     
     % Save in inProgress dir:
     save(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName), ...
-        ajp.currentAcq.acqName);
+        acqVarName);
     
     ajp.log('Saving updated Acq2P object.');
 catch err

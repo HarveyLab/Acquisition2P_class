@@ -6,10 +6,11 @@ function movStruct = withinFile_segmentConsensus(obj,movStruct, metaMov, movNum,
 % Clips off pockels-blanked region. Roughly set manually for Si4 default
 % blanking fraction and 512x512 movie, should be generalized in future
 
-clipOn = 50;
-clipOff = 470;
+binFactor = obj.binFactor;
+clipOn = round(50/binFactor);
+clipOff = round(470/binFactor);
 M = length(clipOn:clipOff);
-N = 512;
+N = 512/binFactor;
 
 % Define Segments, set manually to handle 6-segment grid (more segments in
 % y than in x)
@@ -27,9 +28,8 @@ for x=1:length(xind)
 end
 nSeg = size(segPos,1);
 
-nSlices = metaMov.stackNumSlices;
-nChannels = numel(metaMov.channelsSave);
-
+nSlices = numel(movStruct.slice);
+nChannels = numel(movStruct.slice(1).channel);
 
 switch opMode
     case 'identify'

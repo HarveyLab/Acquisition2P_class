@@ -1,16 +1,20 @@
-function movInd = nh2movInd(sel, nhInd, nhCenter)
-% movInd = nh2movInd(sel, nhInd) coverts linear indices into the covariance
-% neighborhood region into linear indices into the whole movie frame.
+function movInd = nh2movInd(sel, nhInd, nhCenter, nhSize)
+% movInd = nh2movInd(sel, nhInd, nhCenter, nhSize) coverts linear indices
+% into the covariance neighborhood region into linear indices into the
+% whole movie frame.
 
 if ~exist('nhCenter', 'var') || isempty(nhCenter)
     nhCenter = sel.disp.currentPos;
 end
 
+if ~exist('nhSize', 'var') || isempty(nhSize)
+    nhSize = sel.roiInfo.covFile.nh;
+end
+
 nhCenter = round(nhCenter);
 
 % Convert nh-indices into nh-subscripts:
-nhSize = [sel.roiInfo.covFile.nh, sel.roiInfo.covFile.nh];
-[nhRow, nhCol] = ind2sub(nhSize, nhInd);
+[nhRow, nhCol] = ind2sub([nhSize nhSize], nhInd);
 
 % Convert nh-subscripts into mov-subscripts:
 margin = (sel.roiInfo.covFile.nh-1)/2;

@@ -3,9 +3,9 @@ function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
 % Parts of the Lucas Kanade motion correction code were obtained from 
 % https://xcorr.net/2014/08/02/non-rigid-deformation-for-calcium-imaging-frame-alignment/
 % and/or are originally based on the method published in:
-% Greenberg, David S., and Jason N.D. Kerr. “Automated Correction of Fast
-% Motion Artifacts for Two-Photon Imaging of Awake Animals.” Journal of
-% Neuroscience Methods 176, no. 1 (January 15, 2009): 1–15.
+% Greenberg, David S., and Jason N.D. Kerr. "Automated Correction of Fast
+% Motion Artifacts for Two-Photon Imaging of Awake Animals." Journal of
+% Neuroscience Methods 176, no. 1 (January 15, 2009): 1-15.
 % doi:10.1016/j.jneumeth.2008.08.020.
 
 % If not set explicitly, then use GPU if available:
@@ -69,7 +69,8 @@ for i = 1:nWorkers
 end
 
 % Parameters:
-nBasis = 4;
+nBasis = 4; % Do not use a value greater than 4! It sometimes causes extreme shifts in a small number of frames.
+isCoarseOnly = 0;
 
 % Precalculate constants:
 [h, w, z] = size(stackFull);
@@ -109,43 +110,44 @@ spmd
         dpx(:, f) = [dpx_(1); (dpx_(1:end-1)+dpx_(2:end))/2; dpx_(end)];
         dpy(:, f) = [dpy_(1); (dpy_(1:end-1)+dpy_(2:end))/2; dpy_(end)];
     end
-
-    if labindex==1
-        fprintf('Calculating sub-pixel shifts:\n');
-    end
-    if isGpu
-        % Send data to GPU:
-        dpx_g = gpuArray(dpx);
-        dpy_g = gpuArray(dpy);
-        B_g = gpuArray(B);
-        allBs_g = gpuArray(allBs);
-        theI_g = gpuArray(theI);
-        ref_g = gpuArray(ref);
-        stack_g = gpuArray(stack);
-        xi_g = gpuArray(xi);
-        yi_g = gpuArray(yi);
-        Tnorm_g = gpuArray(Tnorm);
-        for f = 1:z
-            if labindex==1 && ~mod(f, dispInterval);
-                fprintf('%2.0f%%...\n', 100*f/z);
-            end
-            [stack_g(:,:,f), dpx_g(:,f), dpy_g(:,f), nIters(f)] = doLucasKanade_singleFrame(...
-                ref_g, stack_g(:,:,f), dpx_g(:, f), dpy_g(:, f), minIters, ...
-                B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g, nBasis);
+    if ~isCoarseOnly
+        if labindex==1
+            fprintf('Calculating sub-pixel shifts:\n');
         end
-
-        % Get data from GPU:
-        stack = gather(stack_g);
-        dpx = gather(dpx_g);
-        dpy = gather(dpy_g);
-    else
-        for f = 1:z
-            if labindex==1 && ~mod(f, dispInterval);
-                fprintf('%2.0f%%...\n', 100*f/z);
+        if isGpu
+            % Send data to GPU:
+            dpx_g = gpuArray(dpx);
+            dpy_g = gpuArray(dpy);
+            B_g = gpuArray(B);
+            allBs_g = gpuArray(allBs);
+            theI_g = gpuArray(theI);
+            ref_g = gpuArray(ref);
+            stack_g = gpuArray(stack);
+            xi_g = gpuArray(xi);
+            yi_g = gpuArray(yi);
+            Tnorm_g = gpuArray(Tnorm);
+            for f = 1:z
+                if labindex==1 && ~mod(f, dispInterval);
+                    fprintf('%2.0f%%...\n', 100*f/z);
+                end
+                [stack_g(:,:,f), dpx_g(:,f), dpy_g(:,f), nIters(f)] = doLucasKanade_singleFrame(...
+                    ref_g, stack_g(:,:,f), dpx_g(:, f), dpy_g(:, f), minIters, ...
+                    B_g, allBs_g, xi_g, yi_g, theI_g, Tnorm_g, nBasis);
             end
-            [stack(:,:,f), dpx(:,f), dpy(:,f), nIters(f)] = doLucasKanade_singleFrame(...
-                ref, stack(:,:,f), dpx(:, f), dpy(:, f), minIters, ...
-                B, allBs, xi, yi, theI, Tnorm, nBasis);
+
+            % Get data from GPU:
+            stack = gather(stack_g);
+            dpx = gather(dpx_g);
+            dpy = gather(dpy_g);
+        else
+            for f = 1:z
+                if labindex==1 && ~mod(f, dispInterval);
+                    fprintf('%2.0f%%...\n', 100*f/z);
+                end
+                [stack(:,:,f), dpx(:,f), dpy(:,f), nIters(f)] = doLucasKanade_singleFrame(...
+                    ref, stack(:,:,f), dpx(:, f), dpy(:, f), minIters, ...
+                    B, allBs, xi, yi, theI, Tnorm, nBasis);
+            end
         end
     end
 end
@@ -184,7 +186,7 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
         Dx = repmat((B*dpx), 1, w);
         Dy = repmat((B*dpy), 1, w);
         
-        Id = interp2(I,xi+Dx,yi+Dy,'linear', 0);
+        Id = interp2(I, xi+Dx, yi+Dy, 'linear', 0);
                 
         %gradient
         [dTx, dTy] = imgradientxy(Id, 'centraldifference');

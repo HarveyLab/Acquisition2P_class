@@ -120,9 +120,17 @@ end
 obj.metaDataSI = scanImageMetadata;
 
 %Assign acquisition to a variable with its own name, and write to same
-%directory
-eval([obj.acqName ' = obj;']),
-save(fullfile(obj.defaultDir, obj.acqName), obj.acqName)
+%directory. Need to ensure that it is a valid variable name:
+if verLessThan('matlab', 'R2014a')
+    acqVarName = genvarname(obj.acqName);
+    eval([acqVarName ' = obj;'])
+else
+    acqVarName = matlab.lang.makeValidName(obj.acqName);
+    eval([acqVarName ' = obj;'])
+end
+
+save(fullfile(obj.defaultDir, acqVarName), acqVarName)
+
 display('Motion Correction Completed!')
 
 end

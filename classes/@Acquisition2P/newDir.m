@@ -1,4 +1,4 @@
-function newDir(obj,destDir,doCor,doInd,doCov)
+function newDir(obj,destDir,doCor,doInd,doCov,doNMF)
 %Copies an acquisition and the associated motion corrected files from
 %the original location to a new one, and creates a new acquisition
 %object associated with the new location.
@@ -10,7 +10,7 @@ function newDir(obj,destDir,doCor,doInd,doCov)
 %   indexed movie files, and covariance files, respectively. newDir always
 %   checks to see whether files are present before copying, so all 'do' variables can be set
 %   to one without throwing an error
-    
+
 %% Input handling
 
 if ~exist('doCor', 'var') || isempty(doCor)
@@ -25,10 +25,21 @@ if ~exist('doCov', 'var') || isempty(doCov)
     doCov = 1;
 end
 
-%% Copy files
+if ~exist('doNMF', 'var') || isempty(doNMF)
+    doNMF = 1;
+end
 
-nSlices = length(obj.correctedMovies.slice);
-nChannels = length(obj.correctedMovies.slice(1).channel);
+%% Copy files
+if doCor == 1
+    nSlices = length(obj.correctedMovies.slice);
+    nChannels = length(obj.correctedMovies.slice(1).channel);
+elseif doInd == 1
+    nSlices = length(obj.indexedMovie.slice);
+    nChannels = length(obj.indexedMovie.slice(1).channel);
+else
+    nSlices = length(obj.correctedMovies.slice);
+    nChannels = length(obj.correctedMovies.slice(1).channel);
+end
 
 for nSlice = 1:nSlices
     fprintf('\n Copying Slice %02.0f of %02.0f\n',nSlice,nSlices)
@@ -60,10 +71,18 @@ for nSlice = 1:nSlices
             copyfile(fullfile(covPath,covName),newCovName);
             obj.roiInfo.slice(nSlice).covFile.fileName = newCovName;
         end
-            
+        if doCov && ~isempty(obj.roiInfo) && isfield(obj.roiInfo.slice(nSlice),'NMF')
+            fprintf('\n Copying NMF Source Extraction File\n'),
+            [nmfPath,nmfName,nmfExt] = fileparts(obj.roiInfo.slice(nSlice).NMF.filename);
+            nmfName = [nmfName nmfExt];
+            newNMFName = fullfile(destDir,nmfName);
+            copyfile(fullfile(nmfPath,nmfName),newNMFName);
+            obj.roiInfo.slice(nSlice).NMF.filename = newNMFName;
+        end
+        
     end
 end
-    
+
 obj.defaultDir = destDir;
 eval([obj.acqName '= obj;']);
 save(fullfile(destDir,obj.acqName),obj.acqName);

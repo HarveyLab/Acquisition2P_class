@@ -8,6 +8,15 @@ if isfield(siStruct, 'SI4')
     fZ              = siStruct.fastZEnable;
     nChannels       = numel(siStruct.channelsSave);
     nSlices         = siStruct.stackNumSlices + (fZ*siStruct.fastZDiscardFlybackFrames); % Slices are acquired at different locations (e.g. depths).
+elseif isfield(siStruct, 'SI') % scanimage 2015 file
+    fZ              = siStruct.SI.hFastZ.enable;
+    nChannels       = length(siStruct.SI.hChannels.channelSave);
+    if fZ
+        nSlices = siStruct.SI.hFastZ.numFramesPerVolume;
+        siStruct.fastZDiscardFlybackFrames = siStruct.SI.hFastZ.discardFlybackFrames;
+    else
+        nSlices = 1;
+    end
 elseif isfield(siStruct,'SI5')
      siStruct = siStruct.SI5;
     % Nomenclature: frames and slices refer to the concepts used in

@@ -106,7 +106,7 @@ classdef fastBSpline
             if exist('evalBSpline','file') == 3 && exist('evalBin','file') == 3
                 this.usemex = true;
             else
-                warning('fastBSpline:nomex','Mex files are not available, this will be a bit slower. Try running CompileMexFiles.');
+%                 warning('fastBSpline:nomex','Mex files are not available, this will be a bit slower. Try running CompileMexFiles.');
             end
         end
         

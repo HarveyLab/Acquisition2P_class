@@ -24,7 +24,7 @@ if size(sel.disp.img, 3) == 3
     beenViewedTransp = 0.35;
     set(sel.h.img.hasBeenViewed, 'AlphaData', bwperim(beenViewedTransp*sel.roiInfo.hasBeenViewed));
 else
-    beenViewedTransp = 0.15;
+    beenViewedTransp = 0.2;
     set(sel.h.img.hasBeenViewed, 'AlphaData', beenViewedTransp*sel.roiInfo.hasBeenViewed);
 end
     
@@ -67,7 +67,7 @@ end
 % exactly those elements that do not need to be drawn:
 isExistingRoi = ishandle(sel.h.ui.roiPatches);
 for roiId = 1:nPatches
-    
+
     % Don't re-draw existing patches:
     if isExistingRoi(roiId)
         continue
@@ -78,11 +78,28 @@ for roiId = 1:nPatches
         continue
     end
     
+    % Don't draw patches for ROIs that have no pixels in them (that
+    % sometimes happens for some reason...maybe investigate):
+    if isempty(sel.roiInfo.roi([sel.roiInfo.roi.id]==roiId).indBody)
+        continue
+    end
+    
     % Get mask for ROI to be drawn:
     currRoiMask = sel.disp.roiLabels == roiId;
     
+    % Don't draw patches for ROIs that have no pixels:
+    if nnz(currRoiMask)==0
+        continue
+    end
+
     %find edges of current roi
     [rowInd,colInd] = sel.findEdges(currRoiMask);
+    
+    % Write roiId:
+    [rowIndAll, colIndAll] = find(currRoiMask); % Use all points to find more natural center, downweighting fine processes.
+    text(mean(colIndAll), mean(rowIndAll), num2str(roiId), ...
+        'verticalalignment', 'middle', 'horizontalalignment', 'center', ...
+        'color', 'w', 'fontsize', 8, 'parent', sel.h.ax.overview)
     
     %create patch object
     roiGroup = sel.roiInfo.roi([sel.roiInfo.roi.id]==roiId).group;

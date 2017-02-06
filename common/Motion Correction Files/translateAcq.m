@@ -1,4 +1,8 @@
-function mov = translateAcq(mov, xShift, yShift)
+function mov = translateAcq(mov, xShift, yShift, fillval)
+
+if nargin < 4
+    fillval = nan;
+end
 
 [h, w, z] = size(mov);
 referenceFrame = imref2d([h, w]);
@@ -13,6 +17,6 @@ parfor f = 1:z
     tformMat(3, 2) = yShift(f);
     tform = affine2d(tformMat);
     mov(:,:,f) = imwarp(mov(:,:,f), tform, ...
-        'OutputView', referenceFrame, 'FillValues', nan); 
+        'OutputView', referenceFrame, 'FillValues', fillval); 
 end
 end

@@ -27,6 +27,12 @@ else
     sel.roiInfo.roi(newInd).subCoef = sel.disp.neuropilCoef(2);
     newTitle = 'Cell-Neuropil Pairing Saved';
     
+    % Save backup file in case user forgets to save or matlab crashes:
+    roiInfoBackup = struct;
+    roiInfoBackup.hasBeenViewed = sel.roiInfo.hasBeenViewed;
+    roiInfoBackup.roi = sel.roiInfo.roi; %#ok<STRNU>
+    save(fullfile(sel.acq.defaultDir, 'cellSelectionBackup'), 'roiInfoBackup');
+    
     % Set cluster to be equal to the one after the just selected
     % cell body, rather than the neuropil, so that we can continue
     % with the next one fluidly:

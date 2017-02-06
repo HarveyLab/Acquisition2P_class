@@ -1,4 +1,4 @@
-function ref = meanRef(obj,movNums,sliceNum,channelNum)
+function ref = meanRef(obj, movNums, sliceNum, channelNum, isAvg, isNormalize)
     % Constructs a mean reference image of an acquisition after motion 
     % correction using the derived data structure, without requiring
     % loading movie files
@@ -19,15 +19,32 @@ function ref = meanRef(obj,movNums,sliceNum,channelNum)
     if ~exist('channelNum','var') || isempty(channelNum)
         channelNum = 1;
     end
+    if ~exist('isAvg','var') || isempty(isAvg)
+        isAvg = true;
+    end
+    if ~exist('isNormalize','var') || isempty(isNormalize)
+        isNormalize = false;
+    end
     
-    %Initialize zero matrix, sum in loop over movies and normalize by number of movies summed
+    % Initialize zero matrix, sum in loop over movies and normalize by number of movies summed
     [h, w] = size(obj.derivedData(1).meanRef.slice(sliceNum).channel(channelNum).img);
     nMovies = length(movNums);
     
     ref = zeros(h, w, nMovies);
     for ii = 1:numel(movNums)
-        ref(:, :, ii) = obj.derivedData(movNums(ii)).meanRef.slice(sliceNum).channel(channelNum).img;
+        if ~isempty(obj.derivedData(movNums(ii)).meanRef)
+            ref(:, :, ii) = obj.derivedData(movNums(ii)).meanRef.slice(sliceNum).channel(channelNum).img;
+        end
     end
     
-    ref = nanmean(ref, 3);
+    if isNormalize
+        col = @(A) A(:);
+        for i = 1:size(ref, 3)
+            ref(:,:,i) = mat2gray(ref(:,:,i), prctile(col(ref(:,:,i)), [0.5 99.5]));
+        end
+    end
+    
+    if isAvg
+        ref = nanmean(ref, 3);
+    end
 end

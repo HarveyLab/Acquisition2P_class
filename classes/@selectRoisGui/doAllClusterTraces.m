@@ -7,7 +7,7 @@ function doAllClusterTraces(sel)
         % Get matrix of fluorescence traces for all clusters:
         mov = sel.movMap.Data.mov;
         F = zeros(sel.disp.clusterNum+1, size(mov, 1));
-        for i = 1:sel.disp.clusterNum+1
+        for i = 1:max(sel.disp.currentClustering(:))
             nhInd = find(sel.disp.currentClustering==i);
             movInd = sel.nh2movInd(nhInd); %#ok<FNDSB>
             movInd = movInd(~isnan(movInd)); % If click was at the edge, missing values are nan.
@@ -26,7 +26,7 @@ function doAllClusterTraces(sel)
         
         % Coloring: use same hues as in the image showing the cuts:
         cla(sel.h.ax.traceClusters);
-        clut = jet(sel.disp.clusterNum+1);
+        clut = jet(max(sel.disp.currentClustering(:)));
         hold(sel.h.ax.traceClusters,'on');
         set(sel.h.ax.traceClusters, 'ColorOrder', clut, 'ColorOrderIndex', 1);
         
@@ -36,11 +36,11 @@ function doAllClusterTraces(sel)
         title(sel.h.ax.roi, 'This trace loaded');
         
         %add arrow to current cluster
-        delete(findall(sel.h.fig.trace(1), 'type', 'annotation')); % Delete old annotations.
-        [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
-            max(xFrames), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
-        annotation(sel.h.fig.trace(1), 'arrow',...
-            [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
+%         delete(findall(sel.h.fig.trace(1), 'type', 'annotation')); % Delete old annotations.
+%         [arrowXPos, arrowYPos] = ds2nfu(sel.h.ax.traceClusters, ...
+%             max(xFrames), nanmean(dF(sel.disp.currentClustInd, end-1000:end))); %get y value of last point of current cluster
+%         annotation(sel.h.fig.trace(1), 'arrow',...
+%             [1.03*arrowXPos 1.01*arrowXPos], repmat(arrowYPos,1,2)); %create arrow
         
         % reset neuroPil index, to prevent accidental saving of previous pairing
         sel.disp.indNeuropil = [];

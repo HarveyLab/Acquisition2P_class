@@ -30,7 +30,7 @@ classdef selectRoisGui < handle
         function sel = selectRoisGui(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames)
             % Error checking and default arguments:
             if ~exist('img','var') || isempty(img)
-                img = acq.meanRef;
+                img = acq.meanRef([],sliceNum);
                 img(img<0) = 0;
                 img(isnan(img)) = 0;
                 img = sqrt(img);
@@ -48,7 +48,6 @@ classdef selectRoisGui < handle
             if ~exist('excludeFrames','var')
                 excludeFrames = [];
             end
-            
             % Errors:
             if isempty(acq.roiInfo)
                 ME = MException('selectRoisGui:inputError', 'No ROI info is associated with this Acquisition');

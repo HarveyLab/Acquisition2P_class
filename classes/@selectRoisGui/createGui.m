@@ -2,6 +2,9 @@ function createGui(sel, acq, img, sliceNum, channelNum, smoothWindow, excludeFra
 % Constructor method for the selectRoisGui class. See selectROIs.m for
 % usage.
 
+%% For debugging:
+% assignin('base', 'sel', sel);
+
 %% Create GUI data structure:
 % Initialize properties:
 sel.acq = acq;
@@ -19,15 +22,10 @@ if ~isfield(sel.roiInfo, 'roi') || isempty(sel.roiInfo.roi)
         'indNeuropil', [], 'subCoef', []);
 end
 
-% Update roi information to new structure:
-if isfield(sel.roiInfo, 'roiList')
-    removeRoiList(sel.acq);
-end
-
 % Create roiLabels:
 sel.disp.roiLabels = zeros(size(img, 1), size(img, 2));
 for roi = sel.roiInfo.roi(:)'
-    sel.disp.roiLabels(roi.indBody) = roi.id;
+    sel.disp.roiLabels(roi.indBody(isfinite(roi.indBody))) = roi.id;
 end
 
 % Set the current ROI to be 1 greater than last selected
@@ -37,6 +35,7 @@ sel.disp.currentRoi = max([sel.roiInfo.roi.id])+1;
 sel.disp.clusterNum = 3; % Initial number of cuts.
 sel.disp.currentClustering = zeros(sel.roiInfo.covFile.nh); % Labels of current clusters.
 sel.disp.currentClustInd = []; % Which cluster/Roi is currently selected.
+sel.disp.cutMod_nTopToExclude = 0;
 sel.disp.cutVecs = [];
 sel.disp.roiMask = [];
 sel.disp.indBody = [];
@@ -44,6 +43,7 @@ sel.disp.indNeuropil = [];
 sel.disp.neuropilCoef = [];
 sel.disp.smoothWindow = smoothWindow;
 sel.disp.currentPos = [nan nan]; % Makes current click/focus position available across functions.
+sel.disp.isMouseOnRoiAx = false;
 sel.disp.movSize = size(img);
 sel.disp.excludeFrames = excludeFrames; % Frames in the traces that are to be excluded from neuropil calculations, e.g. due to stim artefacts.
 sel.disp.roiColors =  [0 0 1;...
@@ -60,6 +60,8 @@ if isfield(sel.acq.metaDataSI,'SI4')
     sel.disp.framePeriod = sel.acq.metaDataSI.SI4.scanFramePeriod;
 elseif isfield(sel.acq.metaDataSI,'SI5')
     sel.disp.framePeriod = sel.acq.metaDataSI.SI5.scanFramePeriod;
+elseif isfield(sel.acq.metaDataSI,'SI')
+    sel.disp.framePeriod = sel.acq.metaDataSI.SI.hRoiManager.scanFramePeriod;
 else
     warning('Unable to Automatically determine scanFramePeriod')
     sel.disp.framePeriod = input('Input scanFramePeriod: ');
@@ -74,16 +76,30 @@ end
 sel.disp.img = img;
 
 % Create memory map of pixCov file:
+if ~exist(sel.roiInfo.covFile.fileName, 'file')
+    error('Cannot find covFile at path specified in acq2p object.');
+end
 sel.covMap = memmapfile(sel.roiInfo.covFile.fileName, ...
     'format', {'single', [sel.roiInfo.covFile.nPix, sel.roiInfo.covFile.nDiags], 'pixCov'});
 
 % Create memory mapped binary file of movie:
 movSizes = sel.acq.correctedMovies.slice(sliceNum).channel(channelNum).size;
 movLengths = movSizes(:, 3);
+if ~exist(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName, 'file')
+    error('Cannot find binary movie file at path specified in acq2p object.');
+end
 sel.movMap = memmapfile(acq.indexedMovie.slice(sliceNum).channel(channelNum).fileName,...
     'Format', {'int16', [sum(movLengths), movSizes(1,1)*movSizes(1,2)], 'mov'});
 
 %% Create GUI layout:
+% Check if a GUI exists from a previous session and close it to prevent
+% errors:
+openFigs = findall(0, 'type', 'figure');
+if ~isempty(openFigs)
+    close(openFigs(ismember(get(openFigs, 'name'), 'ROI Selection')));
+end
+
+% Create main GUI figure:
 sel.h.fig.main = figure('Name','ROI Selection');
 set(sel.h.fig.main, 'DefaultAxesFontSize', 10);
 
@@ -110,8 +126,7 @@ if screenSize(3) > screenSize(4)
     sel.h.ui.sliderWhite = uicontrol('Style', 'slider', 'Units', 'Normalized',...
         'Position', [refPos(1)+0.35 refPos(2) - 0.05 .3*refPos(3) 0.02],...
         'Min', 0, 'Max', 1, 'Value', 1, 'SliderStep', [0.01 0.1],...
-        'Callback',@sel.cbSliderContrast);    
-    
+        'Callback',@sel.cbSliderContrast);
 else
     % Portrait-format screen:
     sel.h.ax.overview = subplot(6, 4, 9:24);
@@ -125,6 +140,12 @@ else
     sel.h.ax.roi = subplot(6, 4, 6);
 
 end
+
+% Create auto-cut calculation checkboxes
+sel.h.ui.autoCalcCuts = uicontrol('Style', 'checkbox','String','Estimate Cuts',...
+    'Units', 'Normalized', 'Position', [0.034 0.02 0.15 0.048]);
+sel.h.ui.autoCalcClusters = uicontrol('Style', 'checkbox','String','Estimate Clusters',...
+    'Units', 'Normalized', 'Position', [0.034 0.05 0.15 0.048]);
 
 %create traces figures
 sel.h.fig.trace(1) = figure('Name','Cluster Traces');
@@ -141,21 +162,29 @@ sel.h.ui.plotRaw = uicontrol('Style', 'checkbox','String','Raw Plot',...
     [0.034 0.02 0.15 0.048]);
 sel.h.fig.trace(4) = figure('Name','Neuropil-sub Scatter');
 sel.h.ax.subSlope = axes;
-drawnow,
+drawnow
 setFigDockGroup(sel.h.fig.trace,'tracePlotsGUI')
 set(sel.h.fig.trace,'WindowStyle','docked');
 
+% Switch off UI tools for all figures (some callbacks can only be added if
+% no tool is selected):
+activateuimode(sel.h.fig.main, '');
+for i = 1:numel(sel.h.fig.trace)
+    activateuimode(sel.h.fig.trace(i), '');
+end
 
 % Set callbacks:
 set(sel.h.fig.main, 'WindowButtonDownFcn', @sel.cbMouseclick, ...
+    'WindowButtonMotionFcn', @sel.cbMousemove, ...
     'WindowScrollWheelFcn', @sel.cbScrollwheel, ...
     'WindowKeyPressFcn', @sel.cbKeypress, ...
-    'CloseRequestFcn', @sel.cbCloseRequestMain);
-set(sel.h.fig.trace(4), 'WindowScrollWheelFcn', @sel.subCoefScrollWheel),
-set(sel.h.fig.trace(:), 'WindowKeyPressFcn', @sel.cbKeypressTraceWin);
-for nWin = 1:4
-    set(sel.h.fig.trace(nWin), 'CloseRequestFcn', @sel.cbCloseRequestMain);
-end
+    'CloseRequestFcn', @sel.cbCloseRequestMain)
+set(sel.h.fig.trace(4), 'WindowScrollWheelFcn', @sel.subCoefScrollWheel, ...
+    'WindowKeyPressFcn', @cbPassThroughKeypressToMain, ...
+    'WindowButtonMotionFcn', @cbFocusFollowsMouse)
+set(sel.h.fig.trace(:), 'WindowKeyPressFcn', @sel.cbKeypressTraceWin, ...
+    'WindowKeyPressFcn', @sel.cbPassThroughKeypressToMain, ...
+    'CloseRequestFcn', @sel.cbCloseRequestMain)
 
 % Set up timers (they can be used to do calculations in the background to
 % improve perceived responsiveness of the GUI):
@@ -205,3 +234,11 @@ warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame'); %disable jav
 jFrame = get(sel.h.fig.main, 'JavaFrame');
 drawnow % Required for maximization to work.
 jFrame.setMaximized(1);
+
+function cbFocusFollowsMouse(~, evt, ~)
+% Attach this function as the WindowButtonMotionFcn callback to any figure
+% that you want to be in focus whenever the mouse cursor is above that
+% figure.
+if ~isequal(gcf, evt.Source)
+    figure(evt.Source)
+end

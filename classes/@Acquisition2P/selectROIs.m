@@ -63,4 +63,4 @@ if ~exist('excludeFrames','var')
 end
 
 % All the code for the GUI is in the class selectRoisGui:
-selectRoisGui(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames);
+sel = selectRoisGui(acq, img, sliceNum, channelNum, smoothWindow, excludeFrames);
