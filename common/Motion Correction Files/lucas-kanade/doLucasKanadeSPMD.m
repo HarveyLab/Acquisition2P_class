@@ -10,7 +10,8 @@ function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
 
 % If not set explicitly, then use GPU if available:
 if ~exist('isGpu', 'var')
-    isGpu = gpuDeviceCount > 0;
+%     isGpu = gpuDeviceCount > 0;
+    isGpu = 0;
 end
 
 if isGpu && ~gpuDeviceCount
@@ -175,7 +176,8 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
 
     warning('off','fastBSpline:nomex');
     maxIters = 50;
-    deltacorr = 0.0005;
+    deltacorr = 5e-4;
+    absShiftThresh = 1/3;
     [~, w] = size(T);
     
     %Find optimal image warp via Lucas Kanade    
@@ -213,6 +215,10 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
  
         dpx = dpx + Hx\gx;
         dpy = dpy + Hy\gy;
+        
+        if max([dpx;dpy])<absShiftThresh
+            break
+        end
         
         % no damping
 %         dpx = dpx + damping*dpx_;
