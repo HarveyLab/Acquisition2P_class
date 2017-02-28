@@ -1,9 +1,17 @@
-function extractSources(acq,nSlice) %extractSources(acq,nSlice,useLocal)
+function extractSources(acq,nSlice,data,initImages) %extractSources(acq,nSlice,useLocal)
 
 % Wrapper function for NMF-based source extraction.
 
 if ~exist('nSlice','var') || isempty(nSlice)
     nSlice = 1;
+end
+
+if ~exist('nSlice','var')
+    data = [];
+end
+
+if ~exist('initImages','var')
+    initImages = [];
 end
 
 % if ~exist('useLocal','var') || isempty(useLocal)
@@ -55,7 +63,7 @@ if isempty(acq.syncInfo) || ~isfield(acq.syncInfo, 'sliceFrames')
 end
 
 % Run:
-extractSourcesNMF(acq,nSlice);
+extractSourcesNMF(acq,nSlice,data,initImages);
 
 % if useLocal
 %     acq.indexedMovie.slice(nSlice).channel.fileName = thisSliceDir;
