@@ -134,12 +134,13 @@ switch opMode
                 memMap = matfile(...
                     obj.indexedMovie.slice(iSl).channel(1).memMap,'Writable',true);
                 movSize = size(memMap,'Y');
-                framesOffset = movSize(3);
-                dsMov = squeeze(mean(reshape(single(thisMov),...
-                    movSize(1), movSize(2), memMap.dsRatio, dsFactor),3));
+                framesOffset = size(memMap,'Yr',2);%movSize(3);
+                validFrames = 1:floor(size(thisMov,3)/memMap.dsRatio)*memMap.dsRatio;
+                dsMov = squeeze(mean(reshape(single(thisMov(:,:,validFrames)),...
+                    movSize(1), movSize(2), memMap.dsRatio, length(validFrames)/memMap.dsRatio),3));
                 theseFrames = framesOffset+(1:size(dsMov,3));
                 memMap.Y(:,:,theseFrames) = dsMov;
-                memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),dsFactor);
+                memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
             end
         end
     end
