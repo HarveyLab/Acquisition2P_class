@@ -175,7 +175,8 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
 
     warning('off','fastBSpline:nomex');
     maxIters = 50;
-    deltacorr = 0.0005;
+    deltacorr = 5e-4;
+    absShiftThresh = 1/3;
     [~, w] = size(T);
     
     %Find optimal image warp via Lucas Kanade    
@@ -214,6 +215,9 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
         dpx = dpx + Hx\gx;
         dpy = dpy + Hy\gy;
         
+        if max([dpx;dpy]) < absShiftThresh
+            break
+        end
         % no damping
 %         dpx = dpx + damping*dpx_;
 %         dpy = dpy + damping*dpy_;
