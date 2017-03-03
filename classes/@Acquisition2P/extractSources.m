@@ -6,7 +6,7 @@ if ~exist('nSlice','var') || isempty(nSlice)
     nSlice = 1;
 end
 
-if ~exist('nSlice','var')
+if ~exist('data','var')
     data = [];
 end
 
