@@ -216,16 +216,10 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
         dpx = dpx + Hx\gx;
         dpy = dpy + Hy\gy;
         
-<<<<<<< HEAD
-        if max([dpx;dpy])<absShiftThresh
-            break
-        end
-        
-=======
         if max([dpx;dpy]) < absShiftThresh
             break
         end
->>>>>>> refs/remotes/origin/master
+
         % no damping
 %         dpx = dpx + damping*dpx_;
 %         dpy = dpy + damping*dpy_;
