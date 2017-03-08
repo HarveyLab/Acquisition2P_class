@@ -1,4 +1,4 @@
-%% Using the Acuisition2P class:
+%% Using the Acquisition2P class:
 %
 %% -----Setup-------
 % All software in the acq2P package has been extensively tested on Matlab
@@ -214,7 +214,7 @@ myObj.save;
 % extractROIs reads in the grouping information output by selectROIs, and by
 % default will process all groups. Here I specify to grab only grouping
 % '1' and '3', but adjust this for your usage
-roiGroups = [1,3];
+roiGroups = [1];
 
 %Now get traces
 [dF,traces,rawF,roiList] = extractROIsBin(myObj,roiGroups,sliceNum,channelNum);

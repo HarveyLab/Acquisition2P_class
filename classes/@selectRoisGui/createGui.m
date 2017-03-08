@@ -11,7 +11,7 @@ sel.acq = acq;
 sel.slice = sliceNum;
 
 % Set up roiInfo: The roiInfo property of the sel object automatically
-% points to the acq object, so whatever we do to sel get's propagated to
+% points to the acq object, so whatever we do to sel gets propagated to
 % acq.
 if ~isfield(sel.roiInfo, 'roi') || isempty(sel.roiInfo.roi)
     % If this is acq object has not been processed before, initialize
