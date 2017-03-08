@@ -33,11 +33,16 @@ else
 end
 
 
-% Copy data into structure:
+% Copy data into structure: - modeifed by SK 16/09/01
+
+nSet = nSlices * nChannels; % how many sets of frames exist? (including flyback frames)
+nCumFrame = (movNum-1) * size(mov,3); % cumulative sum of frames up to this movie
+firstInd = mod(nCumFrame+(1:nSet)-1,nSet) + 1; % Which frame set do the first nSet frames of the movie correspond to?
+
 if nSlices>1
     for sl = 1:nSlices-(fZ*siStruct.fastZDiscardFlybackFrames) % Slices, removing flyback.
         for ch = 1:nChannels % Channels
-            frameInd = ch + (sl-1)*nChannels;
+            frameInd = find(firstInd==(ch + (sl-1)*nChannels),1,'first');
             movStruct.slice(sl).channel(ch).mov = mov(:, :, frameInd:(nSlices*nChannels):end);
         end
     end
@@ -45,7 +50,7 @@ if nSlices>1
 else
     for sl = 1;
         for ch = 1:nChannels % Channels
-            frameInd = ch + (sl-1)*nChannels;
+            frameInd = find(firstInd==(ch + (sl-1)*nChannels),1,'first');
             movStruct.slice(sl).channel(ch).mov = mov(:, :, frameInd:(nSlices*nChannels):end);
         end
     end
