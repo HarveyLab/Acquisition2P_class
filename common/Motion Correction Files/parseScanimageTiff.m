@@ -6,7 +6,7 @@ if isfield(siStruct, 'VERSION_MAJOR') && strcmp(siStruct.VERSION_MAJOR, '2016')
     fZ              = siStruct.hFastZ.enable;
     nChannels       = numel(siStruct.hChannels.channelSave);
     if fZ
-        nSlices     = siStruct.hFastZ.enable + siStruct.hFastZ.discardFlybackFrames; % Slices are acquired at different locations (e.g. depths).
+        nSlices     = siStruct.hFastZ.numFramesPerVolume; % Slices are acquired at different locations (e.g. depths).
     else
         nSlices     = 1;
     end 
