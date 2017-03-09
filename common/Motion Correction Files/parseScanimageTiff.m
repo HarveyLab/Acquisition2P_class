@@ -1,7 +1,16 @@
 function [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, siStruct)
 
 % Check for scanimage version before extracting metainformation
-if isfield(siStruct, 'SI4')
+if isfield(siStruct, 'VERSION_MAJOR') && strcmp(siStruct.VERSION_MAJOR, '2016')
+    % SI2016 tiff that was loaded using the new SI tiff reader:
+    fZ              = siStruct.hFastZ.enable;
+    nChannels       = numel(siStruct.hChannels.channelSave);
+    if fZ
+        nSlices     = siStruct.hFastZ.enable + siStruct.hFastZ.discardFlybackFrames; % Slices are acquired at different locations (e.g. depths).
+    else
+        nSlices     = 1;
+    end 
+elseif isfield(siStruct, 'SI4')
     siStruct = siStruct.SI4;
     % Nomenclature: frames and slices refer to the concepts used in
     % ScanImage.
