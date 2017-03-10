@@ -6,7 +6,7 @@ function movStruct = withinFile_withinFrame_lucasKanade(...
 
 nSlice = numel(movStruct.slice);
 nChannel = numel(movStruct.slice(1).channel);
-isGpu = false;
+isGpu = true;
 if isGpu
     gpu = gpuDevice;
     pctRunOnAll reset(gpuDevice);
@@ -56,7 +56,7 @@ switch opMode
             
             % Find within-frame displacements:
             [movTemp, dpx, dpy, basisFunctions] = ...
-                doLucasKanadeSPMD(single(movTemp), ref);
+                doLucasKanadeSPMD(single(movTemp), ref, isGpu);
             
             % Combine full-frame and within-frame displacements:
             dpx = bsxfun(@minus, dpx, xTrans);

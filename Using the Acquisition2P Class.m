@@ -68,7 +68,7 @@
 % initialization automatically assign the variable ensures that the
 % object's internal name matches its matlab variable name. 
 
-Acquisition2P([],@SC2Pinit);
+Acquisition2P('test_LD187_141107',@SC2Pinit);
 
 % The Acquisition2P constructer has a series of error checks to ensure that
 % necessary properties are not left blank by accident. Practically, this
@@ -108,7 +108,7 @@ myObj.motionCorrect;
 %% Reading data into workspace
 % The Acquisition2P object now contains metainformation pertaining to both
 % corrected and raw data, and we can use the readCor and readRaw methods, 
-% respectively, to load them. These methods are the only methods without
+% respectively, to load them. These methods are the onl methods without
 % their own .m file, and they are located in the Acquisition2P file
 % directly. Both only need the object and movie number as inputs, but we can
 % specify additional arguments as I'll do here.
@@ -119,7 +119,7 @@ sliceNum = 1;
 channelNum = myObj.motionRefChannel;
 mov = readCor(myObj,movNum,castType,sliceNum,channelNum);
 rawMov = readRaw(myObj,movNum,castType);
-implay(cat(2,mov,rawMov)/1e3,30),
+%implay(cat(2,mov,rawMov)/1e3,30),
 
 % help Acquisition2P.readCor
 % help Acquisition2P.readRaw

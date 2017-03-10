@@ -27,11 +27,11 @@ if isGpu
     
     stackInfo = whos('stackFull');
     memFactor = 3; % We need memory equal to this many times the size of the stack.
-    memRequired = memFactor*stackInfo.bytes;
+    memRequired = memFactor*stackInfo.bytes
     
     if memAvailable<memRequired
         % Split stack into chunks of ~equal size:
-        nChunks = ceil(memRequired/memAvailable);
+        nChunks = ceil(memRequired/memAvailable)+1; % to avoid problems if its close
         [h, w, z] = size(stackFull);
         chunkSize = ceil(z/nChunks);
         chunkSizes = zeros(1, nChunks)+chunkSize;
