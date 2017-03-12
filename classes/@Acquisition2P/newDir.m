@@ -77,7 +77,7 @@ for nSlice = 1:nSlices
             nmfName = [nmfName nmfExt];
             newNMFName = fullfile(destDir,nmfName);
             copyfile(fullfile(nmfPath,nmfName),newNMFName);
-            obj.roiInfo.NMF.slice(nSlice).filename = newNMFName;
+            obj.roiInfo.slice(nSlice).NMF.filename = newNMFName;
         end
         
     end

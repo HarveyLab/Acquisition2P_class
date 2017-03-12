@@ -2,6 +2,10 @@ function [corrected, xshift, yshift] = correct_translation_singleframe(moving, r
 % Translate a single frame to match a reference, using subpixel FFT
 % registration.
 
+if nargin < 4
+    movingFullSize = moving;
+end
+
 % Find shifts:
 if nargin<3 || ~isRefPrecalcd
     ref_fft = zeros(size(ref, 1), size(ref, 2), 3);
@@ -12,19 +16,22 @@ else
     ref_fft = ref;
 end
 
-upsamplingFac = 10;
+upsamplingFac = 50; % This needs to be >= 50 for accurate widefield results.
 output = dftregistration(fft2(moving), ref_fft(:,:,1), ref_fft(:,:,2), ref_fft(:,:,3), upsamplingFac);
 xshift = output(4);
 yshift = output(3);
 
 % Translate:
-tformMat = eye(3);
-tformMat(3, 1) = xshift;
-tformMat(3, 2) = yshift;
-tform = affine2d(tformMat);
+% tformMat = eye(3);
+% tformMat(3, 1) = xshift;
+% tformMat(3, 2) = yshift;
+% tform = affine2d(tformMat);
+% 
+% corrected = imwarp(movingFullSize, tform, ...
+%     'OutputView', imref2d(size(movingFullSize)), 'FillValues', 0); 
 
-corrected = imwarp(movingFullSize, tform, ...
-    'OutputView', imref2d(size(movingFullSize)), 'FillValues', 0); 
+[h, w] = size(movingFullSize);
+corrected = interp2(movingFullSize, (1:w)-xshift, ((1:h)-yshift)', 'linear', 0);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

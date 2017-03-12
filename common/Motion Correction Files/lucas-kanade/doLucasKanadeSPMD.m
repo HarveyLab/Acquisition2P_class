@@ -4,6 +4,7 @@ function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
 % https://xcorr.net/2014/08/02/non-rigid-deformation-for-calcium-imaging-frame-alignment/
 % and/or are originally based on the method published in:
 <<<<<<< HEAD
+<<<<<<< HEAD
 % Greenberg, David S., and Jason N.D. Kerr. "Automated Correction of Fast
 % Motion Artifacts for Two-Photon Imaging of Awake Animals." Journal of
 % Neuroscience Methods 176, no. 1 (January 15, 2009): 1-15.
@@ -11,6 +12,11 @@ function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
 % Greenberg, David S., and Jason N.D. Kerr. “Automated Correction of Fast
 % Motion Artifacts for Two-Photon Imaging of Awake Animals.” Journal of
 % Neuroscience Methods 176, no. 1 (January 15, 2009): 1–15.
+>>>>>>> refs/remotes/origin/master
+=======
+% Greenberg, David S., and Jason N.D. Kerr. "Automated Correction of Fast
+% Motion Artifacts for Two-Photon Imaging of Awake Animals." Journal of
+% Neuroscience Methods 176, no. 1 (January 15, 2009): 1-15.
 >>>>>>> refs/remotes/origin/master
 % doi:10.1016/j.jneumeth.2008.08.020.
 
@@ -181,7 +187,8 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
 
     warning('off','fastBSpline:nomex');
     maxIters = 50;
-    deltacorr = 0.0005;
+    deltacorr = 5e-4;
+    absShiftThresh = 1/3;
     [~, w] = size(T);
     
     %Find optimal image warp via Lucas Kanade    
@@ -220,6 +227,9 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
         dpx = dpx + Hx\gx;
         dpy = dpy + Hy\gy;
         
+        if max([dpx;dpy]) < absShiftThresh
+            break
+        end
         % no damping
 %         dpx = dpx + damping*dpx_;
 %         dpy = dpy + damping*dpy_;
