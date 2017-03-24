@@ -10,6 +10,7 @@ if isfield(siStruct, 'VERSION_MAJOR') && strcmp(siStruct.VERSION_MAJOR, '2016')
     else
         nSlices     = 1;
     end 
+    siStruct.fastZDiscardFlybackFrames = siStruct.hFastZ.discardFlybackFrames;
 elseif isfield(siStruct, 'SI4')
     siStruct = siStruct.SI4;
     % Nomenclature: frames and slices refer to the concepts used in
