@@ -104,7 +104,7 @@ end
 acq.defaultDir = dirProcessed;
 
 % Motion correction parameters:
-acq.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
+acq.motionCorrectionFunction = @lucasKanade_plus_nonrigid;
 acq.motionRefMovNum = max(floor(length(acq.Movies)/2), 1);
 acq.motionRefChannel = 1;
 acq.binFactor = 1;
