@@ -8,7 +8,7 @@ a = MM102_160825_main;
 acq = a.acq;
 
 [mov, si] = tiffRead('\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw\MM102\MM102_160825\MM102_160825_MAIN_00001_00008.tif');
-mov = correctLineShift(mov);
+mov = correctLineShift(double(mov));
 [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, si);
 
 %% Identify motion:

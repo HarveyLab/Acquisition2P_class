@@ -143,17 +143,14 @@ switch opMode
                 % This for-loop is faster than using interpn without a
                 % loop, both on the CPU and the GPU. Re-evaluate this if we
                 % have a GPU that can fit an entire movie into RAM.
-                thisMov = movStruct.slice(iSl).channel(iCh).mov;
                 for f = 1:z
-                    D_here = D(:,:,:,f);
-                    thisMov(:,:,f) = ...
+                    movStruct.slice(iSl).channel(iCh).mov(:,:,f) = ...
                         interp2(xGrid, yGrid, ...
-                            thisMov(:,:,f), ...
-                            xGrid + D_here(:,:,1), ...
-                            yGrid + D_here(:,:,2), ...
+                            movStruct.slice(iSl).channel(iCh).mov(:,:,f), ...
+                            xGrid + D(:,:,1,f), ...
+                            yGrid + D(:,:,2,f), ...
                             'bicubic', nan);
                 end
-                movStruct.slice(iSl).channel(iCh).mov = thisMov;
                 obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
                     nanmean(movStruct.slice(iSl).channel(iCh).mov, 3);
             end
@@ -170,11 +167,19 @@ end
 % larger movie-related variables that are in the workspace of the main
 % function:
 function fn = createDispFieldFunction(h, w, z, basisFunctions, dpx, dpy, D_global)
+
+% We don't need double precision for displacement fields (single still
+% provides pixel*1e-7 resolution):
+basisFunctions = single(basisFunctions);
+dpx = single(dpx);
+dpy = single(dpy);
+D_global = single(D_global);
+
 fn = @dispField;
 function D = dispField
     % Get local displacement field:
-    lineShiftX = zeros(h, z);
-    lineShiftY = zeros(h, z);
+    lineShiftX = zeros(h, z, 'single');
+    lineShiftY = zeros(h, z, 'single');
     
     % Discard unrealistically large shifts (note that whole-frame
     % translation has already been corrected). Large shifts are assumed to
@@ -192,14 +197,15 @@ function D = dispField
         lineShiftX(:, f) = basisFunctions*dpx(:, f);
         lineShiftY(:, f) = basisFunctions*dpy(:, f);
     end
-    dx = repmat(permute(lineShiftX, [1, 3, 2]), [1, w, 1]);
-    dy = repmat(permute(lineShiftY, [1, 3, 2]), [1, w, 1]);
+    dx = permute(repmat(permute(lineShiftX, [1, 3, 2]), [1, w, 1]), [1, 2, 4, 3]);
+    dy = permute(repmat(permute(lineShiftY, [1, 3, 2]), [1, w, 1]), [1, 2, 4, 3]);
     
-    % D_local_stack is of size h * w * 2 * nFrames:
-    D_local_stack = cat(3, permute(dx, [1, 2, 4, 3]), permute(dy, [1, 2, 4, 3]));
+    % At this point, D is of size h * w * 2 * nFrames:
+    D = cat(3, dx, dy);
+    clear dx dy
     
     % Add global transformation:
-    D = combineDisplacementFields(D_local_stack, D_global);
+    D = combineDisplacementFields(D, D_global);
 end
 end
 
@@ -236,7 +242,8 @@ end
 
 % Untransformed pixel coordinates:
 [xGrid, yGrid] = meshgrid((1:w)-0.5-w/2, (1:h)-0.5-h/2);
-D = zeros(h, w, 2, n);
+xGrid = single(xGrid);
+yGrid = single(yGrid);
 
 % For interpolation/resampling of displacement fields, it
 % makes sense to represent the x and y coordinates as
@@ -244,7 +251,9 @@ D = zeros(h, w, 2, n);
 % necessary.
 C1 = squeeze(complex(bsxfun(@plus, D1(:,:,1,:), xGrid), ...
                      bsxfun(@plus, D1(:,:,2,:), yGrid)));
+clear D1
 
+D = zeros(h, w, 2, n, 'like', D2);
 for i = 1:n
     % Apply nonrigid transformation to affine-transformed
     % coordinates:
