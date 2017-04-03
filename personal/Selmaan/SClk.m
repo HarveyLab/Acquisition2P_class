@@ -32,7 +32,8 @@ end
 obj.motionRefMovNum = floor(length(movNames)/2);
 obj.motionRefChannel = 1;
 obj.binFactor = 1;
-obj.motionCorrectionFunction = @lucasKanade_affineReg;
+% obj.motionCorrectionFunction = @lKFast_affineSlow_memMap;
+obj.motionCorrectionFunction = @lucasKanade_plus_nonrigid_memMap;
 
 %Assign acquisition object to acquisition name variable in workspace
 assignin('base',obj.acqName,obj);

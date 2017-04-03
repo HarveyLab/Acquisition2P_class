@@ -1,4 +1,4 @@
-function extractSources(acq,nSlice,useLocal)
+function extractSources(acq,nSlice,data,initImages) %extractSources(acq,nSlice,useLocal)
 
 % Wrapper function for NMF-based source extraction.
 
@@ -6,22 +6,30 @@ if ~exist('nSlice','var') || isempty(nSlice)
     nSlice = 1;
 end
 
-if ~exist('useLocal','var') || isempty(useLocal)
-    useLocal = 1;
+if ~exist('data','var')
+    data = [];
 end
 
-if useLocal
-    tempDir = 'E:\memmaps\tmp';
-    thisSliceDir = acq.indexedMovie.slice(nSlice).channel.fileName;
-    tempMovDir = fullfile(tempDir,'tempMov.bin');
-    fprintf('\n Copying binary file to %s',tempDir),
-    status = copyfile(thisSliceDir,tempMovDir,'f');
-    if status
-        acq.indexedMovie.slice(nSlice).channel.fileName = tempMovDir;
-    else
-        warning('Failure to copy data locally'),
-    end
+if ~exist('initImages','var')
+    initImages = [];
 end
+
+% if ~exist('useLocal','var') || isempty(useLocal)
+%     useLocal = 1;
+% end
+
+% if useLocal
+%     tempDir = 'E:\memmaps\tmp';
+%     thisSliceDir = acq.indexedMovie.slice(nSlice).channel.fileName;
+%     tempMovDir = fullfile(tempDir,'tempMov.bin');
+%     fprintf('\n Copying binary file to %s',tempDir),
+%     status = copyfile(thisSliceDir,tempMovDir,'f');
+%     if status
+%         acq.indexedMovie.slice(nSlice).channel.fileName = tempMovDir;
+%     else
+%         warning('Failure to copy data locally'),
+%     end
+% end
     
 
 % NMF code requires syncInfo. Create minimal version if none is present:
@@ -55,9 +63,9 @@ if isempty(acq.syncInfo) || ~isfield(acq.syncInfo, 'sliceFrames')
 end
 
 % Run:
-extractSourcesNMF(acq,nSlice);
+extractSourcesNMF(acq,nSlice,data,initImages);
 
-if useLocal
-    acq.indexedMovie.slice(nSlice).channel.fileName = thisSliceDir;
-    delete(tempMovDir),
-end
+% if useLocal
+%     acq.indexedMovie.slice(nSlice).channel.fileName = thisSliceDir;
+%     delete(tempMovDir),
+% end
