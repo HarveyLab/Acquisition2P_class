@@ -32,7 +32,7 @@ end
 obj.motionRefMovNum = floor(length(movNames)/2);
 obj.motionRefChannel = 1;
 obj.binFactor = 1;
-obj.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
+obj.motionCorrectionFunction = @lucasKanade_plus_nonrigid;
 
 %Assign acquisition object to acquisition name variable in workspace
 assignin('base',obj.acqName,obj);
