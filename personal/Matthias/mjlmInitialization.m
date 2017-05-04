@@ -90,7 +90,8 @@ switch host
     case 'tarynPc'
         dirProcessed = fullfile('\\taryn-pc\C\DATA\Matthias\imaging\processed', acqId);
     case 'orchestra'
-        dirProcessed = ['/n/data2/hms/neurobio/harvey/matthias/imaging/processed/', acqId, '/'];
+%         dirProcessed = ['/n/data2/hms/neurobio/harvey/matthias/imaging/processed/', acqId, '/'];
+        dirProcessed = ['/n/scratch2/mjm50/processed/', acqId, '/'];
     case 'manualPathWasGiven'
         dirProcessed = rawFileLocation; % Acq2p will create "corrected" folder.
         
