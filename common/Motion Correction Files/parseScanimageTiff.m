@@ -8,6 +8,7 @@ if isfield(siStruct, 'VERSION_MAJOR') && ...
     nChannels       = numel(siStruct.hChannels.channelSave);
     if fZ
         nSlices     = siStruct.hFastZ.numFramesPerVolume; % Slices are acquired at different locations (e.g. depths).
+        siStruct.fastZDiscardFlybackFrames = siStruct.hFastZ.discardFlybackFrames;
     else
         nSlices     = 1;
     end 
