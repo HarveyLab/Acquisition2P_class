@@ -52,7 +52,8 @@ switch opMode
                 
                 % Create a memory-mapped data file
                 movSize = size(thisRef);
-                mapFn = fullfile(obj.defaultDir,'dsMemMap.mat');
+                thisMapFn = sprintf('Slice%d_dsMemMap.mat',iSl);
+                mapFn = fullfile(obj.defaultDir,thisMapFn);
                 memMap = matfile(mapFn,'Writable',true);
                 obj.indexedMovie.slice(iSl).channel(1).memMap = mapFn;
                 memMap.Y = zeros([movSize,0],'single');
