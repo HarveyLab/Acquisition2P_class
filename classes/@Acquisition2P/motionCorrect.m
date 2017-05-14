@@ -132,11 +132,7 @@ else
     eval([acqVarName ' = obj;'])
 end
 
-try
-    save(fullfile(obj.defaultDir, acqVarName), acqVarName)
-catch
-    save('-v7.3', fullfile(obj.defaultDir, acqVarName), acqVarName)
-end
+save(fullfile(obj.defaultDir, acqVarName), acqVarName, '-v7.3')
 
 display('Motion Correction Completed!')
 

@@ -85,8 +85,4 @@ end
 
 obj.defaultDir = destDir;
 eval([obj.acqName '= obj;']);
-try 
-    save(fullfile(destDir,obj.acqName),obj.acqName);
-catch
-    save('-v7.3', fullfile(destDir,obj.acqName),obj.acqName);
-end
+save(fullfile(destDir,obj.acqName),obj.acqName, '-v7.3');
