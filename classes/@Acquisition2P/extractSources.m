@@ -20,12 +20,12 @@ end
 
 % if useLocal
 %     tempDir = 'E:\memmaps\tmp';
-%     thisSliceDir = acq.indexedMovie.slice(nSlice).channel.fileName;
+%     thisSliceDir = acq.indexedMovie.slice(nSlice).channel(1).fileName;
 %     tempMovDir = fullfile(tempDir,'tempMov.bin');
 %     fprintf('\n Copying binary file to %s',tempDir),
 %     status = copyfile(thisSliceDir,tempMovDir,'f');
 %     if status
-%         acq.indexedMovie.slice(nSlice).channel.fileName = tempMovDir;
+%         acq.indexedMovie.slice(nSlice).channel(1).fileName = tempMovDir;
 %     else
 %         warning('Failure to copy data locally'),
 %     end
@@ -44,7 +44,7 @@ if isempty(acq.syncInfo) || ~isfield(acq.syncInfo, 'sliceFrames')
         blockEnd = find(theseMovs,1,'last');
         for thisSlice = 1:nSlices
             sliceFrames(nBlock,thisSlice) = ...
-                sum(acq.correctedMovies.slice(thisSlice).channel.size(1:blockEnd, 3));
+                sum(acq.correctedMovies.slice(thisSlice).channel(1).size(1:blockEnd, 3));
         end
         
         if nBlock > 1
@@ -66,6 +66,6 @@ end
 extractSourcesNMF(acq,nSlice,data,initImages);
 
 % if useLocal
-%     acq.indexedMovie.slice(nSlice).channel.fileName = thisSliceDir;
+%     acq.indexedMovie.slice(nSlice).channel(1).fileName = thisSliceDir;
 %     delete(tempMovDir),
 % end
