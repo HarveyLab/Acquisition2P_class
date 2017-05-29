@@ -56,12 +56,12 @@ for nSlice = 1:nSlices
             end
         end
         if doInd && ~isempty(obj.indexedMovie)
-            fprintf('\n Copying Indexed Movie'),
-            [movPath,movName,movExt] = fileparts(obj.indexedMovie.slice(nSlice).channel(nChannel).fileName);
+            fprintf('\n Copying Memory Map'),
+            [movPath,movName,movExt] = fileparts(obj.indexedMovie.slice(nSlice).channel(nChannel).memMap);
             movName = [movName movExt];
             newMovName = fullfile(destDir,movName);
             copyfile(fullfile(movPath,movName),newMovName);
-            obj.indexedMovie.slice(nSlice).channel(nChannel).fileName = newMovName;
+            obj.indexedMovie.slice(nSlice).channel(nChannel).memMap = newMovName;
         end
         if doCov && ~isempty(obj.roiInfo) && isfield(obj.roiInfo.slice(nSlice),'covFile')
             fprintf('\n Copying Pixel Covariance File\n'),

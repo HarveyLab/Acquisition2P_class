@@ -10,7 +10,8 @@ function [aligned, dpxAl, dpyAl, B] = doLucasKanadeSPMD(stackFull, ref, isGpu)
 
 % If not set explicitly, then use GPU if available:
 if ~exist('isGpu', 'var')
-    isGpu = gpuDeviceCount > 0;
+%     isGpu = gpuDeviceCount > 0;
+    isGpu = 0;
 end
 
 if isGpu && ~gpuDeviceCount
@@ -218,6 +219,7 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
         if max([dpx;dpy]) < absShiftThresh
             break
         end
+
         % no damping
 %         dpx = dpx + damping*dpx_;
 %         dpy = dpy + damping*dpy_;
