@@ -62,7 +62,7 @@ switch mode
         for i = 1:numel(movieList)
             movieList{i} = strrep(movieList{i}, ...
                 '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw', ...
-                '/n/data2/hms/neurobio/harvey/matthias/imaging/raw');
+                '/n/scratch2/mjm50');
             movieList{i} = strrep(movieList{i}, '\', '/');
         end
         acq.Movies = movieList;
