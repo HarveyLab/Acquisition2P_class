@@ -9,6 +9,13 @@ if ajp.debug
     return
 end
 
+% Ensure that default dir exists:
+if ~exist(ajp.currentAcq.defaultDir, 'dir')
+    mkdir(ajp.currentAcq.defaultDir);
+    msg = sprintf('Created default directory: %s', ajp.currentAcq.defaultDir);
+    ajp.log(msg);
+end
+
 % Motion correction:
 %check if motion correction already applied
 if isempty(ajp.currentAcq.shifts)
@@ -17,7 +24,7 @@ if isempty(ajp.currentAcq.shifts)
         % If we're on Orchestra, start parallel pool with correct
         % settings:
         if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('20:00'); % 20 hour
+            ClusterInfo.setWallTime('36:00'); % 20 hour
             ClusterInfo.setMemUsage('4000')
             ClusterInfo.setQueueName('mpi')
             parpool(12)
@@ -55,7 +62,7 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
             % If we're on Orchestra, start parallel pool with correct
             % settings:
             if isunix && ~isempty(gcp('nocreate'))
-                ClusterInfo.setWallTime('10:00');
+                ClusterInfo.setWallTime('20:00');
                 ClusterInfo.setMemUsage('12000')
                 ClusterInfo.setQueueName('mpi')
                 parpool(12)
@@ -91,7 +98,7 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
         % If we're on Orchestra, start parallel pool with correct
         % settings:
         if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('10:00');
+            ClusterInfo.setWallTime('20:00');
             ClusterInfo.setMemUsage('12000')
             ClusterInfo.setQueueName('mpi')
             parpool(12)
