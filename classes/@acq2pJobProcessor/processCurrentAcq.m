@@ -9,20 +9,11 @@ if ajp.debug
     return
 end
 
-%figure out pixel neighborhood
-neighborhoodConstant = 1.5;
-if isprop(ajp.currentAcq,'derivedData') && ~isempty(ajp.currentAcq.derivedData)...
-        && isfield(ajp.currentAcq.derivedData(1),'SIData')
-    if isfield(ajp.currentAcq.derivedData(1).SIData,'SI4')
-        objectiveMag = 25;
-        zoomFac = ajp.currentAcq.derivedData(1).SIData.SI4.scanZoomFactor;
-    elseif isfield(ajp.currentAcq.derivedData(1).SIData,'SI5')
-        objectiveMag = 16;
-        zoomFac = ajp.currentAcq.derivedData(1).SIData.SI5.zoomFactor;
-    end
-    pxCovRad = round(objectiveMag*zoomFac/neighborhoodConstant);
-else
-    pxCovRad = [];
+% Ensure that default dir exists:
+if ~exist(ajp.currentAcq.defaultDir, 'dir')
+    mkdir(ajp.currentAcq.defaultDir);
+    msg = sprintf('Created default directory: %s', ajp.currentAcq.defaultDir);
+    ajp.log(msg);
 end
 
 % Motion correction:
@@ -33,7 +24,7 @@ if isempty(ajp.currentAcq.shifts)
         % If we're on Orchestra, start parallel pool with correct
         % settings:
         if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('20:00'); % 20 hour
+            ClusterInfo.setWallTime('36:00'); % 20 hour
             ClusterInfo.setMemUsage('4000')
             ClusterInfo.setQueueName('mpi')
             parpool(12)
@@ -60,28 +51,6 @@ else
     ajp.log('Motion correction already performed. Skipping...');
 end
 
-% Save binary movie file:
-%check if binary movie file created already
-
-for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
-    if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_mov.bin'))) || ...
-            isempty(ajp.currentAcq.indexedMovie) || ...
-            nSlice > length(ajp.currentAcq.indexedMovie.slice)
-        try
-            ajp.log('Started creation of binary movie file.');
-            ajp.currentAcq.indexMovie(nSlice);
-            ajp.saveCurrentAcq;
-        catch err
-            msg = sprintf('Creation of binary movie file aborted with error: %s', err.message);
-            ajp.log(msg);
-            printStack(ajp, err.stack);
-            return
-        end
-    else
-        ajp.log('Binary movie already created. Skipping...');
-    end
-end
-
 % Perform NMF-based source extraction:
 for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
     if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_patchResults*.mat'))) ||...
@@ -93,13 +62,14 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
             % If we're on Orchestra, start parallel pool with correct
             % settings:
             if isunix && ~isempty(gcp('nocreate'))
-                ClusterInfo.setWallTime('10:00');
+                ClusterInfo.setWallTime('20:00');
                 ClusterInfo.setMemUsage('12000')
                 ClusterInfo.setQueueName('mpi')
                 parpool(12)
             end
             
             ajp.currentAcq.extractSources(nSlice);
+            update_temporal_components_fromTiff(ajp.currentAcq);
             ajp.saveCurrentAcq;
             
             % If we're on Orchestra, we should close the parallel pool to
@@ -128,7 +98,7 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
         % If we're on Orchestra, start parallel pool with correct
         % settings:
         if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('10:00');
+            ClusterInfo.setWallTime('20:00');
             ClusterInfo.setMemUsage('12000')
             ClusterInfo.setQueueName('mpi')
             parpool(12)
@@ -151,45 +121,9 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
 else
     ajp.log('NMF-source deconvolution already calculated. Skipping...');
 end
-    
-% Caclulate pixel covariance:
-%check if pixel covariance already calculated
-% if isempty(ajp.currentAcq.roiInfo) ...
-%         || (~isempty(pxCovRad) && ajp.currentAcq.roiInfo.slice(1).covFile.nh ~= (2*pxCovRad + 1))
-%     % ROI info does not exist or a different neighborhood size was
-%     % requested:
-%     try
-%         ajp.log('Started pixel covariance calculation.');
-%         
-%         % If we're on Orchestra, start parallel pool with correct
-%         % settings:
-%         if isunix && ~isempty(gcp('nocreate'))
-%             ClusterInfo.setWallTime('20:00'); % 20 hour
-%             ClusterInfo.setMemUsage('4000')
-%             ClusterInfo.setQueueName('mpi')
-%             parpool(12)
-%         end
-%         
-%         ajp.currentAcq.calcPxCov([],pxCovRad);
-%         ajp.saveCurrentAcq;
-%         
-%         % If we're on Orchestra, we should close the parallel pool to
-%         % reduce memory usage:
-%         if isunix
-%             poolobj = gcp('nocreate');
-%             delete(poolobj);
-%         end
-%     catch err
-%         msg = sprintf('Pixel covariance calculation aborted with error: %s', err.message);
-%         ajp.log(msg);
-%         printStack(ajp, err.stack);
-%     end
-% else
-%     ajp.log('Covariance already calculated. Skipping...');
-% end
 
 % Move acqFile to done folder:
-if ~exist(ajp.dir.done, 'dir');
+if ~exist(ajp.dir.done, 'dir')
     mkdir(ajp.dir.done);
 end
 movefile(fullfile(ajp.dir.inProgress, ajp.currentAcqFileName),...

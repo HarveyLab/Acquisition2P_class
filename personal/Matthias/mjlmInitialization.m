@@ -62,7 +62,7 @@ switch mode
         for i = 1:numel(movieList)
             movieList{i} = strrep(movieList{i}, ...
                 '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw', ...
-                '/n/data2/hms/neurobio/harvey/matthias/imaging/raw');
+                '/n/scratch2/mjm50');
             movieList{i} = strrep(movieList{i}, '\', '/');
         end
         acq.Movies = movieList;
@@ -90,7 +90,8 @@ switch host
     case 'tarynPc'
         dirProcessed = fullfile('\\taryn-pc\C\DATA\Matthias\imaging\processed', acqId);
     case 'orchestra'
-        dirProcessed = ['/n/data2/hms/neurobio/harvey/matthias/imaging/processed/', acqId, '/'];
+%         dirProcessed = ['/n/data2/hms/neurobio/harvey/matthias/imaging/processed/', acqId, '/'];
+        dirProcessed = ['/n/scratch2/mjm50/processed/', acqId, '/'];
     case 'manualPathWasGiven'
         dirProcessed = rawFileLocation; % Acq2p will create "corrected" folder.
         
@@ -104,7 +105,7 @@ end
 acq.defaultDir = dirProcessed;
 
 % Motion correction parameters:
-acq.motionCorrectionFunction = @withinFile_withinFrame_lucasKanade;
+acq.motionCorrectionFunction = @lucasKanade_plus_nonrigid_memMap;
 acq.motionRefMovNum = max(floor(length(acq.Movies)/2), 1);
 acq.motionRefChannel = 1;
 acq.binFactor = 1;

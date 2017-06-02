@@ -17,15 +17,14 @@ if isempty(acq.syncInfo) || ~isfield(acq.syncInfo, 'sliceFrames') || ~isfield(ac
 end
 
 % Do deconvolution:
-[dF,dF_denoised,dF_deconv,traceBs,traceGs,...
-    traceSNs,traceSnScales,A,b,f] = deconv_NMF(acq);
+[dF,deconv,denoised,Gs,Lams,A,b,f] = extractTraces_NMF(acq); %#ok<ASGLU>
 
 saveFile = fullfile(acq.defaultDir, ...
-    sprintf('%s_deconvResults.mat',acq.acqName));
+    sprintf('%s_deconvResults_v2.mat', acq.acqName));
 
 for i = 1:numel(acq.correctedMovies.slice)
     acq.roiInfo.slice(i).deconv.filename = saveFile;
 end
 
-save(saveFile,'dF','dF_denoised','dF_deconv','traceBs','traceGs','traceSNs', ...
-    'traceSnScales','A','b','f', '-v7.3')
+save(saveFile, 'dF', 'deconv', 'denoised', 'Gs', 'Lams', ...
+    'A','b','f', '-v7.3')

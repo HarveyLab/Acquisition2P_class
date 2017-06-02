@@ -11,7 +11,7 @@
 % and starts processing any acq2ps that it finds.
 
 % USAGE:
-myJobDir = 'C:\data\imaging\jobsToDo'; % User-defined directory containing unprocessed acq2p objects.
+myJobDir = 'Z:\HarveyLab\Selmaan\Behavior Imaging\AcqsToDo'; % User-defined directory containing unprocessed acq2p objects.
 ajp = acq2pJobProcessor(myJobDir);
 
 % HOW TO SUPPLY ACQ2P OBJECTS:
