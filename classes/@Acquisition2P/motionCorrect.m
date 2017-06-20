@@ -103,8 +103,8 @@ for movNum = movieOrder
             movFileName = feval(namingFunction,obj.acqName, nSlice, nChannel, movNum);
             obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{movNum} = fullfile(writeDir,movFileName);
             % Determine 3D-size of movie and store w/ fileNames
-            obj.correctedMovies.slice(nSlice).channel(nChannel).size(movNum,:) = ...
-                size(movStruct.slice(nSlice).channel(nChannel).mov);            
+            [h, w, z] = size(movStruct.slice(nSlice).channel(nChannel).mov);
+            obj.correctedMovies.slice(nSlice).channel(nChannel).size(movNum,:) = [h,w,z];           
             % Write corrected movie to disk
             fprintf('Writing Movie #%03.0f of #%03.0f\n',movNum,nMovies),
             try
