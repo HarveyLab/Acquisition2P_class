@@ -173,12 +173,14 @@ switch opMode
                 movSize = size(memMap,'Y');
                 framesOffset = size(memMap,'Yr',2);%movSize(3);
                 validFrames = 1:floor(z/memMap.dsRatio)*memMap.dsRatio;
-                thisMov = movStruct.slice(iSl).channel(iCh).mov;
-                dsMov = squeeze(mean(reshape(single(thisMov(:,:,validFrames)),...
-                    movSize(1), movSize(2), memMap.dsRatio, length(validFrames)/memMap.dsRatio),3));
-                theseFrames = framesOffset+(1:size(dsMov,3));
-                memMap.Y(:,:,theseFrames) = dsMov;
-                memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
+                if ~isempty(validFrames)
+                    thisMov = movStruct.slice(iSl).channel(iCh).mov;
+                    dsMov = squeeze(mean(reshape(single(thisMov(:,:,validFrames)),...
+                        movSize(1), movSize(2), memMap.dsRatio, length(validFrames)/memMap.dsRatio),3));
+                    theseFrames = framesOffset+(1:size(dsMov,3));
+                    memMap.Y(:,:,theseFrames) = dsMov;
+                    memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
+                end
 
             end
         end
