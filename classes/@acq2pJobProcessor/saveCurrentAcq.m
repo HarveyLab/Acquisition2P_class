@@ -24,3 +24,12 @@ catch err
     ajp.log(msg);
     printStack(ajp, err.stack);
 end
+end
+
+function printStack(ajp, stack)
+% Prints the whole error stack to log file:
+for ii = 1:numel(stack)
+    msg = sprintf('ERROR\t%d\t%s', stack(ii).line, stack(ii).file);
+    ajp.log(msg);
+end
+end

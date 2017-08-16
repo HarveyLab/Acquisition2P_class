@@ -4,12 +4,12 @@ Initialize a batch of sessions for processing using Acq2p.
 
 %% Get session list:
 dirRaw = '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw';
-mouse = 'MM112';
+mouse = 'MM109';
 snList = dir(fullfile(dirRaw, mouse, 'MM*'));
 snList = snList([snList.isdir]==1);
 
 %% Initialize:
-for i = 1:numel(snList)
+parfor i = 1:numel(snList)
     try
         tiffList = dir(fullfile(dirRaw, mouse, snList(i).name, '*maIn*.tif'));
         snId = tiffList(1).name(1:end-16);

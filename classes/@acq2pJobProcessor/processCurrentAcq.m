@@ -23,7 +23,16 @@ if isempty(ajp.currentAcq.shifts)
 	
         % If we're on Orchestra, start parallel pool with correct
         % settings:
-        if isunix && ~isempty(gcp('nocreate'))
+        if isunix
+            % Shut down existing pool:
+            delete(gcp('nocreate'));
+            
+            % NOTE that ClusterInfo settings are global for all jobs of an Orchestra user!
+            % This means that there can be cross-talk between these settings. If another 
+            % job changes them while this script here is in the process of starting the 
+            % pool, the new settings might be used. To avoid this, make sure to start jobs
+            % one at a time and wait until the parallel pool is started before staring the 
+            % next job.
             ClusterInfo.setWallTime('36:00'); % 20 hour
             ClusterInfo.setMemUsage('4000')
             ClusterInfo.setQueueName('mpi')
@@ -61,8 +70,11 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
             
             % If we're on Orchestra, start parallel pool with correct
             % settings:
-            if isunix && ~isempty(gcp('nocreate'))
-                ClusterInfo.setWallTime('20:00');
+            if isunix
+                % Shut down existing pool:
+                delete(gcp('nocreate'));
+            
+                ClusterInfo.setWallTime('30:00');
                 ClusterInfo.setMemUsage('12000')
                 ClusterInfo.setQueueName('mpi')
                 parpool(12)
@@ -97,8 +109,11 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
         
         % If we're on Orchestra, start parallel pool with correct
         % settings:
-        if isunix && ~isempty(gcp('nocreate'))
-            ClusterInfo.setWallTime('20:00');
+        if isunix
+            % Shut down existing pool:
+            delete(gcp('nocreate'));
+            
+            ClusterInfo.setWallTime('10:00');
             ClusterInfo.setMemUsage('12000')
             ClusterInfo.setQueueName('mpi')
             parpool(12)
