@@ -167,19 +167,21 @@ switch opMode
                 obj.derivedData(movNum).meanRef.slice(iSl).channel(iCh).img = ...
                     nanmean(movStruct.slice(iSl).channel(iCh).mov, 3);
                 
-                % Downsample data and save to memmap
-                memMap = matfile(...
-                    obj.indexedMovie.slice(iSl).channel(1).memMap,'Writable',true);
-                movSize = size(memMap,'Y');
-                framesOffset = size(memMap,'Yr',2);%movSize(3);
-                validFrames = 1:floor(z/memMap.dsRatio)*memMap.dsRatio;
-                if ~isempty(validFrames)
-                    thisMov = movStruct.slice(iSl).channel(iCh).mov;
-                    dsMov = squeeze(mean(reshape(single(thisMov(:,:,validFrames)),...
-                        movSize(1), movSize(2), memMap.dsRatio, length(validFrames)/memMap.dsRatio),3));
-                    theseFrames = framesOffset+(1:size(dsMov,3));
-                    memMap.Y(:,:,theseFrames) = dsMov;
-                    memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
+                % Downsample data and save to memmap, for 1st channel only
+                if iCh==1
+                    memMap = matfile(...
+                        obj.indexedMovie.slice(iSl).channel(1).memMap,'Writable',true);
+                    movSize = size(memMap,'Y');
+                    framesOffset = size(memMap,'Yr',2);%movSize(3);
+                    validFrames = 1:floor(z/memMap.dsRatio)*memMap.dsRatio;
+                    if ~isempty(validFrames)
+                        thisMov = movStruct.slice(iSl).channel(iCh).mov;
+                        dsMov = squeeze(mean(reshape(single(thisMov(:,:,validFrames)),...
+                            movSize(1), movSize(2), memMap.dsRatio, length(validFrames)/memMap.dsRatio),3));
+                        theseFrames = framesOffset+(1:size(dsMov,3));
+                        memMap.Y(:,:,theseFrames) = dsMov;
+                        memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
+                    end
                 end
 
             end
