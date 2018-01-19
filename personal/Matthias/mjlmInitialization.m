@@ -32,7 +32,9 @@ fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, nu
 function init(acq, acqId, rawFileLocation)
 % Add remote files:
 
-if ~isempty(strfind(rawFileLocation, 'jobsToDoOrchestra'))
+if contains(rawFileLocation, 'jobsToDoOrchestraAnna')
+    mode = 'jobsToDoOrchestraAnna';
+elseif contains(rawFileLocation, 'jobsToDoOrchestra')
     mode = 'jobsToDoOrchestra';
 else
     mode = rawFileLocation;
@@ -63,6 +65,32 @@ switch mode
             movieList{i} = strrep(movieList{i}, ...
                 '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Matthias\data\imaging\raw', ...
                 '/n/scratch2/mjm50');
+            movieList{i} = strrep(movieList{i}, '\', '/');
+        end
+        acq.Movies = movieList;
+        host = 'orchestra';
+        
+    case 'jobsToDoOrchestraAnna'
+        % For orchestra, get the file paths from the server but then change
+        % them to the orchestra paths:
+        folderId = strsplit(acqId, '_');
+        folderId = [folderId{1},  '_', folderId{2}]; % Anna's acqs can have a FOV field in the name, so cut that off.
+        movieList = improc.findFiles(folderId, '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Tier1\Anna\Imaging\raw', 0, [], 1);
+        
+        % Sanitize list:
+        isBad = false(size(movieList));
+        for i = 1:numel(movieList)
+            isBad(i) = isBad(i) | ~isempty(strfind(movieList{i}, 'overview'));
+            isBad(i) = isBad(i) | isempty(strfind(movieList{i}, '.tif'));
+        end
+        
+        movieList = movieList(~isBad);
+        
+        % Replace server path with Orchestra scratch:
+        for i = 1:numel(movieList)
+            movieList{i} = strrep(movieList{i}, ...
+                '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Tier1\Anna\Imaging\raw', ...
+                '/n/scratch2/mjm50/raw');
             movieList{i} = strrep(movieList{i}, '\', '/');
         end
         acq.Movies = movieList;
