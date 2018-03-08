@@ -27,15 +27,25 @@ if isempty(ajp.currentAcq.shifts)
             % Shut down existing pool:
             delete(gcp('nocreate'));
             
-            % NOTE that ClusterInfo settings are global for all jobs of an Orchestra user!
-            % This means that there can be cross-talk between these settings. If another 
-            % job changes them while this script here is in the process of starting the 
-            % pool, the new settings might be used. To avoid this, make sure to start jobs
-            % one at a time and wait until the parallel pool is started before staring the 
-            % next job.
-            ClusterInfo.setWallTime('36:00'); % 20 hour
-            ClusterInfo.setMemUsage('4000')
-            ClusterInfo.setQueueName('mpi')
+            if verLessThan('matlab', '9.2') % Matlab < 2017a
+                % NOTE that ClusterInfo settings are global for all jobs of an Orchestra user!
+                % This means that there can be cross-talk between these settings. If another 
+                % job changes them while this script here is in the process of starting the 
+                % pool, the new settings might be used. To avoid this, make sure to start jobs
+                % one at a time and wait until the parallel pool is started before staring the 
+                % next job.
+                ClusterInfo.setWallTime('36:00'); % 20 hour
+                ClusterInfo.setMemUsage('4000')
+                ClusterInfo.setQueueName('mpi')
+            else
+                % Newer versions use a different syntax (on O2). See https://wiki.rc.hms.harvard.edu:8443/display/O2/Matlab+Parallel+jobs+using+the+custom+O2+cluster+profile
+                c = parcluster;
+                c.AdditionalProperties.WallTime = '36:00:00';
+                c.AdditionalProperties.QueueName = 'mpi';
+                c.AdditionalProperties.AdditionalSubmitArgs = '--mem-per-cpu=4G';
+                c.saveProfile
+            end
+            
             parpool(12)
         end
 	
@@ -73,10 +83,18 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
             if isunix
                 % Shut down existing pool:
                 delete(gcp('nocreate'));
-            
-                ClusterInfo.setWallTime('30:00');
-                ClusterInfo.setMemUsage('12000')
-                ClusterInfo.setQueueName('mpi')
+                if verLessThan('matlab', '9.2') % Matlab < 2017a
+                    ClusterInfo.setWallTime('40:00'); % 20 hour
+                    ClusterInfo.setMemUsage('12000')
+                    ClusterInfo.setQueueName('mpi')
+                else
+                    % Newer versions use a different syntax (on O2). See https://wiki.rc.hms.harvard.edu:8443/display/O2/Matlab+Parallel+jobs+using+the+custom+O2+cluster+profile
+                    c = parcluster;
+                    c.AdditionalProperties.WallTime = '40:00:00';
+                    c.AdditionalProperties.QueueName = 'mpi';
+                    c.AdditionalProperties.AdditionalSubmitArgs = '--mem-per-cpu=12G';
+                    c.saveProfile
+                end
                 parpool(12)
             end
             
@@ -112,10 +130,18 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
         if isunix
             % Shut down existing pool:
             delete(gcp('nocreate'));
-            
-            ClusterInfo.setWallTime('10:00');
-            ClusterInfo.setMemUsage('12000')
-            ClusterInfo.setQueueName('mpi')
+            if verLessThan('matlab', '9.2') % Matlab < 2017a
+                ClusterInfo.setWallTime('10:00'); % 20 hour
+                ClusterInfo.setMemUsage('12000')
+                ClusterInfo.setQueueName('mpi')
+            else
+                % Newer versions use a different syntax (on O2). See https://wiki.rc.hms.harvard.edu:8443/display/O2/Matlab+Parallel+jobs+using+the+custom+O2+cluster+profile
+                c = parcluster;
+                c.AdditionalProperties.WallTime = '10:00:00';
+                c.AdditionalProperties.QueueName = 'mpi';
+                c.AdditionalProperties.AdditionalSubmitArgs = '--mem-per-cpu=12G';
+                c.saveProfile
+            end
             parpool(12)
         end
         
