@@ -27,7 +27,14 @@ if exist('rawFileLocation', 'var')
     save(fullfile(rawFileLocation, acq.acqName), 'acq');
 end
 
-fprintf('Successfully created acquisition %s with %d movies.\n', acq.acqName, numel(acq.Movies));
+% Find first and last file to detect spurious files:
+list = sort(acq.Movies);
+for i = 1:numel(list)
+    [~, list{i}, ~] = fileparts(list{i});
+end
+
+fprintf('Successfully created acquisition %s with %d movies.\t(%s to %s)\n', ...
+    acq.acqName, numel(acq.Movies), list{1}, list{end});
 
 function init(acq, acqId, rawFileLocation)
 % Add remote files:
@@ -73,14 +80,20 @@ switch mode
     case 'jobsToDoOrchestraAnna'
         % For orchestra, get the file paths from the server but then change
         % them to the orchestra paths:
-        folderId = strsplit(acqId, '_');
-        folderId = [folderId{1},  '_', folderId{2}]; % Anna's acqs can have a FOV field in the name, so cut that off.
-        movieList = improc.findFiles(folderId, '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Tier1\Anna\Imaging\raw', 0, [], 1);
+%         folderId = strsplit(acqId, '_');
+%         folderId = [folderId{1},  '_', folderId{2}]; % Anna's acqs can have a FOV field in the name, so cut that off.
+
+        % Hack: add underscore to make sure we're not matching FOVs that
+        % start with the same string:
+        acqIdMod = [acqId, '_'];
+        movieList = improc.findFiles(acqIdMod, '\\research.files.med.harvard.edu\Neurobio\HarveyLab\Tier1\Anna\Imaging\raw', 0, [], 1);
         
         % Sanitize list:
         isBad = false(size(movieList));
         for i = 1:numel(movieList)
             isBad(i) = isBad(i) | ~isempty(strfind(movieList{i}, 'overview'));
+            isBad(i) = isBad(i) | ~isempty(strfind(movieList{i}, 'AVG'));
+            isBad(i) = isBad(i) | ~isempty(strfind(movieList{i}, 'stack'));
             isBad(i) = isBad(i) | isempty(strfind(movieList{i}, '.tif'));
         end
         
