@@ -46,7 +46,7 @@ if isempty(ajp.currentAcq.shifts)
                 c.saveProfile
             end
             
-            parpool(12)
+            parpool(12, 'IdleTimeout', 12 * 60)
         end
 	
         ajp.log('Started motion correction.');
@@ -84,18 +84,18 @@ for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
                 % Shut down existing pool:
                 delete(gcp('nocreate'));
                 if verLessThan('matlab', '9.2') % Matlab < 2017a
-                    ClusterInfo.setWallTime('40:00'); % 20 hour
+                    ClusterInfo.setWallTime('12:00'); % 20 hour
                     ClusterInfo.setMemUsage('12000')
                     ClusterInfo.setQueueName('mpi')
                 else
                     % Newer versions use a different syntax (on O2). See https://wiki.rc.hms.harvard.edu:8443/display/O2/Matlab+Parallel+jobs+using+the+custom+O2+cluster+profile
                     c = parcluster;
-                    c.AdditionalProperties.WallTime = '40:00:00';
+                    c.AdditionalProperties.WallTime = '12:00:00';
                     c.AdditionalProperties.QueueName = 'mpi';
                     c.AdditionalProperties.AdditionalSubmitArgs = '--mem-per-cpu=12G';
                     c.saveProfile
                 end
-                parpool(12)
+                parpool(12, 'IdleTimeout', 12 * 60)
             end
             
             ajp.currentAcq.extractSources(nSlice);
@@ -142,7 +142,7 @@ if isempty(dir(fullfile(ajp.currentAcq.defaultDir, '*_deconvResults.mat')))
                 c.AdditionalProperties.AdditionalSubmitArgs = '--mem-per-cpu=12G';
                 c.saveProfile
             end
-            parpool(12)
+            parpool(12, 'IdleTimeout', 12 * 60)
         end
         
         ajp.currentAcq.deconvNmf;
