@@ -178,8 +178,10 @@ switch opMode
                     dsMov = squeeze(mean(reshape(single(thisMov(:,:,validFrames)),...
                         movSize(1), movSize(2), memMap.dsRatio, length(validFrames)/memMap.dsRatio),3));
                     theseFrames = framesOffset+(1:size(dsMov,3));
-                    memMap.Y(:,:,theseFrames) = dsMov;
-                    memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
+                    if ~isempty(theseFrames)
+                        memMap.Y(:,:,theseFrames) = dsMov;
+                        memMap.Yr(:,theseFrames) = reshape(dsMov,prod(movSize(1:2)),size(dsMov,3));
+                    end
                     fprintf('Saving to memmap took %1.1f seconds.\n', toc(tStart));
                 end
             end
