@@ -20,7 +20,7 @@ end
 [dF,deconv,denoised,Gs,Lams,A,b,f] = extractTraces_NMF(acq); %#ok<ASGLU>
 
 saveFile = fullfile(acq.defaultDir, ...
-    sprintf('%s_deconvResults_v2.mat', acq.acqName));
+    sprintf('%s_deconvResults_v180318.mat', acq.acqName));
 
 for i = 1:numel(acq.correctedMovies.slice)
     acq.roiInfo.slice(i).deconv.filename = saveFile;
