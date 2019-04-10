@@ -177,7 +177,7 @@ function [Id, dpx, dpy, ii] = doLucasKanade_singleFrame(...
     warning('off','fastBSpline:nomex');
     maxIters = 50;
     deltacorr = 5e-4;
-    absShiftThresh = 1/3;
+    absShiftThresh = 1/5;
     [~, w] = size(T);
     
     %Find optimal image warp via Lucas Kanade    
