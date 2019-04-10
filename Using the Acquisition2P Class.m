@@ -45,7 +45,8 @@
 % initialization automatically assign the variable ensures that the
 % object's internal name matches its matlab variable name. 
 
-Acquisition2P([],@initSC);
+Acquisition2P([],@initSC); %this returns a *handle* to the object, i.e. all edits to any copy of this var apply to all versions
+
 
 % The Acquisition2P constructer has a series of error checks to ensure that
 % necessary properties are not left blank by accident. Practically, this
@@ -80,9 +81,9 @@ Acquisition2P([],@initSC);
 % the data
 
 % Note, I can't predict the name of your acquisition object, so instead I'm
-% going to write 'myObj', and just replace this with...the name of your acquisition2p obj...
+% going to write 'obj', and just replace this with...the name of your acquisition2p obj...
 
-myObj.motionCorrect;
+obj.motionCorrect;
 
 % Note: an important assumption of the software is that data from
 % acquisitions are split into multiple smaller files, so that we can
@@ -104,13 +105,18 @@ myObj.motionCorrect;
 movNum = 2;
 castType = 'single';
 sliceNum = 1;
-channelNum = myObj.motionRefChannel;
-mov = readCor(myObj,movNum,castType,sliceNum,channelNum);
-rawMov = readRaw(myObj,movNum,castType);
+channelNum = obj.motionRefChannel;
+mov = readCor(obj,movNum,castType,sliceNum,channelNum);
+rawMov = readRaw(obj,movNum,castType);
 implay(cat(2,mov,rawMov)/1e3,30),
 
 % help Acquisition2P.readCor
 % help Acquisition2P.readRaw
+
+% Acq2P uses a super efficient tiff reading utility provided by the
+% scanimage team. This reader is called by a light wrapper function
+% 'tiffRead'. In the future, it's possible this func will need to be
+% updated, but it works on most systems as tested on April 2019.
 
 %% Further utilities
 
@@ -135,3 +141,7 @@ acq2server(obj,fileDestination,rawTransfer)
 % use:
 [avgMov, dFmov] = eventTriggeredMovie(obj,avgMovFrames,nSlice,nChannel)
 
+% Acq2P objects have an overloaded 'save' function to save an object from workspace.
+% to disk. The object is automatically saved after motionCorrection, or
+% after file transfer when using the 'newDir' method, but it can be
+% manually called when needed:
