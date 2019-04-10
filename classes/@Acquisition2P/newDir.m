@@ -55,7 +55,7 @@ for nSlice = 1:nSlices
                 obj.correctedMovies.slice(nSlice).channel(nChannel).fileName{nFile} = newMovName;
             end
         end
-        if doInd && ~isempty(obj.indexedMovie)
+        if doInd && ~isempty(obj.indexedMovie) && nChannel<=length(obj.indexedMovie.slice(nSlice).channel)
             fprintf('\n Copying Memory Map'),
             [movPath,movName,movExt] = fileparts(obj.indexedMovie.slice(nSlice).channel(nChannel).memMap);
             movName = [movName movExt];
@@ -85,4 +85,4 @@ end
 
 obj.defaultDir = destDir;
 eval([obj.acqName '= obj;']);
-save(fullfile(destDir,obj.acqName),obj.acqName);
+save(fullfile(destDir,obj.acqName),obj.acqName, '-v7.3');

@@ -28,6 +28,6 @@ else
 end
 
 eval([varName ' = obj;']),
-save(fullfile(writeDir,writeName),varName)
+save(fullfile(writeDir,writeName),varName,'-v7.3')
 
 end

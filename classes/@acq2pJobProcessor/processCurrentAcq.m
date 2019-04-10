@@ -122,6 +122,45 @@ else
     ajp.log('NMF-source deconvolution already calculated. Skipping...');
 end
 
+% Perform NMF-based source extraction:
+% for nSlice = 1:length(ajp.currentAcq.correctedMovies.slice)
+%     if isempty(ajp.currentAcq.roiInfo) || ...
+%             nSlice > length(ajp.currentAcq.roiInfo.slice)
+%         try
+%             ajp.log('Started NMF Source Extraction');
+%             
+%             % If we're on Orchestra, start parallel pool with correct
+%             % settings:
+%             if isunix && ~isempty(gcp('nocreate'))
+%                 ClusterInfo.setWallTime('10:00');
+%                 ClusterInfo.setMemUsage('12000')
+%                 ClusterInfo.setQueueName('mpi')
+%                 parpool(12)
+%             end
+%             
+%             ajp.currentAcq.extractSources(nSlice);
+%             update_temporal_components_fromTiff(ajp.currentAcq);
+%             ajp.saveCurrentAcq;
+%             
+%             % If we're on Orchestra, we should close the parallel pool to
+%             % reduce memory usage:
+%             if isunix
+%                 poolobj = gcp('nocreate');
+%                 delete(poolobj);
+%             end
+%             
+%         catch err
+%             msg = sprintf('NMF Source Extraction aborted with error: %s', err.message);
+%             ajp.log(msg);
+%             printStack(ajp, err.stack);
+%             return
+%         end
+%     else
+%         ajp.log('NMF Source Extraction already completed. Skipping...');
+%     end
+% end
+
+
 % Move acqFile to done folder:
 if ~exist(ajp.dir.done, 'dir')
     mkdir(ajp.dir.done);
