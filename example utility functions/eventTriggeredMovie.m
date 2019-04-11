@@ -28,8 +28,8 @@ end
 
 fprintf('\n Pre-Determining Frame-Bin Memberships...'),
 masterFrameMember = false(length(allFrames),length(avgMovFrames));
-parfor i = 1:length(avgMovFrames)
-    masterFrameMember(:,i) = any(allFrames == avgMovFrames{i}(:)',2);
+for i = 1:length(avgMovFrames)
+    masterFrameMember(:,i) = any(allFrames(:) == avgMovFrames{i}(:)',2);
 end
 fprintf('DONE! \n'),
 
