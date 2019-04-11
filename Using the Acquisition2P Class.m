@@ -145,3 +145,4 @@ acq2server(obj,fileDestination,rawTransfer)
 % to disk. The object is automatically saved after motionCorrection, or
 % after file transfer when using the 'newDir' method, but it can be
 % manually called when needed:
+obj.save,
