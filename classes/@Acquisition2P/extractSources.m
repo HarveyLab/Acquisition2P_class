@@ -26,7 +26,7 @@ if isempty(acq.syncInfo) || ~isfield(acq.syncInfo, 'sliceFrames')
         blockEnd = find(theseMovs,1,'last');
         for thisSlice = 1:nSlices
             sliceFrames(nBlock,thisSlice) = ...
-                sum(acq.correctedMovies.slice(thisSlice).channel.size(1:blockEnd, 3));
+                sum(acq.correctedMovies.slice(thisSlice).channel(1).size(1:blockEnd, 3)); % AJ: fixed channel # 3/29/19
         end
         
         if nBlock > 1
