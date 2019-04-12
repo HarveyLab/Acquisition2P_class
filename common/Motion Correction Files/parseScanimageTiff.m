@@ -1,9 +1,8 @@
 function [movStruct, nSlices, nChannels] = parseScanimageTiff(mov, siStruct)
 
 % Check for scanimage version before extracting metainformation
-if isfield(siStruct, 'VERSION_MAJOR') && ...
-        (strcmp(siStruct.VERSION_MAJOR, '2016') || strcmp(siStruct.VERSION_MAJOR, '2016b'))
-    % SI2016 tiff that was loaded using the new SI tiff reader:
+if isfield(siStruct, 'VERSION_MAJOR')
+    % SI2016 or later tiff that was loaded using the new SI tiff reader:
     fZ              = siStruct.hFastZ.enable;
     nChannels       = numel(siStruct.hChannels.channelSave);
     if fZ
